@@ -57,13 +57,13 @@ def main(config):
     select distinct
     sha1(coalesce(`ADDRESS`, '') || coalesce(`CITY`,'') || coalesce(`STATE`,'') || coalesce(`ZIP`, '')) as k_location
    ,`ADDRESS` as s_address_1
-   ,NULL::STRING as s_address_2
+   ,cast(NULL as STRING) as s_address_2
    ,`CITY` as s_city
    ,`STATE` as s_state
    ,`ZIP` as s_zip
    ,`COUNTY` as s_county
    ,'U.S.A.' as s_country
-   ,NULL::STRING as s_location_name
+   ,cast(NULL as STRING) as s_location_name
    ,`LAT` as s_latitude
    ,`LON` as s_longitude
 from patients p
