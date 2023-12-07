@@ -1,0 +1,6 @@
+{
+  "base_path": "/mnt/data_hf/synthea/covid19/10K/",
+  "file_type": "csv",
+  "csv_extension": ".csv",
+  "prepared_source_output_location": "/mnt/data_hf/synthea/covid19/10K/"
+}

@@ -1,0 +1,3 @@
+s_gender,m_gender,m_gender_code,m_gender_code_type,m_gender_code_type_oid
+F,Female,F,Administrative sex (HL7),2.16.840.1.113883.12.1
+M,Male,M,Administrative sex (HL7),2.16.840.1.113883.12.1

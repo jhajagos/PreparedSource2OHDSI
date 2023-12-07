@@ -1,0 +1,5 @@
+s_race,m_race,m_race_code,m_race_code_type,m_race_code_type_oid
+asian,Asian,2,Race,ohdsi.race
+black,Black,3.01,Race,ohdsi.race
+native,American Indian or Alaska Native,1,Race,ohdsi.race
+white,White,5,Race,ohdsi.race

@@ -1,0 +1,11 @@
+s_payer,m_payer,m_payer_code,m_payer_code_type,m_payer_code_type_oid
+Aetna,Private Health Insurance,5,SOPT,nahdo.sopt
+Anthem,Private Health Insurance,5,SOPT,nahdo.sopt
+Blue Cross Blue Shield,Blue Cross/Blue Shield,6,SOPT,nahdo.sopt
+Cigna Health,Private Health Insurance,5,SOPT,nahdo.sopt
+Dual Eligible,Dual Eligibility Medicare/Medicaid,14,SOPT,nahdo.sopt
+Humana,Private Health Insurance,5,SOPT,nahdo.sopt
+Medicaid,Medicaid,2,SOPT,nahdo.sopt
+Medicare,Medicare,1,SOPT,nahdo.sopt
+NO_INSURANCE,Self-pay,81,SOPT,nahdo.sopt
+UnitedHealthcare,Private Health Insurance,5,SOPT,nahdo.sopt

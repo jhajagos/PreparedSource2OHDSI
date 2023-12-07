@@ -1,0 +1,7 @@
+s_visit_type,m_visit_type,m_visit_type_code,m_visit_type_code_type,m_visit_type_code_type_oid
+ambulatory,Outpatient Visit,OP,Visit,ohdsi.visit
+emergency,Emergency Room Visit,ER,Visit,ohdsi.visit
+inpatient,Inpatient Visit,IP,Visit,ohdsi.visit
+outpatient,Outpatient Visit,OP,Visit,ohdsi.visit
+urgentcare,Outpatient Visit,OP,Visit,ohdsi.visit
+wellness,Outpatient Visit,OP,Visit,ohdsi.visit

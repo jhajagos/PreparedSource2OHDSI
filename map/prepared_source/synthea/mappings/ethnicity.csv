@@ -1,0 +1,3 @@
+s_ethnicity,m_ethnicity,m_ethnicity_code,m_ethnicity_code_type,m_ethnicity_code_type_oid
+hispanic,Hispanic or Latino,Hispanic,Ethnicity,ohdsi.ethnicity
+nonhispanic,Not Hispanic or Latino,Not Hispanic,Ethnicity,ohdsi.ethnicity
