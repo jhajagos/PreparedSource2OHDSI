@@ -1,0 +1,4 @@
+.idea
+build/
+dist/
+src/preparedsource2ohdsi.egg-info/
