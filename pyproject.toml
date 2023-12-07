@@ -1,0 +1,22 @@
+[project]
+name = "preparedsource2ohdsi"
+description = "Library for supporting mapping and staging data to OHDSI"
+version = "0.1.1"
+authors = [{name = "Janos Hajagos", email = "janos.hajagos@stonybrook.edu"}]
+
+dependencies = ["pyspark", "pandas"]
+requires-python = ">=3.7"
+
+[project.optional-dependencies]
+dev = [
+    "sqlalchemy",
+    "sqltemplate",
+    "requests"
+]
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
