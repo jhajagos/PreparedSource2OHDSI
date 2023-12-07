@@ -82,40 +82,40 @@ from patients p
     select
     p.`Id` as s_person_id --Source identifier for patient or person
    ,p.`GENDER` as s_gender --Source gender description
-   ,NULL::STRING as s_gender_code --Source gender code
-   ,NULL::STRING as s_gender_code_type --Source gender code type (human readable & OPTIONAL)
-   ,NULL::STRING as s_gender_code_type_oid --Source gender code type specified by OID (used in OHDSI mapping)
+   ,cast(NULL as STRING) as s_gender_code --Source gender code
+   ,cast(NULL as STRING) as s_gender_code_type --Source gender code type (human readable & OPTIONAL)
+   ,cast(NULL as STRING) as s_gender_code_type_oid --Source gender code type specified by OID (used in OHDSI mapping)
    ,gm.m_gender --Mapped by ETL gender description
    ,gm.m_gender_code --Mapped by ETL gender code (See: https://phinvads.cdc.gov/vads/ViewCodeSystem.action?id=2.16.840.1.113883.12.1)
    ,gm.m_gender_code_type --Mapped by ETL gender code type
    ,gm.m_gender_code_type_oid --Mapped by ETL gender code type by OID (Gender 2.16.840.1.113883.12.1)
    ,p.`BIRTHDATE` as s_birth_datetime
    ,p.`DEATHDATE` as s_death_datetime
-   ,NULL::STRING as m_death_source
-   ,NULL::STRING as m_death_source_code
-   ,NULL::STRING as m_death_source_code_type
-   ,NULL::STRING as m_death_source_code_type_oid
+   ,cast(NULL as STRING) as m_death_source
+   ,cast(NULL as STRING) as m_death_source_code
+   ,cast(NULL as STRING) as m_death_source_code_type
+   ,cast(NULL as STRING) as m_death_source_code_type_oid
    ,p.`RACE` as s_race --Source race (Black, white, etc) description
-   ,NULL::STRING as s_race_code --Source race code
-   ,NULL::STRING as s_race_code_type --Source race code type (human readable & OPTIONAL)
-   ,NULL::STRING as s_race_code_type_oid
+   ,cast(NULL as STRING) as s_race_code --Source race code
+   ,cast(NULL as STRING) as s_race_code_type --Source race code type (human readable & OPTIONAL)
+   ,cast(NULL as STRING) as s_race_code_type_oid
    ,rm.m_race
    ,rm.m_race_code --See: https://athena.ohdsi.org/search-terms/terms?domain=Race&standardConcept=Standard&page=1&pageSize=15&query=
    ,rm.m_race_code_type
    ,rm.m_race_code_type_oid --Use 'ohdsi.race' for OHDSI standard race codes
    ,p.`ETHNICITY` as s_ethnicity --Source ethnicity description (Hispanic, Not Hispanic)
-   ,NULL::STRING as s_ethnicity_code --Source ethnicity code
-   ,NULL::STRING as s_ethnicity_code_type --Source gender code type (human readable & OPTIONAL)
-   ,NULL::STRING as s_ethnicity_code_type_oid --Source ethnicity code type specified by OID (used in OHDSI mapping)
+   ,cast(NULL as STRING) as s_ethnicity_code --Source ethnicity code
+   ,cast(NULL as STRING) as s_ethnicity_code_type --Source gender code type (human readable & OPTIONAL)
+   ,cast(NULL as STRING) as s_ethnicity_code_type_oid --Source ethnicity code type specified by OID (used in OHDSI mapping)
    ,em.m_ethnicity
    ,em.m_ethnicity_code --See: https://athena.ohdsi.org/search-terms/terms?domain=Ethnicity&standardConcept=Standard&page=1&pageSize=15&query=
    ,em.m_ethnicity_code_type
    ,em.m_ethnicity_code_type_oid --Use 'ohdsi.ethnicity' for standard OHDSI ethnicity codes
    ,sha1(coalesce(`ADDRESS`, '') || coalesce(`CITY`,'') || coalesce(`STATE`,'') || coalesce(`ZIP`, '')) as k_location --Key value to location in source_location table
-   ,NULL::STRING as i_exclude --Value of 1 instructs the mapper to skip the row
-   ,NULL::STRING as s_id --Row source identifier
+   ,cast(NULL as STRING) as i_exclude --Value of 1 instructs the mapper to skip the row
+   ,cast(NULL as STRING) as s_id --Row source identifier
    ,'synthea' as s_source_system --Source system row was extracted from
-   ,NULL::STRING as m_source_system --Mapped source system the row was extracted from
+   ,cast(NULL as STRING) as m_source_system --Mapped source system the row was extracted from
 from patients p
     left outer join race_mapping rm on p.`RACE` = rm.s_race
     left outer join ethnicity_mapping em on p.`ETHNICITY` = em.s_ethnicity
@@ -137,7 +137,7 @@ from patients p
     select
     `Id` as k_provider
    ,`NAME` as s_provider_name
-   ,NULL::STRING as s_npi
+   ,cast(NULL as STRING) as s_npi
 from providers
     """
 
@@ -157,9 +157,9 @@ from providers
    ,`START` as s_visit_start_datetime
    ,`STOP` as s_visit_end_datetime
    ,`ENCOUNTERCLASS` as s_visit_type
-   ,NULL::STRING as s_visit_type_code
-   ,NULL::STRING as s_visit_type_code_type
-   ,NULL::STRING as s_visit_type_code_type_oid
+   ,cast(NULL as STRING) as s_visit_type_code
+   ,cast(NULL as STRING) as s_visit_type_code_type
+   ,cast(NULL as STRING) as s_visit_type_code_type_oid
    ,vtm.m_visit_type
    ,vtm.m_visit_type_code
    ,vtm.m_visit_type_code_type
@@ -168,28 +168,28 @@ from providers
    ,'OMOP4976900' as m_visit_source_code
    ,'Type' as m_visit_source_code_type
    ,'ohdsi.type_concept' as m_visit_source_code_type_oid
-   ,NULL::STRING as s_discharge_to
-   ,NULL::STRING as s_discharge_to_code
-   ,NULL::STRING as s_discharge_to_code_type
-   ,NULL::STRING as s_discharge_to_code_type_oid
-   ,NULL::STRING as m_discharge_to
-   ,NULL::STRING as m_discharge_to_code
-   ,NULL::STRING as m_discharge_to_code_type
-   ,NULL::STRING as m_discharge_to_code_type_oid
-   ,NULL::STRING as s_admitting_source
-   ,NULL::STRING as s_admitting_source_code
-   ,NULL::STRING as s_admitting_source_code_type
-   ,NULL::STRING as s_admitting_source_code_type_oid
-   ,NULL::STRING as m_admitting_source
-   ,NULL::STRING as m_admitting_source_code
-   ,NULL::STRING as m_admitting_source_code_type
-   ,NULL::STRING as m_admitting_source_code_type_oid
+   ,cast(NULL as STRING) as s_discharge_to
+   ,cast(NULL as STRING) as s_discharge_to_code
+   ,cast(NULL as STRING) as s_discharge_to_code_type
+   ,cast(NULL as STRING) as s_discharge_to_code_type_oid
+   ,cast(NULL as STRING) as m_discharge_to
+   ,cast(NULL as STRING) as m_discharge_to_code
+   ,cast(NULL as STRING) as m_discharge_to_code_type
+   ,cast(NULL as STRING) as m_discharge_to_code_type_oid
+   ,cast(NULL as STRING) as s_admitting_source
+   ,cast(NULL as STRING) as s_admitting_source_code
+   ,cast(NULL as STRING) as s_admitting_source_code_type
+   ,cast(NULL as STRING) as s_admitting_source_code_type_oid
+   ,cast(NULL as STRING) as m_admitting_source
+   ,cast(NULL as STRING) as m_admitting_source_code
+   ,cast(NULL as STRING) as m_admitting_source_code_type
+   ,cast(NULL as STRING) as m_admitting_source_code_type_oid
    ,`ORGANIZATION` as k_care_site
    ,`PROVIDER` as k_provider
-   ,NULL::STRING as i_exclude --Value of 1 instructs the mapper to skip the row
+   ,cast(NULL as STRING) as i_exclude --Value of 1 instructs the mapper to skip the row
    ,`Id` as s_id --Row source identifier
    ,'synthea' as s_source_system --Source system row was extracted from
-   ,NULL::STRING as m_source_system --Mapped source system the row was extracted from
+   ,cast(NULL as STRING) as m_source_system --Mapped source system the row was extracted from
 from encounters e
 left outer join visit_type_mapping vtm on vtm.s_visit_type = e.`ENCOUNTERCLASS`
     """
@@ -230,22 +230,22 @@ left outer join visit_type_mapping vtm on vtm.s_visit_type = e.`ENCOUNTERCLASS`
    ,cast(`START_YEAR` || '-01-01' as timestamp) as s_payer_start_datetime --The date the plan's coverage started
    ,cast(`END_YEAR` || '-12-31' as timestamp) as s_payer_end_datetime --The date the plan's contribution ended
    ,`NAME` as s_payer --The name of the payer
-   ,NULL::STRING as s_payer_code
-   ,NULL::STRING as s_payer_code_type
-   ,NULL::STRING as s_payer_code_type_oid
+   ,cast(NULL as STRING) as s_payer_code
+   ,cast(NULL as STRING) as s_payer_code_type
+   ,cast(NULL as STRING) as s_payer_code_type_oid
    ,pm.m_payer
    ,pm.m_payer_code
    ,pm.m_payer_code_type
    ,pm.m_payer_code_type_oid
-   ,NULL::STRING as s_plan --The plan type e.g, PPO, silver, bronze
-   ,NULL::STRING as s_plan_code
-   ,NULL::STRING as s_plan_code_type
-   ,NULL::STRING as s_plan_code_type_oid
-   ,NULL::STRING as m_plan
-   ,NULL::STRING as m_plan_code
-   ,NULL::STRING as m_plan_code_type
-   ,NULL::STRING as m_plan_code_type_oid
-   ,NULL::STRING as s_contributor
+   ,cast(NULL as STRING) as s_plan --The plan type e.g, PPO, silver, bronze
+   ,cast(NULL as STRING) as s_plan_code
+   ,cast(NULL as STRING) as s_plan_code_type
+   ,cast(NULL as STRING) as s_plan_code_type_oid
+   ,cast(NULL as STRING) as m_plan
+   ,cast(NULL as STRING) as m_plan_code
+   ,cast(NULL as STRING) as m_plan_code_type
+   ,cast(NULL as STRING) as m_plan_code_type_oid
+   ,cast(NULL as STRING) as s_contributor
 from payer_transitions pt 
     join payers p on pt.`PAYER` = p.`Id`
     join payer_map pm on pm.s_payer = p.`NAME`
@@ -271,21 +271,21 @@ from payer_transitions pt
    ,'OMOP4976890' as m_condition_type_code
    ,'Type' as m_condition_type_code_type
    ,'ohdsi.type_concept' as m_condition_type_code_type_oid
-   ,NULL::STRING as s_condition_status
-   ,NULL::STRING as s_condition_status_code
-   ,NULL::STRING as s_condition_status_code_type
-   ,NULL::STRING as s_condition_status_code_type_oid
-   ,NULL::STRING as m_condition_status
-   ,NULL::STRING as m_condition_status_code
-   ,NULL::STRING as m_condition_status_code_type
-   ,NULL::STRING as m_condition_status_code_type_oid
-   ,NULL::STRING as s_present_on_admission_indicator
-   ,NULL::STRING as s_sequence_id
-   ,NULL::STRING as k_provider
-   ,NULL::STRING as i_exclude --Value of 1 instructs the mapper to skip the row
-   ,NULL::STRING as s_id --Row source identifier
+   ,cast(NULL as STRING) as s_condition_status
+   ,cast(NULL as STRING) as s_condition_status_code
+   ,cast(NULL as STRING) as s_condition_status_code_type
+   ,cast(NULL as STRING) as s_condition_status_code_type_oid
+   ,cast(NULL as STRING) as m_condition_status
+   ,cast(NULL as STRING) as m_condition_status_code
+   ,cast(NULL as STRING) as m_condition_status_code_type
+   ,cast(NULL as STRING) as m_condition_status_code_type_oid
+   ,cast(NULL as STRING) as s_present_on_admission_indicator
+   ,cast(NULL as STRING) as s_sequence_id
+   ,cast(NULL as STRING) as k_provider
+   ,cast(NULL as STRING) as i_exclude --Value of 1 instructs the mapper to skip the row
+   ,cast(NULL as STRING) as s_id --Row source identifier
    ,'synthea' as s_source_system --Source system row was extracted from
-   ,NULL::STRING as m_source_system --Mapped source system the row was extracted from
+   ,cast(NULL as STRING) as m_source_system --Mapped source system the row was extracted from
 from conditions
     """
 
@@ -303,20 +303,20 @@ from conditions
    ,'Type' as m_condition_type_code_type
    ,'ohdsi.type_concept' as m_condition_type_code_type_oid
    ,'Reason' as s_condition_status
-   ,NULL::STRING as s_condition_status_code
-   ,NULL::STRING as s_condition_status_code_type
-   ,NULL::STRING as s_condition_status_code_type_oid
+   ,cast(NULL as STRING) as s_condition_status_code
+   ,cast(NULL as STRING) as s_condition_status_code_type
+   ,cast(NULL as STRING) as s_condition_status_code_type_oid
    ,'Primary diagnosis' as m_condition_status
    ,'OMOP4976972' as m_condition_status_code
    ,'Condition status' as m_condition_status_code_type
    ,'ohdsi.condition_status' as m_condition_status_code_type_oid
-   ,NULL::STRING as s_present_on_admission_indicator
-   ,NULL::STRING as s_sequence_id
-   ,NULL::STRING as k_provider
-   ,NULL::STRING as i_exclude --Value of 1 instructs the mapper to skip the row
-   ,NULL::STRING as s_id --Row source identifier
+   ,cast(NULL as STRING) as s_present_on_admission_indicator
+   ,cast(NULL as STRING) as s_sequence_id
+   ,cast(NULL as STRING) as k_provider
+   ,cast(NULL as STRING) as i_exclude --Value of 1 instructs the mapper to skip the row
+   ,cast(NULL as STRING) as s_id --Row source identifier
    ,'synthea' as s_source_system --Source system row was extracted from
-   ,NULL::STRING as m_source_system --Mapped source system the row was extracted from
+   ,cast(NULL as STRING) as m_source_system --Mapped source system the row was extracted from
 from encounters where REASONCODE is not NULL
     
     """
@@ -335,7 +335,7 @@ from encounters where REASONCODE is not NULL
     `PATIENT` as s_person_id --Source identifier for patient or person
    ,`ENCOUNTER` as s_encounter_id --Source identifier for encounter or visit
    ,`DATE` as s_start_procedure_datetime
-   ,NULL::STRING as s_end_procedure_datetime
+   ,cast(NULL as STRING) as s_end_procedure_datetime
    ,`CODE` as s_procedure_code
    ,'SNOMED' as s_procedure_code_type
    ,'2.16.840.1.113883.6.96' as s_procedure_code_type_oid
@@ -343,17 +343,17 @@ from encounters where REASONCODE is not NULL
    ,'OMOP4976890' as m_procedure_type_code
    ,'Type' as m_procedure_type_code_type
    ,'ohdsi.type_concept' as m_procedure_type_code_type_oid
-   ,NULL::STRING as s_sequence_id
-   ,NULL::STRING as s_modifier
-   ,NULL::STRING as s_modifier_code
-   ,NULL::STRING as s_modifier_code_type
-   ,NULL::STRING as s_modifier_code_type_oid
-   ,NULL::STRING as s_quantity
-   ,NULL::STRING as k_provider
-   ,NULL::STRING as i_exclude --Value of 1 instructs the mapper to skip the row
-   ,NULL::STRING as s_id --Row source identifier
+   ,cast(NULL as STRING) as s_sequence_id
+   ,cast(NULL as STRING) as s_modifier
+   ,cast(NULL as STRING) as s_modifier_code
+   ,cast(NULL as STRING) as s_modifier_code_type
+   ,cast(NULL as STRING) as s_modifier_code_type_oid
+   ,cast(NULL as STRING) as s_quantity
+   ,cast(NULL as STRING) as k_provider
+   ,cast(NULL as STRING) as i_exclude --Value of 1 instructs the mapper to skip the row
+   ,cast(NULL as STRING) as s_id --Row source identifier
    ,'synthea' as s_source_system --Source system row was extracted from
-   ,NULL::STRING as m_source_system --Mapped source system the row was extracted from
+   ,cast(NULL as STRING) as m_source_system --Mapped source system the row was extracted from
 from procedures
     """
 
@@ -373,19 +373,19 @@ from procedures
    ,`CODE` as s_device_code
    ,'SNOMED' as s_device_code_type
    ,'2.16.840.1.113883.6.96' as s_device_code_type_oid
-   ,NULL::STRING as m_device
-   ,NULL::STRING as m_device_code
-   ,NULL::STRING as m_device_code_type
-   ,NULL::STRING as m_device_code_type_oid
+   ,cast(NULL as STRING) as m_device
+   ,cast(NULL as STRING) as m_device_code
+   ,cast(NULL as STRING) as m_device_code_type
+   ,cast(NULL as STRING) as m_device_code_type_oid
    ,`UDI` as s_unique_device_identifier --A unique identifier for the device exposed to
    ,'EHR' as m_device_type
    ,'OMOP4976890' as m_device_type_code
    ,'Type' as m_device_type_code_type
    ,'ohdsi.type_concept' as m_device_type_code_type_oid
    ,'synthea' as s_source_system
-   ,NULL::STRING as m_source_system
-   ,NULL::STRING as i_exclude
-   ,NULL::STRING as s_id
+   ,cast(NULL as STRING) as m_source_system
+   ,cast(NULL as STRING) as i_exclude
+   ,cast(NULL as STRING) as s_id
 from devices
     """
 
@@ -403,51 +403,51 @@ from devices
    ,`CODE` as s_drug_code
    ,'RxNorm' as s_drug_code_type
    ,'2.16.840.1.113883.6.88' as s_drug_code_type_oid
-   ,NULL::STRING as m_drug_code
-   ,NULL::STRING as m_drug_code_type
-   ,NULL::STRING as m_drug_code_type_oid
+   ,cast(NULL as STRING) as m_drug_code
+   ,cast(NULL as STRING) as m_drug_code_type
+   ,cast(NULL as STRING) as m_drug_code_type_oid
    ,`DESCRIPTION` as s_drug_text
-   ,NULL::STRING as m_drug_text
-   ,NULL::STRING as g_drug_text
-   ,NULL::STRING as g_drug_code
-   ,NULL::STRING as g_drug_code_type
-   ,NULL::STRING as g_drug_code_type_oid
-   ,NULL::STRING as s_drug_alternative_text
+   ,cast(NULL as STRING) as m_drug_text
+   ,cast(NULL as STRING) as g_drug_text
+   ,cast(NULL as STRING) as g_drug_code
+   ,cast(NULL as STRING) as g_drug_code_type
+   ,cast(NULL as STRING) as g_drug_code_type_oid
+   ,cast(NULL as STRING) as s_drug_alternative_text
    ,`START` as s_start_medication_datetime
    ,`STOP` as s_end_medication_datetime
-   ,NULL::STRING as s_route
-   ,NULL::STRING as s_route_code
-   ,NULL::STRING as s_route_code_type
-   ,NULL::STRING as s_route_code_type_oid
-   ,NULL::STRING as m_route
-   ,NULL::STRING as m_route_code
-   ,NULL::STRING as m_route_code_type
-   ,NULL::STRING as m_route_code_type_oid
+   ,cast(NULL as STRING) as s_route
+   ,cast(NULL as STRING) as s_route_code
+   ,cast(NULL as STRING) as s_route_code_type
+   ,cast(NULL as STRING) as s_route_code_type_oid
+   ,cast(NULL as STRING) as m_route
+   ,cast(NULL as STRING) as m_route_code
+   ,cast(NULL as STRING) as m_route_code_type
+   ,cast(NULL as STRING) as m_route_code_type_oid
    ,`DISPENSES` as s_quantity
-   ,NULL::STRING as s_dose
-   ,NULL::STRING as m_dose
-   ,NULL::STRING as s_dose_unit
-   ,NULL::STRING as s_dose_unit_code
-   ,NULL::STRING as s_dose_unit_code_type
-   ,NULL::STRING as s_dose_unit_code_type_oid
-   ,NULL::STRING as m_dose_unit
-   ,NULL::STRING as m_dose_unit_code
-   ,NULL::STRING as m_dose_unit_code_type
-   ,NULL::STRING as m_dose_unit_code_type_oid
-   ,NULL::STRING as s_status
-   ,NULL::STRING as s_drug_type
-   ,NULL::STRING as s_drug_type_code
-   ,NULL::STRING as s_drug_type_code_type
-   ,NULL::STRING as s_drug_type_code_type_oid
+   ,cast(NULL as STRING) as s_dose
+   ,cast(NULL as STRING) as m_dose
+   ,cast(NULL as STRING) as s_dose_unit
+   ,cast(NULL as STRING) as s_dose_unit_code
+   ,cast(NULL as STRING) as s_dose_unit_code_type
+   ,cast(NULL as STRING) as s_dose_unit_code_type_oid
+   ,cast(NULL as STRING) as m_dose_unit
+   ,cast(NULL as STRING) as m_dose_unit_code
+   ,cast(NULL as STRING) as m_dose_unit_code_type
+   ,cast(NULL as STRING) as m_dose_unit_code_type_oid
+   ,cast(NULL as STRING) as s_status
+   ,cast(NULL as STRING) as s_drug_type
+   ,cast(NULL as STRING) as s_drug_type_code
+   ,cast(NULL as STRING) as s_drug_type_code_type
+   ,cast(NULL as STRING) as s_drug_type_code_type_oid
    ,'EHR' as m_drug_type
    ,'OMOP4976890' as m_drug_type_code
    ,'Type' as m_drug_type_code_type
    ,'ohdsi.type_concept' as m_drug_type_code_type_oid
-   ,NULL::STRING as k_provider
-   ,NULL::STRING as i_exclude --Value of 1 instructs the mapper to skip the row
-   ,NULL::STRING as s_id --Row source identifier
+   ,cast(NULL as STRING) as k_provider
+   ,cast(NULL as STRING) as i_exclude --Value of 1 instructs the mapper to skip the row
+   ,cast(NULL as STRING) as s_id --Row source identifier
    ,'synthea' as s_source_system --Source system row was extracted from
-   ,NULL::STRING as m_source_system --Mapped source system the row was extracted from
+   ,cast(NULL as STRING) as m_source_system --Mapped source system the row was extracted from
 from medications
     """
 
@@ -458,51 +458,51 @@ from medications
        ,`CODE` as s_drug_code
        ,'CVX' as s_drug_code_type
        ,'2.16.840.1.113883.12.292' as s_drug_code_type_oid
-       ,NULL::STRING as m_drug_code
-       ,NULL::STRING as m_drug_code_type
-       ,NULL::STRING as m_drug_code_type_oid
+       ,cast(NULL as STRING) as m_drug_code
+       ,cast(NULL as STRING) as m_drug_code_type
+       ,cast(NULL as STRING) as m_drug_code_type_oid
        ,`DESCRIPTION` as s_drug_text
-       ,NULL::STRING as m_drug_text
-       ,NULL::STRING as g_drug_text
-       ,NULL::STRING as g_drug_code
-       ,NULL::STRING as g_drug_code_type
-       ,NULL::STRING as g_drug_code_type_oid
-       ,NULL::STRING as s_drug_alternative_text
+       ,cast(NULL as STRING) as m_drug_text
+       ,cast(NULL as STRING) as g_drug_text
+       ,cast(NULL as STRING) as g_drug_code
+       ,cast(NULL as STRING) as g_drug_code_type
+       ,cast(NULL as STRING) as g_drug_code_type_oid
+       ,cast(NULL as STRING) as s_drug_alternative_text
        ,`DATE` as s_start_medication_datetime
-       ,NULL::STRING as s_end_medication_datetime
-       ,NULL::STRING as s_route
-       ,NULL::STRING as s_route_code
-       ,NULL::STRING as s_route_code_type
-       ,NULL::STRING as s_route_code_type_oid
-       ,NULL::STRING as m_route
-       ,NULL::STRING as m_route_code
-       ,NULL::STRING as m_route_code_type
-       ,NULL::STRING as m_route_code_type_oid
-       ,NULL::STRING as s_quantity
-       ,NULL::STRING as s_dose
-       ,NULL::STRING as m_dose
-       ,NULL::STRING as s_dose_unit
-       ,NULL::STRING as s_dose_unit_code
-       ,NULL::STRING as s_dose_unit_code_type
-       ,NULL::STRING as s_dose_unit_code_type_oid
-       ,NULL::STRING as m_dose_unit
-       ,NULL::STRING as m_dose_unit_code
-       ,NULL::STRING as m_dose_unit_code_type
-       ,NULL::STRING as m_dose_unit_code_type_oid
-       ,NULL::STRING as s_status
-       ,NULL::STRING as s_drug_type
-       ,NULL::STRING as s_drug_type_code
-       ,NULL::STRING as s_drug_type_code_type
-       ,NULL::STRING as s_drug_type_code_type_oid
+       ,cast(NULL as STRING) as s_end_medication_datetime
+       ,cast(NULL as STRING) as s_route
+       ,cast(NULL as STRING) as s_route_code
+       ,cast(NULL as STRING) as s_route_code_type
+       ,cast(NULL as STRING) as s_route_code_type_oid
+       ,cast(NULL as STRING) as m_route
+       ,cast(NULL as STRING) as m_route_code
+       ,cast(NULL as STRING) as m_route_code_type
+       ,cast(NULL as STRING) as m_route_code_type_oid
+       ,cast(NULL as STRING) as s_quantity
+       ,cast(NULL as STRING) as s_dose
+       ,cast(NULL as STRING) as m_dose
+       ,cast(NULL as STRING) as s_dose_unit
+       ,cast(NULL as STRING) as s_dose_unit_code
+       ,cast(NULL as STRING) as s_dose_unit_code_type
+       ,cast(NULL as STRING) as s_dose_unit_code_type_oid
+       ,cast(NULL as STRING) as m_dose_unit
+       ,cast(NULL as STRING) as m_dose_unit_code
+       ,cast(NULL as STRING) as m_dose_unit_code_type
+       ,cast(NULL as STRING) as m_dose_unit_code_type_oid
+       ,cast(NULL as STRING) as s_status
+       ,cast(NULL as STRING) as s_drug_type
+       ,cast(NULL as STRING) as s_drug_type_code
+       ,cast(NULL as STRING) as s_drug_type_code_type
+       ,cast(NULL as STRING) as s_drug_type_code_type_oid
        ,'EHR' as m_drug_type
        ,'OMOP4976890' as m_drug_type_code
        ,'Type' as m_drug_type_code_type
        ,'ohdsi.type_concept' as m_drug_type_code_type_oid
-       ,NULL::STRING as k_provider
-       ,NULL::STRING as i_exclude --Value of 1 instructs the mapper to skip the row
-       ,NULL::STRING as s_id --Row source identifier
+       ,cast(NULL as STRING) as k_provider
+       ,cast(NULL as STRING) as i_exclude --Value of 1 instructs the mapper to skip the row
+       ,cast(NULL as STRING) as s_id --Row source identifier
        ,'synthea' as s_source_system --Source system row was extracted from
-       ,NULL::STRING as m_source_system --Mapped source system the row was extracted from
+       ,cast(NULL as STRING) as m_source_system --Mapped source system the row was extracted from
     from immunizations"""
 
     source_medication_sdf = distinct_and_add_row_id(spark.sql(source_medication_sql_1 + "\nunion\n" + source_medication_sql_2))
@@ -524,17 +524,17 @@ from medications
    ,`CODE` as s_code
    ,'LOINC' as s_code_type
    ,'2.16.840.1.113883.6.1' as s_code_type_oid
-   ,NULL::STRING as m_code
-   ,NULL::STRING as m_code_type
-   ,NULL::STRING as m_code_type_oid
+   ,cast(NULL as STRING) as m_code
+   ,cast(NULL as STRING) as m_code_type
+   ,cast(NULL as STRING) as m_code_type_oid
    ,case when `TYPE` = 'text' then `VALUE` else NULL end as s_result_text
-   ,NULL::STRING as m_result_text
+   ,cast(NULL as STRING) as m_result_text
    ,case when `TYPE` = 'numeric' then `VALUE` end as s_result_numeric
-   ,NULL::STRING as m_result_numeric
-   ,NULL::STRING as s_result_datetime
-   ,NULL::STRING as s_result_code
-   ,NULL::STRING as s_result_code_type
-   ,NULL::STRING as s_result_code_type_oid
+   ,cast(NULL as STRING) as m_result_numeric
+   ,cast(NULL as STRING) as s_result_datetime
+   ,cast(NULL as STRING) as s_result_code
+   ,cast(NULL as STRING) as s_result_code_type
+   ,cast(NULL as STRING) as s_result_code_type_oid
    ,rcm.m_result_code
    ,rcm.m_result_code_type
    ,rcm.m_result_code_type_oid
@@ -542,21 +542,21 @@ from medications
    ,`UNITS` as s_result_unit_code
    ,'UCUM' as s_result_unit_code_type
    ,'2.16.840.1.113883.4.642.3.912' as s_result_unit_code_type_oid
-   ,NULL::STRING as s_result_numeric_lower
-   ,NULL::STRING as s_result_numeric_upper
-   ,NULL::STRING as s_operator
-   ,NULL::STRING as m_operator
-   ,NULL::STRING as m_operator_code
-   ,NULL::STRING as m_operator_code_type
-   ,NULL::STRING as m_operator_code_type_oid
+   ,cast(NULL as STRING) as s_result_numeric_lower
+   ,cast(NULL as STRING) as s_result_numeric_upper
+   ,cast(NULL as STRING) as s_operator
+   ,cast(NULL as STRING) as m_operator
+   ,cast(NULL as STRING) as m_operator_code
+   ,cast(NULL as STRING) as m_operator_code_type
+   ,cast(NULL as STRING) as m_operator_code_type_oid
    ,'EHR' as s_source
    ,'OMOP4976890' as m_source_code
    ,'Type' as m_source_code_type
    ,'ohdsi.type_concept' as m_source_code_type_oid
-   ,NULL::STRING as i_exclude --Value of 1 instructs the mapper to skip the row
-   ,NULL::STRING as s_id --Row source identifier
+   ,cast(NULL as STRING) as i_exclude --Value of 1 instructs the mapper to skip the row
+   ,cast(NULL as STRING) as s_id --Row source identifier
    ,'sythea' as s_source_system --Source system row was extracted from
-   ,NULL::STRING as m_source_system --Mapped source system the row was extracted from
+   ,cast(NULL as STRING) as m_source_system --Mapped source system the row was extracted from
 from observations o join result_code_mapping rcm on o.`VALUE` = rcm.s_result_text and `TYPE` = 'text'
     """
 
