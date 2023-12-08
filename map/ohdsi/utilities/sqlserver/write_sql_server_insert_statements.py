@@ -130,7 +130,8 @@ if __name__ == "__main__":
         "drug_exposure_id",
         "note_id",
         "note_nlp_id",
-        "device_exposure_id"
+        "device_exposure_id",
+        "provider_id"
     ]
 
     columns_to_expand = ["value_source_value", "zip", "state", "ethnicity_source_value", "race_source_value",
