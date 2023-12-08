@@ -109,7 +109,7 @@ if __name__ == "__main__":
     arg_parse_obj = argparse.ArgumentParser(description="Script to generate insert statements from transferTables into OHDSI CDM")
     arg_parse_obj.add_argument("-s", "--schema-name", dest="schema_name", default="dbo")
     arg_parse_obj.add_argument("-j", "--json-schema-file", dest="json_schema_file",
-                               default="../../../src/ohdsi_datatypes_5_4.json")
+                               default="../../../../src/ohdsi_datatypes_5_4.json")
 
     arg_parse_obj.add_argument("-o", "--output-file", dest="output_file", default="./transfer_sql_inserts_54.sql")
 
