@@ -135,7 +135,8 @@ if __name__ == "__main__":
     ]
 
     columns_to_expand = ["value_source_value", "zip", "state", "ethnicity_source_value", "race_source_value",
-                         "discharged_to_source_value", "admitted_from_source_value", "condition_status_source_value"
+                         "discharged_to_source_value", "admitted_from_source_value", "condition_status_source_value",
+                         "drug_source_value"
                          ]
 
     table_order = ["domain", "concept", "concept_ancestor", "concept_relationship", "drug_strength", "location",
@@ -149,7 +150,7 @@ if __name__ == "__main__":
         "valid_end_date": "cast(cast(valid_start_date as varchar(8)) as date)"
     }
 
-    columns_to_trim = ["value_as_string"]
+    columns_to_trim = ["value_as_string", "drug_source_value"]
 
     main(schema_dict, arg_obj.output_file, arg_obj.schema_name, table_order=table_order,
          columns_to_bigint=columns_to_bigint, columns_to_expand=columns_to_expand, columns_to_trim=columns_to_trim,
