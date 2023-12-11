@@ -368,7 +368,7 @@ from procedures
     `PATIENT` as s_person_id --Source identifier for patient or person
    ,`ENCOUNTER` as s_encounter_id --Source identifier for encounter or visit
    ,`START` as s_start_device_datetime
-   ,`STOP` as s_end_device_datetime
+   ,coalesce(`STOP`, `START`) as s_end_device_datetime
    ,`DESCRIPTION` as s_device
    ,`CODE` as s_device_code
    ,'SNOMED' as s_device_code_type

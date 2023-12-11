@@ -771,7 +771,7 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
 
     # Source Procedure -> domain/mapped_domain Drug
     # TODO:  drug_exposure_end_date cannot be null
-    if ohdsi_version == "5.3":
+    if ohdsi_version == "5.3.1":
         drug_domain_procedure_source_field_map = {
             "g_procedure_occurrence_id": "drug_exposure_id",
             "g_person_id": "person_id",
