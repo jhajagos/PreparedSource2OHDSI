@@ -469,7 +469,7 @@ from medications
        ,cast(NULL as STRING) as g_drug_code_type_oid
        ,cast(NULL as STRING) as s_drug_alternative_text
        ,`DATE` as s_start_medication_datetime
-       ,cast(NULL as STRING) as s_end_medication_datetime
+       ,`DATE` as s_end_medication_datetime
        ,cast(NULL as STRING) as s_route
        ,cast(NULL as STRING) as s_route_code
        ,cast(NULL as STRING) as s_route_code_type
