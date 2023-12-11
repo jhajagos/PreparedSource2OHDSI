@@ -771,19 +771,37 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
 
     # Source Procedure -> domain/mapped_domain Drug
     # TODO:  drug_exposure_end_date cannot be null
-    drug_domain_procedure_source_field_map = {
-        "g_procedure_occurrence_id": "drug_exposure_id",
-        "g_person_id": "person_id",
-        "g_visit_occurrence_id": "visit_occurrence_id",
-        "g_source_concept_id": "drug_source_concept_id",
-        "g_concept_id": "drug_concept_id",
-        "s_start_procedure_datetime": "drug_exposure_start_datetime",
-        "g_start_procedure_date": "drug_exposure_start_date",
-        "s_procedure_code": "drug_source_value",
-        "g_procedure_type_concept_id": "drug_type_concept_id",
-        "s_id": "s_id",
-        "g_source_table_name": "g_source_table_name"
-    }
+    if ohdsi_version == "5.3":
+        drug_domain_procedure_source_field_map = {
+            "g_procedure_occurrence_id": "drug_exposure_id",
+            "g_person_id": "person_id",
+            "g_visit_occurrence_id": "visit_occurrence_id",
+            "g_source_concept_id": "drug_source_concept_id",
+            "g_concept_id": "drug_concept_id",
+            "s_start_procedure_datetime": "drug_exposure_start_datetime",
+            "g_start_procedure_date": "drug_exposure_start_date",
+            "s_procedure_code": "drug_source_value",
+            "g_procedure_type_concept_id": "drug_type_concept_id",
+            "s_id": "s_id",
+            "g_source_table_name": "g_source_table_name"
+        }
+    elif ohdsi_version == "5.4":
+        drug_domain_procedure_source_field_map = {
+            "g_procedure_occurrence_id": "drug_exposure_id",
+            "g_person_id": "person_id",
+            "g_visit_occurrence_id": "visit_occurrence_id",
+            "g_source_concept_id": "drug_source_concept_id",
+            "g_concept_id": "drug_concept_id",
+            "s_start_procedure_datetime": "drug_exposure_start_datetime",
+            "g_start_procedure_date": "drug_exposure_start_date",
+            "s_end_procedure_datetime": "drug_exposure_end_datetime",
+            "g_end_procedure_date": "drug_exposure_end_date",
+            "s_procedure_code": "drug_source_value",
+            "g_procedure_type_concept_id": "drug_type_concept_id",
+            "s_id": "s_id",
+            "g_source_table_name": "g_source_table_name"
+        }
+
 
     drug_domain_procedure_source_sdf = build_mapped_domain_df(spark, source_procedure_matched_sdf,
                                                                      field_map=drug_domain_procedure_source_field_map,
