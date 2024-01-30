@@ -1,6 +1,4 @@
 from pyspark.sql import SparkSession
-import sys
-import os
 import json
 import argparse
 import logging
