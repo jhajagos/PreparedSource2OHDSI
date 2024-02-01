@@ -14,9 +14,14 @@ def get_table(table_dict, table_name):
 def escape_name(object_name, dialect="mssql"):
     if dialect == "mssql":
         left_escape = "["
-        les = left_escape
         right_escape = "]"
-        res = right_escape
+
+    elif dialect == "psql":
+        left_escape = '"'
+        right_escape = '"'
+
+    res = right_escape
+    les = left_escape
 
     return les + object_name + res
 
@@ -111,6 +116,8 @@ if __name__ == "__main__":
     arg_parse_obj.add_argument("-j", "--json-schema-file", dest="json_schema_file",
                                default="../../../../src/ohdsi_datatypes_5_4.json")
 
+    arg_parse_obj.add_argument("-d", "-d", "--dialect", dest="sql_dialect", default="mssql")
+
     arg_parse_obj.add_argument("-o", "--output-file", dest="output_file", default="./transfer_sql_inserts_54.sql")
 
     arg_obj = arg_parse_obj.parse_args()
@@ -154,4 +161,4 @@ if __name__ == "__main__":
 
     main(schema_dict, arg_obj.output_file, arg_obj.schema_name, table_order=table_order,
          columns_to_bigint=columns_to_bigint, columns_to_expand=columns_to_expand, columns_to_trim=columns_to_trim,
-         custom_field_dict=custom_field_dict)
+         custom_field_dict=custom_field_dict, dialect=arg_obj.sql_dialect)
