@@ -27,7 +27,7 @@ def escape_name(object_name, dialect="mssql"):
 
 
 def main(schema_dict, outfile_name, schema_name="dbo", transfer_table_prefix="transfer", columns_to_bigint=None, columns_to_expand=None,
-         columns_to_trim=False, custom_field_dict=None, table_order=None, dialect="mssql"):
+         columns_to_trim=False, custom_field_dict=None, table_order=None, dialect="mssql", custom_where=None):
 
     if columns_to_bigint is None:
         columns_to_bigint = []
@@ -101,7 +101,12 @@ def main(schema_dict, outfile_name, schema_name="dbo", transfer_table_prefix="tr
         select_str += " "
         sql_string += select_str
         sql_string += "\n    from "
-        sql_string += f"{en(sn)}.{en(transfer_table_prefix + tn)};\n\n"
+        sql_string += f"{en(sn)}.{en(transfer_table_prefix + tn)}"
+
+        if table in custom_where:
+            sql_string += f"\n where {custom_where[table]}"
+
+        sql_string += ";\n\n"
 
     with open(outfile_name, "w") as fw:
         fw.write(sql_string)
@@ -138,27 +143,35 @@ if __name__ == "__main__":
         "note_id",
         "note_nlp_id",
         "device_exposure_id",
-        "provider_id"
+        "provider_id",
+        "payer_plan_period_id"
     ]
 
     columns_to_expand = ["value_source_value", "zip", "state", "ethnicity_source_value", "race_source_value",
                          "discharged_to_source_value", "admitted_from_source_value", "condition_status_source_value",
-                         "drug_source_value"
+                         "drug_source_value", "payer_source_value"
                          ]
 
     table_order = ["domain", "concept", "concept_ancestor", "concept_relationship", "drug_strength", "location",
                    "care_site", "provider", "person", "death", "observation_period", "visit_occurrence", "visit_detail",
                    "condition_occurrence", "procedure_occurrence",
-                   "measurement", "observation", "drug_exposure", "device_exposure"
+                   "measurement", "observation", "drug_exposure", "device_exposure",
+                   "payer_plan_period"
                    ]
 
     custom_field_dict = {
         "valid_start_date": "cast(cast(valid_start_date as varchar(8)) as date)",
-        "valid_end_date": "cast(cast(valid_start_date as varchar(8)) as date)"
+        "valid_end_date": "cast(cast(valid_start_date as varchar(8)) as date)",
+        "drug_exposure_end_date": "coalesce(drug_exposure_end_date, drug_exposure_start_date)"
+
     }
 
-    columns_to_trim = ["value_as_string", "drug_source_value"]
+    custom_where = {
+        "drug_exposure": "drug_exposure_start_date is not NULL"
+    }
+
+    columns_to_trim = ["value_as_string", "drug_source_value", "payer_source_value"]
 
     main(schema_dict, arg_obj.output_file, arg_obj.schema_name, table_order=table_order,
          columns_to_bigint=columns_to_bigint, columns_to_expand=columns_to_expand, columns_to_trim=columns_to_trim,
-         custom_field_dict=custom_field_dict, dialect=arg_obj.sql_dialect)
+         custom_field_dict=custom_field_dict, dialect=arg_obj.sql_dialect, custom_where=custom_where)

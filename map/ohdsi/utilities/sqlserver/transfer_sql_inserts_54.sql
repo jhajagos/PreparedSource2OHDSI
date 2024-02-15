@@ -2,6 +2,7 @@
 
 
 --Truncate tables
+truncate table [dbo].[payer_plan_period];
 truncate table [dbo].[device_exposure];
 truncate table [dbo].[drug_exposure];
 truncate table [dbo].[observation];
@@ -194,8 +195,9 @@ alter table [dbo].[DRUG_EXPOSURE] alter column [visit_detail_id] BIGINT;
 alter table [dbo].[DRUG_EXPOSURE] alter column [drug_source_value] VARCHAR(512);
 
 insert into [dbo].[DRUG_EXPOSURE] (drug_exposure_id,person_id,drug_concept_id,drug_exposure_start_date,drug_exposure_start_datetime,drug_exposure_end_date,drug_exposure_end_datetime,verbatim_end_date,drug_type_concept_id,stop_reason,refills,quantity,days_supply,sig,route_concept_id,lot_number,provider_id,visit_occurrence_id,visit_detail_id,drug_source_value,drug_source_concept_id,route_source_value,dose_unit_source_value)
-select [drug_exposure_id],[person_id],[drug_concept_id],[drug_exposure_start_date],[drug_exposure_start_datetime],[drug_exposure_end_date],[drug_exposure_end_datetime],[verbatim_end_date],[drug_type_concept_id],[stop_reason],[refills],[quantity],[days_supply],[sig],[route_concept_id],[lot_number],[provider_id],[visit_occurrence_id],[visit_detail_id],left([drug_source_value],512),[drug_source_concept_id],[route_source_value],[dose_unit_source_value] 
-    from [dbo].[transferDRUG_EXPOSURE];
+select [drug_exposure_id],[person_id],[drug_concept_id],[drug_exposure_start_date],[drug_exposure_start_datetime],coalesce(drug_exposure_end_date, drug_exposure_start_date),[drug_exposure_end_datetime],[verbatim_end_date],[drug_type_concept_id],[stop_reason],[refills],[quantity],[days_supply],[sig],[route_concept_id],[lot_number],[provider_id],[visit_occurrence_id],[visit_detail_id],left([drug_source_value],512),[drug_source_concept_id],[route_source_value],[dose_unit_source_value] 
+    from [dbo].[transferDRUG_EXPOSURE]
+ where drug_exposure_start_date is not NULL;
 
 
 --Alter table device_exposure
@@ -208,4 +210,14 @@ alter table [dbo].[DEVICE_EXPOSURE] alter column [visit_detail_id] BIGINT;
 insert into [dbo].[DEVICE_EXPOSURE] (device_exposure_id,person_id,device_concept_id,device_exposure_start_date,device_exposure_start_datetime,device_exposure_end_date,device_exposure_end_datetime,device_type_concept_id,unique_device_id,production_id,quantity,provider_id,visit_occurrence_id,visit_detail_id,device_source_value,device_source_concept_id,unit_concept_id,unit_source_value,unit_source_concept_id)
 select [device_exposure_id],[person_id],[device_concept_id],[device_exposure_start_date],[device_exposure_start_datetime],[device_exposure_end_date],[device_exposure_end_datetime],[device_type_concept_id],[unique_device_id],[production_id],[quantity],[provider_id],[visit_occurrence_id],[visit_detail_id],[device_source_value],[device_source_concept_id],[unit_concept_id],[unit_source_value],[unit_source_concept_id] 
     from [dbo].[transferDEVICE_EXPOSURE];
+
+
+--Alter table payer_plan_period
+alter table [dbo].[PAYER_PLAN_PERIOD] alter column [payer_plan_period_id] BIGINT;
+alter table [dbo].[PAYER_PLAN_PERIOD] alter column [person_id] BIGINT;
+alter table [dbo].[PAYER_PLAN_PERIOD] alter column [payer_source_value] VARCHAR(512);
+
+insert into [dbo].[PAYER_PLAN_PERIOD] (payer_plan_period_id,person_id,payer_plan_period_start_date,payer_plan_period_end_date,payer_concept_id,payer_source_value,payer_source_concept_id,plan_concept_id,plan_source_value,plan_source_concept_id,sponsor_concept_id,sponsor_source_value,sponsor_source_concept_id,family_source_value,stop_reason_concept_id,stop_reason_source_value,stop_reason_source_concept_id)
+select [payer_plan_period_id],[person_id],[payer_plan_period_start_date],[payer_plan_period_end_date],[payer_concept_id],left([payer_source_value],512),[payer_source_concept_id],[plan_concept_id],[plan_source_value],[plan_source_concept_id],[sponsor_concept_id],[sponsor_source_value],[sponsor_source_concept_id],[family_source_value],[stop_reason_concept_id],[stop_reason_source_value],[stop_reason_source_concept_id] 
+    from [dbo].[transferPAYER_PLAN_PERIOD];
 
