@@ -1,0 +1,6 @@
+{
+  "base_path": "/root/synthea/output/csv/",
+  "file_type": "csv",
+  "csv_extension": ".csv",
+  "prepared_source_output_location": "/data/preparedsource/synthea/"
+}
