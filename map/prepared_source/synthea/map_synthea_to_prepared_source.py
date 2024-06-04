@@ -228,7 +228,7 @@ left outer join visit_type_mapping vtm on vtm.s_visit_type = e.`ENCOUNTERCLASS`
     select
     `PATIENT` as s_person_id --Source identifier for patient or person
    ,cast(`START_DATE` as timestamp) as s_payer_start_datetime --The date the plan's coverage started
-   ,cast(`END_DATE` timestamp) as s_payer_end_datetime --The date the plan's contribution ended
+   ,cast(`END_DATE` as timestamp) as s_payer_end_datetime --The date the plan's contribution ended
    ,`NAME` as s_payer --The name of the payer
    ,cast(NULL as STRING) as s_payer_code
    ,cast(NULL as STRING) as s_payer_code_type
