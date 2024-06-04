@@ -11,7 +11,7 @@ with open("/root/config/prepared_source_to_ohdsi_config.json.generated.parquet.j
 catalog = mu.attach_catalog_dict(tbs)
 
 statistics_queries = {"count_person": "select count(distinct person_id) as n, count(*) as n_r from person",
-                      "count_visits": "select count(distinct person_id) as n, count(*) as n_r from vist_occurrence"}
+                      "count_visits": "select count(distinct person_id) as n, count(*) as n_r from visit_occurrence"}
 
 for tag in statistics_queries:
 

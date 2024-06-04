@@ -3,7 +3,7 @@
   "export_concept_mapping_table_path": "/data/ohdsi/vocabulary/export/",
   "concept_csv_file_extension": ".csv.bz2",
   "prepared_source_table_path": "/data/preparedsource/synthea/",
-  "ohdsi_output_location": "/data/ohdsi/",
+  "ohdsi_output_location": "/data/ohdsi/output/",
   "check_pointing": "NONE",
   "ohdsi_version": "5.4"
 }
