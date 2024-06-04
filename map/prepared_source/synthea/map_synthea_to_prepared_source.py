@@ -334,8 +334,8 @@ from encounters where REASONCODE is not NULL
     select
     `PATIENT` as s_person_id --Source identifier for patient or person
    ,`ENCOUNTER` as s_encounter_id --Source identifier for encounter or visit
-   ,`DATE` as s_start_procedure_datetime
-   ,`DATE` as s_end_procedure_datetime
+   ,`START` as s_start_procedure_datetime
+   ,`END` as s_end_procedure_datetime
    ,`CODE` as s_procedure_code
    ,'SNOMED' as s_procedure_code_type
    ,'2.16.840.1.113883.6.96' as s_procedure_code_type_oid
