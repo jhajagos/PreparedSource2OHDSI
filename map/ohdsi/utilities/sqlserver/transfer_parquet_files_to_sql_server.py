@@ -14,7 +14,7 @@ def main(config, generated_tables_dict, schema=None, exclude_concepts=False):
     domains_to_load = ["concept", "ohdsi"]
 
     for domain in domains_to_load:
-        if exclude_concepts and domain == "concept":
+        if not exclude_concepts and domain == "concept":
             tables_dict = generated_tables_dict[domain]
             for table in tables_dict:
                 parquet_path = tables_dict[table]
