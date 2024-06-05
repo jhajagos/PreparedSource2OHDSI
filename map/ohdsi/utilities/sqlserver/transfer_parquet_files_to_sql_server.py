@@ -41,7 +41,7 @@ if __name__ == "__main__":
     arg_parser_obj.add_argument("-c", "--config-json-file-name", dest="config_json_file_name",  default="../prepared_source/healtheintent/config.json")
     arg_parser_obj.add_argument("-s", "--schema", dest="schema_name", default=None)
     arg_parser_obj.add_argument("-l", "--run-local", dest="run_local", default=False, action="store_true")
-    arg_parser_obj.add_argument("-x", "--exclude-concept-tables", dest="exclude_concept_tables", default=False, action="store_True")
+    arg_parser_obj.add_argument("-x", "--exclude-concept-tables", dest="exclude_concept_tables", default=False, action="store_true")
 
     arg_obj = arg_parser_obj.parse_args()
     RUN_LOCAL = arg_obj.run_local
