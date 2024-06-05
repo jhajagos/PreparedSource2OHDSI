@@ -37,6 +37,8 @@ RUN $conda init && . $bashrc && conda activate PySpark && cd ~/github/PreparedSo
 RUN $conda init && . $bashrc && conda activate PySpark && cd ~/github/PreparedSource2OHDSI/dist/ \
     && pip install preparedsource2ohdsi-0.1.1-py3-none-any.whl # Change for new version
 
+RUN $conda init && . $bashrc && conda activate PySpark && conda install ipython
+
 RUN mkdir /root/config/
 
 # Add scripts for running the pipeline
@@ -66,4 +68,7 @@ RUN chmod u+x /root/scripts/map_prepared_source_to_ohdsi.sh
 
 COPY basic_mapped_data_stats.py /root/scripts/
 
-RUN $conda init && . $bashrc && conda activate PySpark && conda install ipython
+RUN mkdir /root/jdbc/ # Hold JDBC drivers for connecting to a database
+
+COPY db_configure.py /root/scripts/
+
