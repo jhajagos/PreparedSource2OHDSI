@@ -11,26 +11,28 @@ def main(config, generated_tables_dict, schema=None, exclude_concepts=False):
     jdbc_connection_string = config["jdbc"]["connection_string"]
     jdbc_properties = config["jdbc"]["properties"]
 
-    domains_to_load = ["concept", "ohdsi"]
+    if exclude_concepts:
+        domains_to_load = ["ohdsi"]
+    else:
+        domains_to_load = ["concept", "ohdsi"]
 
     for domain in domains_to_load:
-        if not exclude_concepts and domain == "concept":
-            tables_dict = generated_tables_dict[domain]
-            for table in tables_dict:
-                parquet_path = tables_dict[table]
+        tables_dict = generated_tables_dict[domain]
+        for table in tables_dict:
+            parquet_path = tables_dict[table]
 
-                print(f"Reading: '{table}'")
-                sdf = spark.read.parquet(parquet_path)
+            print(f"Reading: '{table}'")
+            sdf = spark.read.parquet(parquet_path)
 
-                if schema is None:
-                    write_table_name = "transfer" + table.upper()
-                else:
-                    write_table_name = schema + "." + "transfer" + table.upper()
+            if schema is None:
+                write_table_name = "transfer" + table.upper()
+            else:
+                write_table_name = schema + "." + "transfer" + table.upper()
 
-                print(f"Writing: '{write_table_name}'")
+            print(f"Writing: '{write_table_name}'")
 
-                sdf.write.jdbc(url=jdbc_connection_string, table=write_table_name, mode="overwrite",
-                               properties=jdbc_properties)
+            sdf.write.jdbc(url=jdbc_connection_string, table=write_table_name, mode="overwrite",
+                           properties=jdbc_properties)
 
 
 if __name__ == "__main__":
