@@ -204,7 +204,7 @@ cd /root/scripts
 Also, the script [transfer_sql_inserts_54.sql](..%2F..%2F..%2Fohdsi%2Futilities%2Fsqlserver%2Ftransfer_sql_inserts_54.sql)
 could also be run in your favorite SQL editor.
 
-### Refreshing the relational database (RDBMS)
+### Refreshing the RDBMS
 
 Once you have run through the setup of the containers refreshing the generated data from Synthea to the RDBMS requires only 
 running three scripts:
