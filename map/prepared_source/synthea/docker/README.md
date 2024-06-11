@@ -5,8 +5,8 @@ This Docker container provides a pipeline for rapidly mapping synthetic data int
 generates synthetic data which does not have the same restrictions as EHR data in terms of privacy and  
 human research restrictions.
 
-The mapping is done in a local Spark environment which generates Parquet files that are aligned to the OHDSI CDM. 
-As the OHDSI tool chains are optimized for relational databases (RDBMS) we then load the Parquet files into the RDBMS. 
+The mapping is done in a local [Spark](https://spark.apache.org/) environment which generates Parquet files that are 
+aligned to the OHDSI CDM. As the OHDSI tool chains are optimized for relational databases (RDBMS) we then load the Parquet files into the RDBMS. 
 For this container, we focus on loading into Microsoft SQL Server but the approach here could be easily adapted to other RDBMS, 
 such as, PostGreSQL. Microsoft SQL Server is widely used to host OHDSI CDM databases at different research institutions and is available 
 as an easy to run Docker container.
