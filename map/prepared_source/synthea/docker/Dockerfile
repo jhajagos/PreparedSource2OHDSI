@@ -72,8 +72,13 @@ RUN mkdir /root/jdbc/ # Hold JDBC drivers for connecting to a database
 
 COPY db_configure.py /root/scripts/
 
-COPY load_tables_into_db.sh /root/scripts/
-RUN chmod u+x /root/scripts/load_tables_into_db.sh
+COPY stage_tables_into_rdbms.sh /root/scripts/
+RUN chmod u+x /root/scripts/stage_tables_into_rdbms.sh
 
 COPY map_synthea_csv_to_spark_ohdsi.sh /root/scripts/
 RUN chmod u+x /root/scripts/map_synthea_csv_to_spark_ohdsi.sh
+
+RUN $conda init && . $bashrc && conda activate PySpark && pip install JayDeBeApi # Connect through JDBC to databases
+RUN $conda init && . $bashrc && conda activate PySpark && pip install sqlparse
+
+COPY jdbc_sql_loader.py /root/scripts/

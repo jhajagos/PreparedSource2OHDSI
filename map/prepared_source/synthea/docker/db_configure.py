@@ -2,18 +2,23 @@ import json
 import shutil
 import glob
 import argparse
-
+import pprint
 
 def main(jdbc_connection_string, username, password):
 
     copy_jar_files()
+    json_file_name = "/root/config/prepared_source_to_ohdsi_config.json"
 
-    with open("/root/config/prepared_source_to_ohdsi_config.json") as f:
+    print(f"Updating: '{json_file_name}'")
+    with open(json_file_name) as f:
         config = json.load(f)
 
     config["jdbc"]["connection_string"] = jdbc_connection_string
     config["jdbc"]["properties"]["username"] = username
     config["jdbc"]["properties"]["password"] = password
+
+    print("")
+    pprint.pprint(config)
 
     with open("/root/config/prepared_source_to_ohdsi_config.json", "w") as fw:
         json.dump(config, fw)
