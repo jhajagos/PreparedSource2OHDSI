@@ -17,3 +17,6 @@ The mapping from source to OHDSI consists of the following steps:
 
 The environment writes parquet files in an OHDSI "compatible" format. The generated
 parquet files include additional fields not part of the OHDSI CDM.
+
+A Docker biuld file is included to map Synthea data to PSF and to OHDSI; see: 
+[README.md](map%2Fprepared_source%2Fsynthea%2Fdocker%2FREADME.md)

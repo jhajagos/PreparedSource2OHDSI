@@ -155,12 +155,14 @@ Configure the JDBC driver and the connection string:
 ```bash
 python ./db_configure.py -j 'jdbc:sqlserver://sql1:1433;encrypt=false;database=synthea_ohdsi' -u sa -p zzZZZZZ
 ```
-The JDBC driver for Microsoft can be [downloaded](https://learn.microsoft.com/en-us/sql/connect/jdbc/download-microsoft-jdbc-driver-for-sql-server?view=sql-server-ver16.) from Microsoft.
+The JDBC driver can be [downloaded](https://learn.microsoft.com/en-us/sql/connect/jdbc/download-microsoft-jdbc-driver-for-sql-server?view=sql-server-ver16.) from
+Microsoft.
  
-You may need to modify the script `load_staged_tables_into_ohdsi_rdbms_cdm.sh` if you use a different version of the JDBC driver than: `mssql-jdbc-12.6.2.jre11.jar` 
-by using the `-j` option and pointing to the updated JDBC file.
+You may need to modify the script `load_staged_tables_into_ohdsi_rdbms_cdm.sh` if you use a different version of the JDBC driver 
+than: `mssql-jdbc-12.6.2.jre11.jar` 
+by using the `-j` option in the program [jdbc_sql_loader.py](jdbc_sql_loader.py) and pointing to the updated JAR file.
 
-### First run through
+### First time loading
 
 You will need to have created a database on the SQL Server system and loaded the DDL 
 [OHDSI 5.4 schema for SQL sever](https://github.com/OHDSI/CommonDataModel/blob/main/ddl/5.4/sql_server/OMOPCDM_sql_server_5.4_ddl.sql).
@@ -182,7 +184,7 @@ could also be run in your favorite SQL editor.
 
 ### Refreshing the relational database (RDBMS)
 
-Once you have run through the setup of the containers refreshing the data from Synthea to the RDMBS requires only 
+Once you have run through the setup of the containers refreshing the generated data from Synthea to the RDMBS requires only 
 running three scripts:
 ```bash
 cd /root/scripts 
@@ -190,3 +192,5 @@ cd /root/scripts
 ./map_synthea_csv_to_ohdsi_parquet.sh # Generate parquet files that align with the OHDSI CDM
 ./fully_load_ohdsi_parquet_files_into_rdbms.sh # Load parquet files to a RDBMS system (Microsoft SQL Server)
 ```
+
+Now you can rapidly generate OHDSI data.
