@@ -204,7 +204,7 @@ could also be run in your favorite SQL editor.
 
 ### Refreshing the relational database (RDBMS)
 
-Once you have run through the setup of the containers refreshing the generated data from Synthea to the RDMBS requires only 
+Once you have run through the setup of the containers refreshing the generated data from Synthea to the RDBMS requires only 
 running three scripts:
 ```bash
 cd /root/scripts 
