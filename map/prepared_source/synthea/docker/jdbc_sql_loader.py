@@ -36,5 +36,5 @@ if __name__ == "__main__":
     password = c["jdbc"]["properties"]["password"]
     connection_string = c["jdbc"]["connection_string"]
 
-    main(arg_obj.sql_file_name, connection_string, username, password, arg_obj.class_path, argparse_obj.jar_path)
+    main(arg_obj.sql_file_name, connection_string, username, password, arg_obj.class_path, arg_obj.jar_path)
 

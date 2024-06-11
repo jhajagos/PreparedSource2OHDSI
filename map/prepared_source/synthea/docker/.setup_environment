@@ -1,0 +1,4 @@
+#!/bin/bash
+
+conda activate PySpark
+cd /root/scripts

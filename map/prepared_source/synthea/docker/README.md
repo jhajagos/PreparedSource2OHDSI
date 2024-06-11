@@ -1,3 +1,8 @@
+# Synthea to OHDSI RDBMS
+
+This Docker container provides a containerized pipeline for mapping Synthea data into the OHDSI CDM. The mapping is
+done within a Spark environment. OHDSI tool chains are optimized for relational databases (RDBMS).
+
 ## Building the Docker Image
 
 
@@ -12,19 +17,21 @@ vocabulary files.
 
 ```bash
 cd /home/user/data/vocabulary/20231114
-ls
+bzip2 -v *.csv
 ```
 
 ```bash ""
 docker run --rm -it -v /home/user/data/vocabulary/20231114:/data/ohdsi/vocabulary \
   -v /home/user/data/synthea/covid19:/data/ohdsi/output \
-  -v /home/user/jdbc:/root/jdbc syntheaohdsi:latest /bin/bash
+  -v /home/user/jdbc:/root/jdbc \
+  --name syntheohdsi --hostname syntheaohdsi \
+  syntheaohdsi:latest /bin/bash 
 ```
 
 The following steps assume you are running within the container.
 
 
-## Preprocessing the vocabulary
+## Staging the concept files for mapping
 
 You will only need to run this once:
 
@@ -40,7 +47,18 @@ You can run multiple files
 
 ## Loading into a relational database
 
+
+```bash
+docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=zzZZZZZ" -p 1433:1433 --name sql1 --hostname sql1 -d mcr.microsoft.com/mssql/server:2022-latest
 ```
-python ./db_configure.py -j 'jdbc:sqlserver://sql1:1433;encrypt=false;database=synthea_ohdsi' -u sa -p aZHNjMgL5N
+```bash
+docker network create ohdsi
+docker network connect ohdsi sql1
+docker netwrok connect ohdsi syntheohdsi
+```
+
+
+```
+python ./db_configure.py -j 'jdbc:sqlserver://sql1:1433;encrypt=false;database=synthea_ohdsi' -u sa -p zzZZZZZ
 ```
 

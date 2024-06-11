@@ -82,3 +82,11 @@ RUN $conda init && . $bashrc && conda activate PySpark && pip install JayDeBeApi
 RUN $conda init && . $bashrc && conda activate PySpark && pip install sqlparse
 
 COPY jdbc_sql_loader.py /root/scripts/
+
+RUN cd /root/github && git clone https://github.com/OHDSI/CommonDataModel.git
+
+COPY load_staged_tables_into_ohdsi_cdm.sh /root/scripts
+RUN CHMOD u+x /root/scripts/load_staged_tables_into_ohdsi_cdm.sh
+
+COPY .setup_environment /root/scripts
+RUN CHMOD u+x /root/scripts/.setup_environment
