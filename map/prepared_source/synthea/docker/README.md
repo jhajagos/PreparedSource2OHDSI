@@ -213,4 +213,4 @@ cd /root/scripts
 ./fully_load_ohdsi_parquet_files_into_rdbms.sh # Load parquet files to a RDBMS system (Microsoft SQL Server)
 ```
 
-Now you can rapidly generate synthetic OHDSI data for testing ETL pipelines and cohort selection algorithms.
+Now you can rapidly generate synthetic OHDSI data for testing data manipulation pipelines and cohort selection algorithms.
