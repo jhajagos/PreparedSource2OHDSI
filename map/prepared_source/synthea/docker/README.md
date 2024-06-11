@@ -71,7 +71,7 @@ cd /root/scripts
 ./generate_synthetic_covid 10000 # Generate 10000 patients
 ```
 This above script could be replaced to generate your specific synthetic patient data. Synthea has a large number
-of prebuilt modules plus the abilty to create your own: see
+of prebuilt modules plus the ability to create your own: see
 
 Parquet files:
 ```bash
