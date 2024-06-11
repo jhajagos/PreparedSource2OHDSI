@@ -1,10 +1,10 @@
 # Synthea to OHDSI RDBMS
 
-This Docker container provides a containerized pipeline for mapping Synthea data into the OHDSI CDM. The mapping is
-done within a Spark environment and generates Parquet files that are aligned to the OHDSI CDM. 
+This Docker container provides a containerized pipeline for mapping Synthea data into the OHDSI CDM (Common Data Model). The mapping is
+done in a Spark environment which generates Parquet files that are aligned to the OHDSI CDM. 
 As the OHDSI tool chains are optimized for relational databases (RDBMS) we have scripts for mapping the data. For this container
 we focus on loading into Microsoft SQL Server but the approach here could be easily adapted to other databases. 
-Microsoft SQL Server is widely used to host OHDSI databases at different health systems and is available as a 
+Microsoft SQL Server is widely used to host OHDSI databases at different health systems and is available as an easy to run
 Docker container.
 
 ## Building the Synthea OHDSI Docker Image
@@ -25,8 +25,45 @@ docker build -t syntheaohdsi:latest ./
 ```
 
 ## Preparing concept files
-Once you follow the process of building the concept/vocabularies files you will need to compress them.
+Once you follow the process of building the concept/vocabularies files you will need to compress them. See https://github.com/OHDSI/Vocabulary-v5.0/wiki
+and https://athena.ohdsi.org/vocabulary/list. My general list for working with current EHR data is:
 
+```
+NUCC	-	National Uniform Claim Committee Health Care Provider Taxonomy Code Set (NUCC)
+Revenue Code	-	UB04/CMS1450 Revenue Codes (CMS)
+CVX	-	CDC Vaccine Administered CVX (NCIRD)
+NAACCR	-	Data Standards & Data Dictionary Volume II (NAACCR)
+LOINC	-	Logical Observation Identifiers Names and Codes (Regenstrief Institute)
+HemOnc	-	HemOnc
+ICDO3	-	International Classification of Diseases for Oncology, Third Edition (WHO)
+SNOMED	-	Systematic Nomenclature of Medicine - Clinical Terms (IHTSDO)
+Gender	-	OMOP Gender
+NDC	-	National Drug Code (FDA and manufacturers)
+OMOP Invest Drug	-	OMOP Investigational Drugs
+RxNorm Extension	-	OMOP RxNorm Extension
+SPL	-	Structured Product Labeling (FDA)
+ICD9Proc	-	International Classification of Diseases, Ninth Revision, Clinical Modification, Volume 3 (NCHS)
+CPT4	-	Current Procedural Terminology version 4 (AMA)
+CMS Place of Service	-	Place of Service Codes for Professional Claims (CMS)
+Currency	-	International Currency Symbol (ISO 4217)
+Race	-	Race and Ethnicity Code Set (USBC)
+ICD9CM	-	International Classification of Diseases, Ninth Revision, Clinical Modification, Volume 1 and 2 (NCHS)
+ABMS	-	Provider Specialty (American Board of Medical Specialties)
+ICD10PCS	-	ICD-10 Procedure Coding System (CMS)
+Multum	-	Cerner Multum (Cerner)
+ICD10CM	-	International Classification of Diseases, Tenth Revision, Clinical Modification (NCHS)
+CGI	-	Cancer Genome Interpreter (Pompeu Fabra University)
+Cancer Modifier	-	Diagnostic Modifiers of Cancer (OMOP)
+RxNorm	-	RxNorm (NLM)
+ATC	-	WHO Anatomic Therapeutic Chemical Classification
+Ethnicity	-	OMOP Ethnicity
+HCPCS	-	Healthcare Common Procedure Coding System (CMS)
+VA Class	-	VA National Drug File Class (VA)
+Medicare Specialty	-	Medicare provider/supplier specialty codes (CMS)
+OMOP Extension	-	OMOP Extension (OHDSI)
+```
+
+Compress the concept files:
 ```bash
 cd /home/user/data/vocabulary/20231114
 bzip2 -v *.csv
