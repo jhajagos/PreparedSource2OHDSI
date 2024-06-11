@@ -4,6 +4,7 @@ This Docker container provides a pipeline for rapidly mapping Synthea data into 
 [Synthea](https://synthetichealth.github.io/synthea/)
 generates synthetic data which does not have the same restrictions as EHR data in terms of privacy and  
 human research restrictions.
+
 The mapping is done in a local Spark environment which generates Parquet files that are aligned to the OHDSI CDM. 
 As the OHDSI tool chains are optimized for relational databases (RDBMS) we then load the Parquet files into the RDBMS. 
 For this container, we focus on loading into Microsoft SQL Server but the approach here could be easily adapted to other RDBMS, 
