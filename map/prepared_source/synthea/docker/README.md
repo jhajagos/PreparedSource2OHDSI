@@ -36,7 +36,7 @@ docker build -t syntheaohdsi:latest ./
 ```
 
 ## Preparing concept files
-Once you follow the process of building the concept/vocabularies files you will need to compress them. See https://github.com/OHDSI/Vocabulary-v5.0/wiki
+The one external dependency on mapping data to the OHDSI CDM is generating concept files. You can follow the process of building the concept/vocabularies files; see https://github.com/OHDSI/Vocabulary-v5.0/wiki
 and https://athena.ohdsi.org/vocabulary/list. My general vocabulary list for working with EHR (Electronic Health Record) data is:
 
 ```
@@ -73,8 +73,9 @@ VA Class	-	VA National Drug File Class (VA)
 Medicare Specialty	-	Medicare provider/supplier specialty codes (CMS)
 OMOP Extension	-	OMOP Extension (OHDSI)
 ```
+As the Synthea data does not contain CPT codes you do not need to have a UMLS account.
 
-Compress the concept files:
+We compress the concept files to make them portable and faster to read in Spark:
 ```bash
 cd /home/user/data/vocabulary/20231114
 bzip2 -v *.csv
@@ -85,7 +86,7 @@ vocabulary file and will be mounted to the running container.
 
 ## Running the container
 
-Once the container is compiled you will need to run it.
+Once the container is compiled/built you will need to run it.
 ```bash
 docker run -it \
   --name syntheohdsi --hostname syntheaohdsi \
@@ -105,7 +106,8 @@ conda activate PySpark
 ## Staging the concept files for mapping
 
 You will only need to run this once as it will write the Parquet files to the mounted volume. 
-It generates Parquet file versions of the OHDSI concept tables that are used for mapping.
+It generates Parquet file versions of the OHDSI concept tables that are used for mapping. The OHDSI Parquet files
+contain some additional columns that are not in the OHDSI CDM to help link tables back to the source data.
 
 ```bash
 cd /root/scripts
@@ -157,7 +159,7 @@ For basic analytical querying you can use the ipython shell for querying.
 To emulate an environment found at a research institution we will load the data into a relational database. Here we will
 use the SQL Server Docker Image and run it locally.
 
-### Setting up the environment
+### Setting up SQL Server
 
 Run the container
 ```bash
@@ -180,7 +182,7 @@ Microsoft.
  
 You may need to modify the script `load_staged_tables_into_ohdsi_rdbms_cdm.sh` if you use a different version of the JDBC driver 
 than: `mssql-jdbc-12.6.2.jre11.jar` 
-by using the `-j` option in the program [jdbc_sql_loader.py](jdbc_sql_loader.py) and pointing to the updated JAR file.
+by using the `-j` option for  [jdbc_sql_loader.py](jdbc_sql_loader.py) and pointing to the updated JAR file.
 
 ### First time loading
 
