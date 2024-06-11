@@ -4,6 +4,7 @@ import glob
 import argparse
 import pprint
 
+
 def main(jdbc_connection_string, username, password):
 
     copy_jar_files()

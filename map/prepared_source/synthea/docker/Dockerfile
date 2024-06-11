@@ -19,19 +19,16 @@ ENV bashrc /root/.bashrc
 
 RUN $conda init && . $bashrc && conda activate PySpark && pip install pyspark
 
-# Get Synthea Commandline tool
-
+# Get the latest Synthea Commandline tool
 RUN mkdir /root/synthea/
 RUN cd /root/synthea/ && wget https://github.com/synthetichealth/synthea/releases/download/master-branch-latest/synthea-with-dependencies.jar
-
-RUN mkdir /root/synthea/modules/
-
+RUN mkdir /root/synthea/modules/ # For holding custom JSON Synthea modules: https://synthetichealth.github.io/module-builder/
 
 RUN mkdir /root/github/
 RUN apt install git -y
 
+# Install code for the OHDSI Spark based mapper
 RUN cd ~/github/ && git clone  https://github.com/jhajagos/PreparedSource2OHDSI.git
-
 RUN $conda init && . $bashrc && conda activate PySpark && pip install build
 RUN $conda init && . $bashrc && conda activate PySpark && cd ~/github/PreparedSource2OHDSI/ && python -m build --wheel
 RUN $conda init && . $bashrc && conda activate PySpark && cd ~/github/PreparedSource2OHDSI/dist/ \
@@ -42,9 +39,9 @@ RUN $conda init && . $bashrc && conda activate PySpark && conda install ipython
 RUN mkdir /root/config/
 
 # Add scripts for running the pipeline
-
 COPY synthea_config.json /root/config/
 
+# Add directories which can be used as mount points
 RUN mkdir -p /data/ohdsi/vocabulary/
 RUN mkdir -p /data/preparedsource/synthea/
 RUN mkdir /data/ohdsi/output/
@@ -75,18 +72,22 @@ COPY db_configure.py /root/scripts/
 COPY stage_tables_into_rdbms.sh /root/scripts/
 RUN chmod u+x /root/scripts/stage_tables_into_rdbms.sh
 
-COPY map_synthea_csv_to_spark_ohdsi.sh /root/scripts/
-RUN chmod u+x /root/scripts/map_synthea_csv_to_spark_ohdsi.sh
+COPY map_synthea_csv_to_ohdsi_parquet.sh /root/scripts/
+RUN chmod u+x /root/scripts/map_synthea_csv_to_ohdsi_parquet.sh
 
+# Add the ability to run arbitrary SQL RDBMS code from witin the container
 RUN $conda init && . $bashrc && conda activate PySpark && pip install JayDeBeApi # Connect through JDBC to databases
 RUN $conda init && . $bashrc && conda activate PySpark && pip install sqlparse
-
 COPY jdbc_sql_loader.py /root/scripts/
 
+# In case you need to execute the CDM
 RUN cd /root/github && git clone https://github.com/OHDSI/CommonDataModel.git
 
-COPY load_staged_tables_into_ohdsi_cdm.sh /root/scripts
-RUN CHMOD u+x /root/scripts/load_staged_tables_into_ohdsi_cdm.sh
+COPY load_staged_tables_into_ohdsi_rdbms_cdm.sh /root/scripts
+RUN chmod u+x /root/scripts/load_staged_tables_into_ohdsi_rdbms_cdm.sh
+
+COPY fully_load_ohdsi_parquet_files_into_rdbms.sh /root/scripts
+RUN chmod u+x /root/scripts/fully_load_ohdsi_parquet_files_into_rdbms.sh
 
 COPY .setup_environment /root/scripts
-RUN CHMOD u+x /root/scripts/.setup_environment
+RUN chmod u+x /root/scripts/.setup_environment
