@@ -83,11 +83,17 @@ COPY jdbc_sql_loader.py /root/scripts/
 # In case you need to execute the CDM
 RUN cd /root/github && git clone https://github.com/OHDSI/CommonDataModel.git
 
-COPY load_staged_tables_into_ohdsi_rdbms_cdm.sh /root/scripts
-RUN chmod u+x /root/scripts/load_staged_tables_into_ohdsi_rdbms_cdm.sh
+COPY load_all_staged_tables_into_ohdsi_rdbms.sh /root/scripts/
+RUN chmod u+x /root/scripts/load_all_staged_tables_into_ohdsi_rdbms.sh
 
-COPY fully_load_ohdsi_parquet_files_into_rdbms.sh /root/scripts
+COPY fully_load_ohdsi_parquet_files_into_rdbms.sh /root/scripts/
 RUN chmod u+x /root/scripts/fully_load_ohdsi_parquet_files_into_rdbms.sh
+
+COPY stage_tables_excluding_concepts_into_rdbms.sh /root/scripts/
+RUN chmod u+x /root/scripts/stage_tables_excluding_concepts_into_rdbms.sh
+
+COPY fully_load_ohdsi_parquet_files_excluding_concepts_into_rdbms.sh /root/scripts/
+RUN chmod u+x /root/scripts/fully_load_ohdsi_parquet_files_excluding_concepts_into_rdbms.sh
 
 COPY .setup_environment /root/scripts
 RUN chmod u+x /root/scripts/.setup_environment

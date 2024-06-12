@@ -1,13 +1,13 @@
-# DataBricks 
+# Databricks
 
-Publish the OHDSI database:
+Publish the Parquet files as an OHDSI database:
 
 ```bash
-python ./publish_ohdsi_database.py ./publish_ohdsi_database.py -n synthea_covid_100K \ 
+python ./publish_ohdsi_parquet_as_delta_tables.py ./publish_ohdsi_parquet_as_delta_tables.py -n synthea_covid_100K \ 
 -j ./config/config_synthea_covid.100k.json.generated.parquet.json -d /mnt/data_hf/synthea/covid19/100K/ohdsi/db/
 ```
 
-Populate CDM Source Table
+Populate CDM Source Table:
 
 Generate the JSON `cdm_source.json`
 ```json
@@ -29,7 +29,7 @@ python populate_cdm_source.py -n synthea_covid_100K -m cdm_source.json
 
 ```
 
-### Running Achilles and DQD
+### Running Achilles and DQD on Databricks
 
 Create the results database:
 ```sql
@@ -103,13 +103,13 @@ Viewing the dashboard
 DataQualityDashboard::viewDqDashboard("/home/rstudio/output/synthea_covid_100K_results.json")
 ```
 
-### Connecting to Atlas
+### Connecting to OHDSI Atlas
 
 ```sparksql
 create database ohdsi_temp2
 ```
 
-Adding source information to Atlas
+Adding source information to Atlas's PostGreSQL database:
 ```postgresql
 INSERT INTO ohdsi.source (source_id, source_name, source_key, source_connection, source_dialect, cached) 
     VALUES (3, 'synthea_covid_100K', 'synthea_covid_100K', 'jdbc:spark://adb-2663131608781029.9.azuredatabricks.net:443/default;transportMode=http;ssl=1;httpPath=sql/protocolv1/o/2663131608781029/0429-160712-n9csffwo;AuthMech=3;UID=token;PWD=', 'spark', false);
@@ -127,7 +127,7 @@ INSERT INTO ohdsi.source_daimon (source_id, daimon_type, table_qualifier, priori
     VALUES (3, 2, 'synthea_covid_100K_results', 1);
 ```
 
-Customize ths as needed
+Customize ths as needed:
 ```bash
 curl http://localhost:8080/WebAPI/ddl/results?dialect=spark&schema=synthea_covid_100K_results&vocabSchema=synthea_covid_100k&tempSchema=ohdsi_temp2&initConceptHierarchy=true
 ```
