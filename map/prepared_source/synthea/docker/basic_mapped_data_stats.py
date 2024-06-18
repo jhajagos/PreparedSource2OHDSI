@@ -15,6 +15,10 @@ statistics_queries = {"count_people": "select count(distinct person_id) as n, co
                       "count_deaths": "select count(distinct person_id) as n, count(*) as n_r from death",
                       "count_observation_periods": "select count(distinct person_id) as n, count(*) as n_r from observation_period",
 
+                      "count_gender": "select count(distinct person_id) as n, count(*) as n_r, concept_name as gender_concept_name from person p join concept c on p.gender_concept_id = c.concept_id group by gender_concept_id, concept_name order by count(*) desc",
+                      "count_race": "select count(distinct person_id) as n, count(*) as n_r, concept_name as race_concept_name from person p join concept c on  p.race_concept_id = c.concept_id group by race_concept_id, concept_name order by count(*) desc",
+                      "count_ethnicity": "select count(distinct person_id) as n, count(*) as n_r, concept_name as ethnicity_concept_name from person p join concept c on  p.ethnicity_concept_id = c.concept_id group by ethnicity_concept_id, concept_name order by count(*) desc",
+
                       "count_conditions": "select count(distinct person_id) as n, count(*) as n_r from condition_occurrence",
                       "count_procedures": "select count(distinct person_id) as n, count(*) as n_r from procedure_occurrence",
 
@@ -40,7 +44,14 @@ statistics_queries = {"count_people": "select count(distinct person_id) as n, co
 
                       "device_concepts_count": "select count(distinct person_id) as n, count(*) as n_r, device_concept_id, c.concept_name from device_exposure de join concept c on c.concept_id = de.device_concept_id group by device_concept_id, c.concept_name order by count(*) desc",
 
-                      "payer_concepts_count": "select count(distinct person_id) as n, count(*) as n_r, payer_concept_id, c.concept_name from payer_plan_period pp join concept c on c.concept_id = pp.payer_concept_id group by payer_concept_id, c.concept_name order by count(*) desc"
+                      "payer_concepts_count": "select count(distinct person_id) as n, count(*) as n_r, payer_concept_id, c.concept_name from payer_plan_period pp join concept c on c.concept_id = pp.payer_concept_id group by payer_concept_id, c.concept_name order by count(*) desc",
+
+                      "locations_count": "select count(*) as n_r from location",
+
+                      "provider_count": "select count(*) as n_r from provider",
+
+                      "top_locations": "select count(*) as n_r, state, county, city  from location group by state, county, city order by count(*) desc"
+
                       }
 
 for tag in statistics_queries:

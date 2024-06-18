@@ -20,6 +20,7 @@ truncate table [dbo].[location];
 truncate table [dbo].[drug_strength];
 truncate table [dbo].[concept_relationship];
 truncate table [dbo].[concept_ancestor];
+truncate table [dbo].[vocabulary];
 truncate table [dbo].[concept];
 truncate table [dbo].[domain];
 
@@ -35,6 +36,13 @@ select [domain_id],[domain_name],[domain_concept_id]
 insert into [dbo].[CONCEPT] (concept_id,concept_name,domain_id,vocabulary_id,concept_class_id,standard_concept,concept_code,valid_start_date,valid_end_date,invalid_reason)
 select [concept_id],[concept_name],[domain_id],[vocabulary_id],[concept_class_id],[standard_concept],[concept_code],cast(cast(valid_start_date as varchar(8)) as date),cast(cast(valid_start_date as varchar(8)) as date),[invalid_reason] 
     from [dbo].[transferCONCEPT];
+
+
+--Alter table vocabulary
+
+insert into [dbo].[VOCABULARY] (vocabulary_id,vocabulary_name,vocabulary_reference,vocabulary_version,vocabulary_concept_id)
+select [vocabulary_id],[vocabulary_name],[vocabulary_reference],[vocabulary_version],[vocabulary_concept_id] 
+    from [dbo].[transferVOCABULARY];
 
 
 --Alter table concept_ancestor
