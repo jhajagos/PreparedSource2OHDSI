@@ -5,6 +5,7 @@ import os
 import pathlib
 import csv
 import json
+import preparedsource2ohdsi.prepared_source as ps
 
 # cda = et.parse(cda_filename)
 # observations = list(cda.iterfind("./{urn:hl7-org:v3}entry/{urn:hl7-org:v3}organizer/{urn:hl7-org:v3}component/{urn:hl7-org:v3}observation"))
@@ -52,8 +53,27 @@ def extract_source_encounter_ccda(xml_doc):
 def extract_source_medication_ccda(xml_doc):
     # Medications
     # /ClinicalDocument/component/structuredBody/component/section/code[@code="10160-0"][@codeSystem="2.16.840.1.113883.6.1"]/../entry/substanceAdministration
-    pass
+    # find_meds_xpath = '/ClinicalDocument/component/' +\
+    #                   'structuredBody/component/section/' +\
+    #                   'code[@code="10160-0"][@codeSystem="2.16.840.1.113883.6.1"]/../entry/substanceAdministration'
+    #
+    # print(find_meds_xpath)
 
+    # /{urn:hl7-org:v3}structuredBody/{urn:hl7-org:v3}component/{urn:hl7-org:v3}section/{urn:hl7-org:v3}code[@code="10160-0"][@codeSystem="2.16.840.1.113883.6.1"]/..
+
+    root = xml_doc.getroot()
+    find_meds_xpath = './/{urn:hl7-org:v3}structuredBody/{urn:hl7-org:v3}component/{urn:hl7-org:v3}section/{urn:hl7-org:v3}code[@code="10160-0"][@codeSystem="2.16.840.1.113883.6.1"]/../{urn:hl7-org:v3}entry/{urn:hl7-org:v3}substanceAdministration'
+
+    result_list = []
+    for element in root.iterfind(find_meds_xpath):
+        for child in element:
+            print(child)
+
+
+
+        result_list += [element]
+
+    return result_list
 
 def extract_immunization_source_medication_ccda(xml_doc):
     # Immunizations
@@ -95,5 +115,16 @@ def extract_source_note_ccda(xml_doc):
 # /ClinicalDocument/component/structuredBody/component/section/code[@code="51847-2"][@codeSystem="2.16.840.1.113883.6.1"]/..
 
 
-def generate_patient_identifier():
-    pass
+def generate_patient_identifier(directory, salt):
+    to_be_hashed = salt + directory
+    hashing = hashlib.blake2b(digest_size=16)
+    hashing.update(to_be_hashed.encode("utf8"))
+    return hashing.hexdigest()
+
+
+
+def parse_xml_file(xml_file_name):
+
+    cda = et.parse(xml_file_name)
+
+    return cda
