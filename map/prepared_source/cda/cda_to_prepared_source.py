@@ -1,5 +1,10 @@
 import json
 import xml.etree.ElementTree as et
+import hashlib
+import os
+import pathlib
+import csv
+import json
 
 # cda = et.parse(cda_filename)
 # observations = list(cda.iterfind("./{urn:hl7-org:v3}entry/{urn:hl7-org:v3}organizer/{urn:hl7-org:v3}component/{urn:hl7-org:v3}observation"))
@@ -90,3 +95,5 @@ def extract_source_note_ccda(xml_doc):
 # /ClinicalDocument/component/structuredBody/component/section/code[@code="51847-2"][@codeSystem="2.16.840.1.113883.6.1"]/..
 
 
+def generate_patient_identifier():
+    pass
