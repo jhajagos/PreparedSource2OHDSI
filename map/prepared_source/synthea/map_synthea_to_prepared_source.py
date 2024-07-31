@@ -557,7 +557,7 @@ from medications
    ,cast(NULL as STRING) as s_id --Row source identifier
    ,'sythea' as s_source_system --Source system row was extracted from
    ,cast(NULL as STRING) as m_source_system --Mapped source system the row was extracted from
-from observations o join result_code_mapping rcm on o.`VALUE` = rcm.s_result_text and `TYPE` = 'text'
+from observations o left outer join result_code_mapping rcm on o.`VALUE` = rcm.s_result_text and `TYPE` = 'text'
     """
 
     source_result_sdf = distinct_and_add_row_id(spark.sql(source_result_sql))
