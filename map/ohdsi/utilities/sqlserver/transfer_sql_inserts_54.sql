@@ -2,27 +2,27 @@
 
 
 --Truncate tables
-truncate table [dbo].[payer_plan_period];
-truncate table [dbo].[device_exposure];
-truncate table [dbo].[drug_exposure];
-truncate table [dbo].[observation];
-truncate table [dbo].[measurement];
-truncate table [dbo].[procedure_occurrence];
-truncate table [dbo].[condition_occurrence];
-truncate table [dbo].[visit_detail];
-truncate table [dbo].[visit_occurrence];
-truncate table [dbo].[observation_period];
-truncate table [dbo].[death];
-truncate table [dbo].[person];
-truncate table [dbo].[provider];
-truncate table [dbo].[care_site];
-truncate table [dbo].[location];
-truncate table [dbo].[drug_strength];
-truncate table [dbo].[concept_relationship];
-truncate table [dbo].[concept_ancestor];
-truncate table [dbo].[vocabulary];
-truncate table [dbo].[concept];
-truncate table [dbo].[domain];
+truncate table [dbo].[PAYER_PLAN_PERIOD];
+truncate table [dbo].[DEVICE_EXPOSURE];
+truncate table [dbo].[DRUG_EXPOSURE];
+truncate table [dbo].[OBSERVATION];
+truncate table [dbo].[MEASUREMENT];
+truncate table [dbo].[PROCEDURE_OCCURRENCE];
+truncate table [dbo].[CONDITION_OCCURRENCE];
+truncate table [dbo].[VISIT_DETAIL];
+truncate table [dbo].[VISIT_OCCURRENCE];
+truncate table [dbo].[OBSERVATION_PERIOD];
+truncate table [dbo].[DEATH];
+truncate table [dbo].[PERSON];
+truncate table [dbo].[PROVIDER];
+truncate table [dbo].[CARE_SITE];
+truncate table [dbo].[LOCATION];
+truncate table [dbo].[DRUG_STRENGTH];
+truncate table [dbo].[CONCEPT_RELATIONSHIP];
+truncate table [dbo].[CONCEPT_ANCESTOR];
+truncate table [dbo].[VOCABULARY];
+truncate table [dbo].[CONCEPT];
+truncate table [dbo].[DOMAIN];
 
 --Alter table domain
 

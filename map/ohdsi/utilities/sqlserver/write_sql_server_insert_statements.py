@@ -3,12 +3,18 @@ import argparse
 import re
 
 
-def get_table(table_dict, table_name):
+def get_table(table_dict, table_name, dialect="mssql"):
 
-    if table_name not in table_dict:
-        return table_name.upper(), table_dict[table_name.upper()]
-    else:
-        return table_name, table_dict[table_name]
+    if dialect == "mssql":
+        if table_name not in table_dict:
+            return table_name.upper(), table_dict[table_name.upper()]
+        else:
+            return table_name, table_dict[table_name]
+    elif dialect == "psql":
+        if table_name not in table_dict:
+            return table_name.lower(), table_dict[table_name.upper()]
+        else:
+            return table_name, table_dict[table_name]
 
 
 def escape_name(object_name, dialect="mssql"):
@@ -55,14 +61,15 @@ def main(schema_dict, outfile_name, schema_name="dbo", transfer_table_prefix="tr
     sql_string += "\n"
     rev_table_order = reversed(table_order)
     for table in rev_table_order:
-        sql_string += f"truncate table {en(sn)}.{en(table)};\n"
+        tn, _ = get_table(schema_dict, table, dialect)
+        sql_string += f"truncate table {en(sn)}.{en(tn)};\n"
 
     for table in table_order:
 
         sql_string += "\n"
         sql_string += f"--Alter table {table}\n"
 
-        tn, table_dict = get_table(schema_dict, table)
+        tn, table_dict = get_table(schema_dict, table, dialect)
 
         # OHDSI CDM by default does not support BIGINT
         for column in table_dict:
