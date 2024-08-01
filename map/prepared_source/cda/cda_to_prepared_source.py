@@ -67,7 +67,7 @@ def extract_source_medication_ccda(xml_doc):
     result_list = []
     for element in root.iterfind(find_meds_xpath):
         for child in element:
-            print(child)
+            pass
 
 
 
