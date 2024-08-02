@@ -802,7 +802,6 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
             "g_source_table_name": "g_source_table_name"
         }
 
-
     drug_domain_procedure_source_sdf = build_mapped_domain_df(spark, source_procedure_matched_sdf,
                                                                      field_map=drug_domain_procedure_source_field_map,
                                                                      output_obj=ohdsi.DrugExposureObject(),
