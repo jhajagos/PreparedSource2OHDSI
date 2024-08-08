@@ -61,6 +61,11 @@ class PreparedSourceObject(object):
     def _meta_data(self):
         return {}
 
+    def dict_template(self):
+        """Generate template"""
+
+        return {c: None for c in self._fields()}
+
 
 class SourcePersonObject(PreparedSourceObject):
     """Details about a person"""

@@ -6,6 +6,7 @@ import pathlib
 import csv
 import json
 import preparedsource2ohdsi.prepared_source as ps
+import argparse
 
 # cda = et.parse(cda_filename)
 # observations = list(cda.iterfind("./{urn:hl7-org:v3}entry/{urn:hl7-org:v3}organizer/{urn:hl7-org:v3}component/{urn:hl7-org:v3}observation"))
@@ -50,30 +51,34 @@ def extract_source_encounter_ccda(xml_doc):
     pass
 
 
-def extract_source_medication_ccda(xml_doc):
+def extract_source_medication_ccda(xml_doc, source_person_id, source_cda_file_name):
     # Medications
     # /ClinicalDocument/component/structuredBody/component/section/code[@code="10160-0"][@codeSystem="2.16.840.1.113883.6.1"]/../entry/substanceAdministration
-    # find_meds_xpath = '/ClinicalDocument/component/' +\
-    #                   'structuredBody/component/section/' +\
-    #                   'code[@code="10160-0"][@codeSystem="2.16.840.1.113883.6.1"]/../entry/substanceAdministration'
-    #
-    # print(find_meds_xpath)
-
     # /{urn:hl7-org:v3}structuredBody/{urn:hl7-org:v3}component/{urn:hl7-org:v3}section/{urn:hl7-org:v3}code[@code="10160-0"][@codeSystem="2.16.840.1.113883.6.1"]/..
 
     root = xml_doc.getroot()
     find_meds_xpath = './/{urn:hl7-org:v3}structuredBody/{urn:hl7-org:v3}component/{urn:hl7-org:v3}section/{urn:hl7-org:v3}code[@code="10160-0"][@codeSystem="2.16.840.1.113883.6.1"]/../{urn:hl7-org:v3}entry/{urn:hl7-org:v3}substanceAdministration'
 
+    source_med_obj = ps.SourceMedicationObject()
+
     result_list = []
     for element in root.iterfind(find_meds_xpath):
+
+        source_med_dict = source_med_obj.dict_template()
+        source_med_dict["s_person_id"] = source_person_id
+
         for child in element:
-            pass
 
+            print(child.tag)
+            print(child.attrib)
+            print(child)
+            print(dir(child))
+            raise RuntimeError
 
-
-        result_list += [element]
+        result_list += [source_med_dict]
 
     return result_list
+
 
 def extract_immunization_source_medication_ccda(xml_doc):
     # Immunizations
@@ -122,9 +127,9 @@ def generate_patient_identifier(directory, salt):
     return hashing.hexdigest()
 
 
-
 def parse_xml_file(xml_file_name):
 
     cda = et.parse(xml_file_name)
 
     return cda
+

@@ -26,13 +26,18 @@ class TestPSConversion(unittest.TestCase):
 
     def setUp(self):
         self.d1 = parse_xml_file(current_directory / "samples/patient_1/Transition_of_Care_Referral_Summary.xml")
+        self.spid = generate_patient_identifier("samples/patient_1", salt="spectacular")
 
     def test_extract_source_meds(self):
-        result = extract_source_medication_ccda(self.d1)
+        results = extract_source_medication_ccda(self.d1, self.spid, "")
 
-        print(result)
+        print(results)
 
-        self.assertNotEqual(0, len(result))
+        self.assertNotEqual(0, len(results))
+
+        result_0 = results[0]
+
+        self.assertIsNotNone(result_0["s_person_id"])
 
 
 
