@@ -1,7 +1,8 @@
 ### Scaling EHR (Electronic Health Record) data mapping to the OHDSI CDM 
 
 The goal of this project is to scale the mapping of clinical data to the [OHDSI 
-CDM](https://ohdsi.github.io/CommonDataModel/cdm54.html) (Common Data Model).
+CDM](https://ohdsi.github.io/CommonDataModel/cdm54.html) (Common Data Model). 
+The OHDSI CDM is the data standard for data analytics on EHR data.
 The scalable compute is provided by using a SPARK (>3.0) compute environment.
 Data is written in the [Apache Parquet format](https://parquet.apache.org/)
 and can be either directly queried or staged into a relational SQL database.
