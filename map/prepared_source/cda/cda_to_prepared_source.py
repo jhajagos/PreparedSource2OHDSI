@@ -24,7 +24,7 @@ def extract_source_person_ccda(xml_doc):
     # ./ClinicalDocument/recordTarget/patientRole/patient/sdtc:deceasedInd
     # ./ClinicalDocument/recordTarget/patientRole/patient/sdtc:deceasedTime
 
-    source_person_obj = sa.SourcePersonObject()
+    source_person_obj = ps.SourcePersonObject()
 
 
 def extract_source_provider_ccda(xml_doc):
@@ -32,14 +32,14 @@ def extract_source_provider_ccda(xml_doc):
     # ./ClinicalDocument/documentationOf/serviceEvent/performer
     # ./ClinicalDocument/component/structuredBody/component/section/code --Get Section
 
-    source_provider_obj = sa.SourceProviderObject()
+    source_provider_obj = ps.SourceProviderObject()
 
 
 def extract_problems_source_condition_ccda(xml_doc):
     # Active problem lists
     # /ClinicalDocument/component/structuredBody/component/section/entry/act/entryRelationship/observation/code[@code="404684003"][@codeSystem="2.16.840.1.113883.6.96"]/..
 
-    source_condition_obj = sa.SourceConditionObject()
+    source_condition_obj = ps.SourceConditionObject()
 
 
 def extract_source_procedures_ccda(xml_doc):
@@ -47,14 +47,14 @@ def extract_source_procedures_ccda(xml_doc):
     # /ClinicalDocument/component/structuredBody/component/section/code[@code="47519-4"][@codeSystem="2.16.840.1.113883.6.1"]/../entry/observation
     # /ClinicalDocument/component/structuredBody/component/section/code[@code="47519-4"][@codeSystem="2.16.840.1.113883.6.1"]/../entry/procedure
 
-    source_procedure_obj = sa.SourceProviderObject()
+    source_procedure_obj = ps.SourceProviderObject()
 
 
 def extract_source_encounter_ccda(xml_doc):
     # Encounters
     # /ClinicalDocument/component/structuredBody/component/section/code[@code="46240-8"][@codeSystem="2.16.840.1.113883.6.1"]/../entry/encounter
 
-    source_encounter_obj = sa.SourceEncounterObject()
+    source_encounter_obj = ps.SourceEncounterObject()
 
 
 def extract_source_medication_ccda(xml_doc, source_person_id, source_cda_file_name):
@@ -90,28 +90,28 @@ def extract_immunization_source_medication_ccda(xml_doc):
     # Immunizations
     # /ClinicalDocument/component/structuredBody/component/section/code[@code="11369-6"][@codeSystem="2.16.840.1.113883.6.1"]/../entry/substanceAdministration
 
-    source_medication_obj.= sa.SourceMedicationObject()
+    source_medication_obj.= ps.SourceMedicationObject()
 
 
 def extract_labs_source_result_ccda(xml_doc):
     # Labs
     # /ClinicalDocument/component/structuredBody/component/section/code[@code="30954-2"][@codeSystem="2.16.840.1.113883.6.1"]/../entry/organizer/component/observation
 
-    source_result_obj = sa.SourceResultObject()
+    source_result_obj = ps.SourceResultObject()
 
 
 def extract_vitals_source_result_ccda(xml_doc):
     # Vitals
     # ./ClinicalDocument/component/structuredBody/component/section/code[@code="8716-3"][@codeSystem="2.16.840.1.113883.6.1"]/../entry/organizer/component/observation
 
-    source_result_obj = sa.SourceResultObject()
+    source_result_obj = ps.SourceResultObject()
 
 
 def extract_vitals_source_result_apple_cda(xml_doc):
     # Vitals (Apple CDA)
     # /ClinicalDocument/entry/organizer/code[@code="46680005"][@codeSystem="2.16.840.1.113883.6.96"]/../component/observation
 
-    source_result_obj = sa.SourceResultObject()
+    source_result_obj = ps.SourceResultObject()
 
 
 def extract_social_history_source_condition(xml_doc):
