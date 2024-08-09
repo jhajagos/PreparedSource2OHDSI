@@ -1,6 +1,7 @@
 ## C-CDA and Healthkit CDA to Prepared Source Format to the OHDSI Common Data Model (CDM)
 
-An individual will see multiple providers across different health systems. 
+Most mappings of data to the OHDSI CDM focus on mapping a single institutions 
+EHR (Electronic Health Record) data. In reality a person will see multiple providers across different health systems.
 Most patient portals now support export of medical records to the C-CDA format. 
 C-CDA is a templated version of the CDA (Clinical Document Architecture)
 This code is designed to take a collection of C-CDAs (Consolidated Clinical 
