@@ -8,9 +8,11 @@ import json
 import preparedsource2ohdsi.prepared_source as ps
 import argparse
 
+
+CDANS = "{urn:hl7-org:v3}"
+
 # cda = et.parse(cda_filename)
 # observations = list(cda.iterfind("./{urn:hl7-org:v3}entry/{urn:hl7-org:v3}organizer/{urn:hl7-org:v3}component/{urn:hl7-org:v3}observation"))
-
 
 def extract_source_person_ccda(xml_doc):
     # source_person
@@ -52,6 +54,7 @@ def extract_source_encounter_ccda(xml_doc):
 
 
 def extract_source_medication_ccda(xml_doc, source_person_id, source_cda_file_name):
+    """Extract medications from the medications section of C-CDA document"""
     # Medications
     # /ClinicalDocument/component/structuredBody/component/section/code[@code="10160-0"][@codeSystem="2.16.840.1.113883.6.1"]/../entry/substanceAdministration
     # /{urn:hl7-org:v3}structuredBody/{urn:hl7-org:v3}component/{urn:hl7-org:v3}section/{urn:hl7-org:v3}code[@code="10160-0"][@codeSystem="2.16.840.1.113883.6.1"]/..
