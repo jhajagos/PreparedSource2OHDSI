@@ -30,6 +30,11 @@ def main(config, spark):
         "source_person_map": prepared_source.SourcePersonMapObject()
     }
 
+    if "staging_table_uppercase_file_name" in config:
+        staging_table_uppercase_file_name = config["staging_table_uppercase_file_name"]
+    else:
+        staging_table_uppercase_file_name = False
+
     prepared_source_tables_to_exclude = config["prepared_source_tables_to_exclude"]
     prepared_source_csv_table_path = config["prepared_source_csv_table_path"]
     staging_base_path = config["prepared_source_table_path"]
@@ -39,7 +44,10 @@ def main(config, spark):
     source_tables = {}
     for table in prepared_source_map:
         if table not in prepared_source_tables_to_exclude:
-            source_table = staging_table_prefix + table
+            if staging_table_uppercase_file_name:
+                source_table = staging_table_prefix + table.upper()
+            else:
+                source_table = staging_table_prefix + table
             source_tables[table] = source_table
 
     loaded_tables_dict = mapping_utilities.load_csv_to_sparc_df_dict(spark, source_tables, "csv", prepared_source_csv_table_path, prepared_source_csv_extension)
