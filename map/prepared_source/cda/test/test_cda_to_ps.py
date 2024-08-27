@@ -25,13 +25,14 @@ class TestBasicFunctionality(unittest.TestCase):
 class TestPSConversion(unittest.TestCase):
 
     def setUp(self):
-        self.d1 = parse_xml_file(current_directory / "samples/patient_1/Transition_of_Care_Referral_Summary.xml")
+        self.file_name = "samples/patient_1/Transition_of_Care_Referral_Summary.xml"
+        self.d1 = parse_xml_file(current_directory / self.file_name)
         self.spid = generate_patient_identifier("samples/patient_1", salt="spectacular")
 
     def test_extract_source_meds(self):
-        results = extract_source_medication_ccda(self.d1, self.spid, "")
-
-        print(results)
+        results = extract_source_medication_ccda(self.d1, self.spid, self.file_name)
+        import pprint
+        pprint.pprint(results)
 
         self.assertNotEqual(0, len(results))
 

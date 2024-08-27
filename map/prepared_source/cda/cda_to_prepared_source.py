@@ -11,9 +11,13 @@ import argparse
 
 CDANS = "{urn:hl7-org:v3}"
 
+def expand_tag(tag_name):
+    return f"{CDANS}{tag_name}"
+
+ext = expand_tag
+
 # cda = et.parse(cda_filename)
 # observations = list(cda.iterfind("./{urn:hl7-org:v3}entry/{urn:hl7-org:v3}organizer/{urn:hl7-org:v3}component/{urn:hl7-org:v3}observation"))
-
 def extract_source_person_ccda(xml_doc):
     """Extract details for source_person from the C-CDA the patientRole section"""
     # source_person
@@ -63,7 +67,7 @@ def extract_source_medication_ccda(xml_doc, source_person_id, source_cda_file_na
     # /ClinicalDocument/component/structuredBody/component/section/code[@code="10160-0"][@codeSystem="2.16.840.1.113883.6.1"]/../entry/substanceAdministration
     # /{urn:hl7-org:v3}structuredBody/{urn:hl7-org:v3}component/{urn:hl7-org:v3}section/{urn:hl7-org:v3}code[@code="10160-0"][@codeSystem="2.16.840.1.113883.6.1"]/..
 
-    source_med_object = ps.SourceMedicationObject()
+    source_med_obj = ps.SourceMedicationObject()
     root = xml_doc.getroot()
     find_meds_xpath = './/{urn:hl7-org:v3}structuredBody/{urn:hl7-org:v3}component/{urn:hl7-org:v3}section/{urn:hl7-org:v3}code[@code="10160-0"][@codeSystem="2.16.840.1.113883.6.1"]/../{urn:hl7-org:v3}entry/{urn:hl7-org:v3}substanceAdministration'
 
@@ -72,14 +76,59 @@ def extract_source_medication_ccda(xml_doc, source_person_id, source_cda_file_na
 
         source_med_dict = source_med_obj.dict_template()
         source_med_dict["s_person_id"] = source_person_id
+        source_med_dict["s_source_system"] = f"c-cda/{source_cda_file_name}"
 
         for child in element:
+            if child.tag == ext("id"):
+                if "root" in child.attrib:
+                    source_med_dict["s_id"] = child.attrib["root"]
+            elif child.tag == ext("effectiveTime"):
+                for grandchild in child:
+                    if grandchild.tag == ext("low"):
+                        if "value" in grandchild.attrib: # TODO: Add date formater
+                            source_med_dict["s_start_medication_datetime"] = grandchild.attrib["value"]
+                    elif grandchild.tag == ext("high"):
+                        if "value" in grandchild.attrib:
+                            source_med_dict["s_end_medication_datetime"] = grandchild.attrib["value"]
+            elif child.tag == ext("statusCode"):
+                if "code" in child.attrib:
+                    source_med_dict["s_status"] = child.attrib["code"]
 
-            print(child.tag)
-            print(child.attrib)
-            print(child)
-            print(dir(child))
-            raise RuntimeError
+            elif child.tag == ext("routeCode"):
+                if "code" in child.attrib:
+                    source_med_dict["s_route_code"] = child.attrib["code"]
+
+                if "codeSystemName" in child.attrib:
+                    source_med_dict["s_route_code_type"] = child.attrib["codeSystemName"]
+
+                if "codeSystem" in child.attrib:
+                    source_med_dict["s_route_code_type_oid"] = child.attrib["codeSystem"]
+
+                for grandchild in child:
+                    if grandchild.tag == ext("originalText"):
+                        source_med_dict["s_route"] = grandchild.text
+
+            elif child.tag == ext("doseQuantity"):
+                if "value" in child.attrib:
+                    source_med_dict["s_quantity"] = child.attrib["value"]
+                if "unit" in child.attrib:
+                    source_med_dict["s_dose_unit"] = child.attrib["unit"]
+
+            elif child.tag == ext("consumable"):
+                for grandchild in child:
+                    if grandchild.tag == ext("manufacturedProduct"):
+                        for greatgrandchild in grandchild:
+                            if greatgrandchild.tag == ext("manufacturedMaterial"):
+                                for greatgreatgrandchild in greatgrandchild:
+                                    if greatgreatgrandchild.tag == ext("code"):
+                                        if "code" in greatgreatgrandchild.attrib:
+                                            source_med_dict["s_drug_code"] = greatgreatgrandchild.attrib["code"]
+                                        if "codeSystemName" in greatgreatgrandchild.attrib:
+                                            source_med_dict["s_drug_code_type"] = greatgreatgrandchild.attrib["codeSystemName"]
+                                        if "codeSystem" in greatgreatgrandchild.attrib:
+                                            source_med_dict["s_drug_code_type_oid"] = greatgreatgrandchild.attrib["codeSystem"]
+                                        if "displayName" in greatgreatgrandchild.attrib:
+                                            source_med_dict["s_drug_text"] = greatgreatgrandchild.attrib["displayName"]
 
         result_list += [source_med_dict]
 
@@ -90,7 +139,7 @@ def extract_immunization_source_medication_ccda(xml_doc):
     # Immunizations
     # /ClinicalDocument/component/structuredBody/component/section/code[@code="11369-6"][@codeSystem="2.16.840.1.113883.6.1"]/../entry/substanceAdministration
 
-    source_medication_obj.= ps.SourceMedicationObject()
+    source_medication_obj = ps.SourceMedicationObject()
 
 
 def extract_labs_source_result_ccda(xml_doc):
