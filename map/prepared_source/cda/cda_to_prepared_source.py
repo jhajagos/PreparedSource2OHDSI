@@ -30,6 +30,9 @@ def extract_source_person_ccda(xml_doc):
 
     source_person_obj = ps.SourcePersonObject()
 
+def clean_datetime(datetime_str):
+    # TODO: Implement consistent formatting
+    return datetime_str
 
 def extract_source_provider_ccda(xml_doc):
     # source_provider
@@ -64,9 +67,9 @@ def extract_source_encounter_ccda(xml_doc):
 def extract_labs_source_result_ccda(xml_doc, source_person_id, source_cda_file_name):
     # Labs
     # /ClinicalDocument/component/structuredBody/component/section/code[@code="30954-2"][@codeSystem="2.16.840.1.113883.6.1"]/../entry/organizer/component/observation
-
+    # .//{urn:hl7-org:v3}structuredBody/{urn:hl7-org:v3}component/{urn:hl7-org:v3}section/{urn:hl7-org:v3}code[@code="30954-2"][@codeSystem="2.16.840.1.113883.6.1"]/../{urn:hl7-org:v3}entry/{urn:hl7-org:v3}organizer/{urn:hl7-org:v3}component/{urn:hl7-org:v3}observation/
     root = xml_doc.getroot()
-    find_labs_xpath = './/{urn:hl7-org:v3}structuredBody/{urn:hl7-org:v3}component/{urn:hl7-org:v3}section/{urn:hl7-org:v3}code[@code="30954-2"][@codeSystem="2.16.840.1.113883.6.1"]/../{urn:hl7-org:v3}entry/{urn:hl7-org:v3}organizer/{urn:hl7-org:v3}component/{urn:hl7-org:v3}observation/'
+    find_labs_xpath = './/{urn:hl7-org:v3}structuredBody/{urn:hl7-org:v3}component/{urn:hl7-org:v3}section/{urn:hl7-org:v3}code[@code="30954-2"][@codeSystem="2.16.840.1.113883.6.1"]/../{urn:hl7-org:v3}entry/{urn:hl7-org:v3}organizer/{urn:hl7-org:v3}component/{urn:hl7-org:v3}observation/.'
 
     source_result_obj = ps.SourceResultObject()
 
@@ -75,6 +78,63 @@ def extract_labs_source_result_ccda(xml_doc, source_person_id, source_cda_file_n
         source_result_dict = source_result_obj.dict_template()
         source_result_dict["s_person_id"] = source_person_id
         source_result_dict["s_source_system"] = f"c-cda/{source_cda_file_name}"
+
+        for child in element:
+            if child.tag == ext("id"):
+                if "root" in child.attrib:
+                    source_result_dict["s_id"] = child.attrib["root"]
+
+            elif child.tag == ext("effectiveTime"):
+                if "value" in child.attrib:
+                    source_result_dict["s_result_datetime"] = clean_datetime(child.attrib["value"])
+
+            elif child.tag == ext("code"):
+
+                if "code" in child.attrib:
+                    source_result_dict["s_code"] = child.attrib["code"]
+
+                if "codeSystem" in child.attrib:
+                    source_result_dict["s_code_type_oid"] = child.attrib["codeSystem"]
+
+                if "codeSystemName" in child.attrib:
+                    source_result_dict["s_code_type"] = child.attrib["codeSystemName"]
+
+                for grandchild in child:
+                    if grandchild.tag == ext("originalText"):
+                        source_result_dict["s_name"] = grandchild.text
+
+            elif child.tag == ext("interpretationCode"):
+
+                if "code" in child.attrib:
+                    source_result_dict["s_result_code"] = child.attrib["code"]
+
+                if "codeSystem" in child.attrib:
+                    source_result_dict["s_result_code_type_oid"] = child.attrib["codeSystem"]
+
+                if "codeSystemName" in child.attrib:
+                    source_result_dict["s_result_code_type"] = child.attrib["codeSystemName"]
+
+                for grandchild in child:
+                    if grandchild.tag == ext("originalText"):
+                        source_result_dict["s_result_text"] = grandchild.text
+
+            elif child.tag == ext("value"):
+                if "{http://www.w3.org/2001/XMLSchema-instance}type" in child.attrib:
+                    value_type = child.attrib["{http://www.w3.org/2001/XMLSchema-instance}type"]
+
+                    if value_type == "PQ":
+
+                        if "value" in child.attrib:
+                            source_result_dict["s_result_number"] = child.attrib["value"]
+
+                        if "unit" in child.attrib:
+                            source_result_dict["s_result_unit"] = child.attrib["unit"]
+
+
+            elif child.tag == ext("referenceRange"):
+                # TODO: Implemnt parsing of reference range
+                pass
+
 
         result_list += [source_result_dict]
 
@@ -85,7 +145,7 @@ def extract_source_medication_ccda(xml_doc, source_person_id, source_cda_file_na
     """Extract medications from the medications section of C-CDA document"""
     # Medications
     # /ClinicalDocument/component/structuredBody/component/section/code[@code="10160-0"][@codeSystem="2.16.840.1.113883.6.1"]/../entry/substanceAdministration
-    # /{urn:hl7-org:v3}structuredBody/{urn:hl7-org:v3}component/{urn:hl7-org:v3}section/{urn:hl7-org:v3}code[@code="10160-0"][@codeSystem="2.16.840.1.113883.6.1"]/..
+    # .//{urn:hl7-org:v3}structuredBody/{urn:hl7-org:v3}component/{urn:hl7-org:v3}section/{urn:hl7-org:v3}code[@code="10160-0"][@codeSystem="2.16.840.1.113883.6.1"]/../{urn:hl7-org:v3}entry/{urn:hl7-org:v3}substanceAdministration
 
     source_med_obj = ps.SourceMedicationObject()
     root = xml_doc.getroot()

@@ -45,8 +45,8 @@ class TestPSConversion(unittest.TestCase):
 
     def test_extract_source_lab_result(self):
         results = extract_labs_source_result_ccda(self.d1, self.spid, self.file_name)
-        # import pprint
-        # pprint.pprint(results)
+        import pprint
+        pprint.pprint(results)
 
         self.assertNotEqual(0, len(results))
 
