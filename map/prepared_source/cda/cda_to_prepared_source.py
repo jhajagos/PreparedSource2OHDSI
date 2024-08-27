@@ -61,6 +61,26 @@ def extract_source_encounter_ccda(xml_doc):
     source_encounter_obj = ps.SourceEncounterObject()
 
 
+def extract_labs_source_result_ccda(xml_doc, source_person_id, source_cda_file_name):
+    # Labs
+    # /ClinicalDocument/component/structuredBody/component/section/code[@code="30954-2"][@codeSystem="2.16.840.1.113883.6.1"]/../entry/organizer/component/observation
+
+    root = xml_doc.getroot()
+    find_labs_xpath = './/{urn:hl7-org:v3}structuredBody/{urn:hl7-org:v3}component/{urn:hl7-org:v3}section/{urn:hl7-org:v3}code[@code="30954-2"][@codeSystem="2.16.840.1.113883.6.1"]/../{urn:hl7-org:v3}entry/{urn:hl7-org:v3}organizer/{urn:hl7-org:v3}component/{urn:hl7-org:v3}observation/'
+
+    source_result_obj = ps.SourceResultObject()
+
+    result_list = []
+    for element in root.iterfind(find_labs_xpath):
+        source_result_dict = source_result_obj.dict_template()
+        source_result_dict["s_person_id"] = source_person_id
+        source_result_dict["s_source_system"] = f"c-cda/{source_cda_file_name}"
+
+        result_list += [source_result_dict]
+
+    return result_list
+
+
 def extract_source_medication_ccda(xml_doc, source_person_id, source_cda_file_name):
     """Extract medications from the medications section of C-CDA document"""
     # Medications
@@ -83,6 +103,19 @@ def extract_source_medication_ccda(xml_doc, source_person_id, source_cda_file_na
                 if "root" in child.attrib:
                     source_med_dict["s_id"] = child.attrib["root"]
             elif child.tag == ext("effectiveTime"):
+
+                """
+                TODO: Handle these cases
+                <effectiveTime xsi:type="IVL_TS" operator="I">
+                    <high value="20221024000000-0000" inclusive="true" />
+                  </effectiveTime>
+                 
+                <effectiveTime xsi:type="IVL_TS" operator="I">
+                    <low value="20221024000000-0000" inclusive="true" />
+                    <high nullFlavor="UNK" inclusive="true" />
+                </effectiveTime>
+                """
+
                 for grandchild in child:
                     if grandchild.tag == ext("low"):
                         if "value" in grandchild.attrib: # TODO: Add date formater
@@ -140,13 +173,6 @@ def extract_immunization_source_medication_ccda(xml_doc):
     # /ClinicalDocument/component/structuredBody/component/section/code[@code="11369-6"][@codeSystem="2.16.840.1.113883.6.1"]/../entry/substanceAdministration
 
     source_medication_obj = ps.SourceMedicationObject()
-
-
-def extract_labs_source_result_ccda(xml_doc):
-    # Labs
-    # /ClinicalDocument/component/structuredBody/component/section/code[@code="30954-2"][@codeSystem="2.16.840.1.113883.6.1"]/../entry/organizer/component/observation
-
-    source_result_obj = ps.SourceResultObject()
 
 
 def extract_vitals_source_result_ccda(xml_doc):
