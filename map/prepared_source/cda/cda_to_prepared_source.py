@@ -8,19 +8,52 @@ import json
 import preparedsource2ohdsi.prepared_source as ps
 import argparse
 
-
 CDANS = "{urn:hl7-org:v3}"
+
+
+def code_to_dict(element):
+    code_dict = {}
+    if "code" in element.attrib:
+        code_dict["s_code"] = element.attrib["code"]
+    else:
+        code_dict["s_code"] = None
+
+    if "codeSystem" in element.attrib:
+        code_dict["s_code_type_oid"] = element.attrib["codeSystem"]
+    else:
+        code_dict["s_code_type_oid"] = None
+
+    if "codeSystemName" in element.attrib:
+        code_dict["s_code_type"] = element.attrib["codeSystemName"]
+    else:
+        code_dict["s_code_type"] = None
+
+    for child in element:
+        if child.tag == ext("originalText"):
+            code_dict["s_text"] = child.text
+        else:
+            code_dict["s_text"] = None
+
+    return code_dict
 
 def expand_tag(tag_name):
     return f"{CDANS}{tag_name}"
 
+
 ext = expand_tag
+
+
+def clean_datetime(datetime_str):
+    # TODO: Implement consistent formatting
+    return datetime_str
+
 
 # cda = et.parse(cda_filename)
 # observations = list(cda.iterfind("./{urn:hl7-org:v3}entry/{urn:hl7-org:v3}organizer/{urn:hl7-org:v3}component/{urn:hl7-org:v3}observation"))
-def extract_source_person_ccda(xml_doc):
+def extract_source_person_ccda(xml_doc, source_person_id, source_cda_file_name):
     """Extract details for source_person from the C-CDA the patientRole section"""
     # source_person
+
     # ./ClinicalDocument/recordTarget/patientRole/patient/birthTime
     # ./ClinicalDocument/recordTarget/patientRole/patient/administrativeGenderCode
     # ./ClinicalDocument/recordTarget/patientRole/patient/raceCode
@@ -28,12 +61,46 @@ def extract_source_person_ccda(xml_doc):
     # ./ClinicalDocument/recordTarget/patientRole/patient/sdtc:deceasedInd
     # ./ClinicalDocument/recordTarget/patientRole/patient/sdtc:deceasedTime
 
+    root = xml_doc.getroot()
+    find_person_xpath = './/{urn:hl7-org:v3}recordTarget/{urn:hl7-org:v3}patientRole/.'
+
     source_person_obj = ps.SourcePersonObject()
+    source_person_dict = source_person_obj.dict_template()
+    source_person_dict["s_person_id"] = source_person_id
 
-def clean_datetime(datetime_str):
-    # TODO: Implement consistent formatting
-    return datetime_str
+    for element in root.iterfind(find_person_xpath):
+        if element.tag == ext("patientRole"):
+            for child in element:
+                if child.tag == ext("id"):
+                    if "root" in child.attrib:
+                        source_person_dict["s_id"] = child.attrib["root"]
+                elif child.tag == ext("patient"):
+                    for grandchild in child:
+                        if grandchild.tag == ext("administrativeGenderCode"):
+                            gender_code_dict = code_to_dict(grandchild)
+                            source_person_dict["s_gender_code"] = gender_code_dict["s_code"]
+                            source_person_dict["s_gender_code_type_oid"] = gender_code_dict["s_code_type_oid"]
+                            source_person_dict["s_gender_code_type"] = gender_code_dict["s_code_type"]
+                            source_person_dict["s_gender"] = gender_code_dict["s_text"]
 
+                        elif grandchild.tag == ext("raceCode"):
+                            race_code_dict = code_to_dict(grandchild)
+                            source_person_dict["s_race_code"] = race_code_dict["s_code"]
+                            source_person_dict["s_race_code_type_oid"] = race_code_dict["s_code_type_oid"]
+                            source_person_dict["s_race_code_type"] = race_code_dict["s_code_type"]
+                            source_person_dict["s_race"] = race_code_dict["s_text"]
+
+                        elif grandchild.tag == ext("ethnicGroupCode"):
+                            ethnic_code_dict = code_to_dict(grandchild)
+                            source_person_dict["s_ethnicity_code"] = ethnic_code_dict["s_code"]
+                            source_person_dict["s_ethnicity_code_type_oid"] = ethnic_code_dict["s_code_type_oid"]
+                            source_person_dict["s_ethnicity_code_type"] = ethnic_code_dict["s_code_type"]
+                            source_person_dict["s_ethnicity"] = ethnic_code_dict["s_text"]
+
+                        elif grandchild.tag == ext("birthTime"):
+                            if "value" in grandchild.attrib:
+                                source_person_dict["s_birth_datetime"] = clean_datetime(grandchild.attrib["value"])
+    return [source_person_dict]
 def extract_source_provider_ccda(xml_doc):
     # source_provider
     # ./ClinicalDocument/documentationOf/serviceEvent/performer
@@ -178,11 +245,11 @@ def extract_source_medication_ccda(xml_doc, source_person_id, source_cda_file_na
 
                 for grandchild in child:
                     if grandchild.tag == ext("low"):
-                        if "value" in grandchild.attrib: # TODO: Add date formater
-                            source_med_dict["s_start_medication_datetime"] = grandchild.attrib["value"]
+                        if "value" in grandchild.attrib:
+                            source_med_dict["s_start_medication_datetime"] = clean_datetime(grandchild.attrib["value"])
                     elif grandchild.tag == ext("high"):
                         if "value" in grandchild.attrib:
-                            source_med_dict["s_end_medication_datetime"] = grandchild.attrib["value"]
+                            source_med_dict["s_end_medication_datetime"] = clean_datetime(grandchild.attrib["value"])
             elif child.tag == ext("statusCode"):
                 if "code" in child.attrib:
                     source_med_dict["s_status"] = child.attrib["code"]

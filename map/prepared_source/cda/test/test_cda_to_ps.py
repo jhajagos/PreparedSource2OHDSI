@@ -2,7 +2,9 @@ import pathlib
 import os
 import unittest
 from ..cda_to_prepared_source import (generate_patient_identifier, parse_xml_file,
-                                      extract_source_medication_ccda, extract_labs_source_result_ccda)
+                                      extract_source_medication_ccda, extract_labs_source_result_ccda,
+                                      extract_source_person_ccda
+                                      )
 
 
 file_directory = __file__
@@ -32,8 +34,6 @@ class TestPSConversion(unittest.TestCase):
 
     def test_extract_source_meds(self):
         results = extract_source_medication_ccda(self.d1, self.spid, self.file_name)
-        # import pprint
-        # pprint.pprint(results)
 
         self.assertNotEqual(0, len(results))
 
@@ -45,8 +45,6 @@ class TestPSConversion(unittest.TestCase):
 
     def test_extract_source_lab_result(self):
         results = extract_labs_source_result_ccda(self.d1, self.spid, self.file_name)
-        import pprint
-        pprint.pprint(results)
 
         self.assertNotEqual(0, len(results))
 
@@ -54,8 +52,17 @@ class TestPSConversion(unittest.TestCase):
 
         self.assertIsNotNone(result_0["s_person_id"])
 
-        #self.assertIsNotNone(result_0["s_code"])
+        self.assertIsNotNone(result_0["s_code"])
 
+    def test_extract_source_person(self):
+        results = extract_source_person_ccda(self.d1, self.spid, self.file_name)
+        self.assertEqual(1, len(results))
+        result_0 = results[0]
+
+        import pprint
+        pprint.pprint(results)
+
+        self.assertIsNotNone(result_0["s_gender_code"])
 
 
 if __name__ == '__main__':
