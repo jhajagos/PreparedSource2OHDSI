@@ -7,6 +7,7 @@ import csv
 import json
 import preparedsource2ohdsi.prepared_source as ps
 import argparse
+import glob
 
 CDANS = "{urn:hl7-org:v3}"
 
@@ -341,9 +342,82 @@ def generate_patient_identifier(directory, salt):
     return hashing.hexdigest()
 
 
+def create_directory(directory):
+    if os.path.exists(directory):
+        pass
+    else:
+        print(f"Creating: '{directory}'")
+        os.mkdir(directory)
+
+
+def write_csv_list_dict(file_name, list_dict):
+    header = list(list_dict[0].keys())
+
+    with open(file_name, mode="w", newline="") as fw:
+        dw = csv.DictWriter(fw, fieldnames=header)
+        dw.writeheader()
+
+        for row in list_dict:
+            dw.writerow(row)
+
 def parse_xml_file(xml_file_name):
     """Parse the cda xml document"""
     cda = et.parse(xml_file_name)
 
     return cda
+
+
+def main(directory, salting):
+
+    p_directory = pathlib.Path(directory)
+    search_pattern = str(p_directory) + os.path.sep + "*.xml"
+
+    xml_files_to_process = glob.glob(search_pattern)
+
+    # Setup directories
+    output_directory_root = p_directory / "output"
+    create_directory(output_directory_root)
+
+    ps_frag_directory = output_directory_root / "ps_frags"
+    create_directory(ps_frag_directory)
+
+    ps_directory = output_directory_root / "ps"
+    create_directory(ps_directory)
+
+    s_person_id = generate_patient_identifier(directory, salt=salting)
+
+    for xml_file in xml_files_to_process:
+        try:
+            print(f"Parsing: '{xml_file}'")
+            xml_obj = parse_xml_file(xml_file)
+        except IOError:
+            raise IOError
+
+        # Get patient information
+        person_result_list = extract_source_person_ccda(xml_obj, s_person_id, xml_file)
+
+        just_xml_file_name = os.path.split(xml_file)[-1]
+        source_person_file_name = "source_person." + just_xml_file_name + ".csv"
+
+        source_person_path = ps_frag_directory / source_person_file_name
+        print(f"Writing: '{source_person_path}'")
+        write_csv_list_dict(source_person_path, person_result_list)
+
+        source_result_lab_file_name = "source_result.lab." + just_xml_file_name + ".csv"
+        lab_result_list = extract_labs_source_result_ccda(xml_obj, s_person_id, xml_file)
+        source_result_lab_path = ps_frag_directory / source_result_lab_file_name
+        print(f"Writing '{source_result_lab_path}")
+        write_csv_list_dict(source_result_lab_path, lab_result_list)
+
+if __name__ == "__main__":
+
+    arg_parse_obj = argparse.ArgumentParser(description="Convert C-CDA XML & Apple Healthkit CDA XML files "
+                                                        "to the prepared source format for conversion to OHDSI cdm")
+
+    arg_parse_obj.add_argument("-d", "--directory", dest="directory", default="./test/samples/patient_1/")
+    arg_parse_obj.add_argument("--salt", dest="salt", default="Mighty salty today")
+
+    arg_obj = arg_parse_obj.parse_args()
+
+    main(arg_obj.directory, arg_obj.salt)
 
