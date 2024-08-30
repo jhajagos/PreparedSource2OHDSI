@@ -8,6 +8,7 @@ import json
 import preparedsource2ohdsi.prepared_source as ps
 import argparse
 import glob
+import datetime
 
 CDANS = "{urn:hl7-org:v3}"
 
@@ -35,7 +36,11 @@ def code_to_dict(element):
         else:
             code_dict["s_text"] = None
 
+    if "s_text" not in code_dict:
+        code_dict["s_text"] = None
+
     return code_dict
+
 
 def expand_tag(tag_name):
     return f"{CDANS}{tag_name}"
@@ -46,7 +51,16 @@ ext = expand_tag
 
 def clean_datetime(datetime_str):
     # TODO: Implement consistent formatting
-    return datetime_str
+    if len(datetime_str) > 8 and ('+' in datetime_str or "-" in datetime_str):
+        if ".000" in datetime_str:
+            datetime_str = datetime_str.replace(".000", "")
+        return datetime.datetime.strptime(datetime_str, "%Y%m%d%H%M%S%z")
+    elif len(datetime_str) == 14:
+        return datetime.datetime.strptime(datetime_str, "%Y%m%d%H%M%S")
+    elif len(datetime_str) == 8:
+        return datetime.datetime.strptime(datetime_str, "%Y%m%d")
+    else:
+        return datetime_str
 
 
 # cda = et.parse(cda_filename)
@@ -68,6 +82,7 @@ def extract_source_person_ccda(xml_doc, source_person_id, source_cda_file_name):
     source_person_obj = ps.SourcePersonObject()
     source_person_dict = source_person_obj.dict_template()
     source_person_dict["s_person_id"] = source_person_id
+    source_person_dict["s_source_system"] = f"c-cda/{source_cda_file_name}"
 
     for element in root.iterfind(find_person_xpath):
         if element.tag == ext("patientRole"):
@@ -110,14 +125,61 @@ def extract_source_provider_ccda(xml_doc):
     source_provider_obj = ps.SourceProviderObject()
 
 
-def extract_problems_source_condition_ccda(xml_doc):
+def extract_problems_source_condition_ccda(xml_doc, source_person_id, source_cda_file_name, snomed_code="55607006"):
     # Active problem lists
     # /ClinicalDocument/component/structuredBody/component/section/entry/act/entryRelationship/observation/code[@code="404684003"][@codeSystem="2.16.840.1.113883.6.96"]/..
+    source_condition_obj = ps.SourceConditionObject()
+
+    # 11450-4
+    find_problems_xpath = './/{urn:hl7-org:v3}structuredBody/{urn:hl7-org:v3}component/{urn:hl7-org:v3}section/{urn:hl7-org:v3}entry/{urn:hl7-org:v3}act/{urn:hl7-org:v3}entryRelationship/{urn:hl7-org:v3}observation/{urn:hl7-org:v3}code[@code="' + snomed_code + '"][@codeSystem="2.16.840.1.113883.6.96"]/..'
+
+    root = xml_doc.getroot()
 
     source_condition_obj = ps.SourceConditionObject()
 
+    result_list = []
+    for element in root.iterfind(find_problems_xpath):
+        source_prob_dict = source_condition_obj.dict_template()
+        source_prob_dict["s_person_id"] = source_person_id
+        source_prob_dict["s_source_system"] = f"c-cda/{source_cda_file_name}"
 
-def extract_source_procedures_ccda(xml_doc):
+        for child in element:
+            if child.tag == ext("id"):
+                if "root" in child.attrib:
+                    source_prob_dict["s_id"] = child.attrib["root"]
+            elif child.tag == ext("effectiveTime"):
+
+                for grandchild in child:
+                    if grandchild.tag == ext("low"):
+                        if "value" in grandchild.attrib:
+                            source_prob_dict["s_start_condition_datetime"] = clean_datetime(
+                                grandchild.attrib["value"])
+                    elif grandchild.tag == ext("high"):
+                        if "value" in grandchild.attrib:
+                            source_prob_dict["s_end_condition_datetime"] = clean_datetime(
+                                grandchild.attrib["value"])
+
+            elif child.tag == ext("value"):
+                code_dict = code_to_dict(child)
+                source_prob_dict["s_condition_code"] = code_dict["s_code"]
+                source_prob_dict["s_condition_code_type"] = code_dict["s_code_type"]
+                source_prob_dict["s_condition_code_type_oid"] = code_dict["s_code_type_oid"]
+
+                if "displayName" in child.attrib:
+                    source_prob_dict["s_condition"] = child.attrib["displayName"]
+
+            elif child.tag == ext("statusCode"):
+                if "code" in child.attrib:
+                    source_prob_dict["s_status"] = child.attrib["code"]
+
+            source_prob_dict["m_condition_type_code"] = "OMOP4976890"
+            source_prob_dict["m_condition_type_code_type"] = "OHDSI"
+            source_prob_dict["m_condition_type_code_type_oid"] = "ohdsi.type_concept"
+
+        result_list += [source_prob_dict]
+    return result_list
+
+def extract_source_procedures_ccda(xml_doc, source_person_id, source_cda_file_name):
     # Procedures
     # /ClinicalDocument/component/structuredBody/component/section/code[@code="47519-4"][@codeSystem="2.16.840.1.113883.6.1"]/../entry/observation
     # /ClinicalDocument/component/structuredBody/component/section/code[@code="47519-4"][@codeSystem="2.16.840.1.113883.6.1"]/../entry/procedure
@@ -136,72 +198,75 @@ def extract_labs_source_result_ccda(xml_doc, source_person_id, source_cda_file_n
     # Labs
     # /ClinicalDocument/component/structuredBody/component/section/code[@code="30954-2"][@codeSystem="2.16.840.1.113883.6.1"]/../entry/organizer/component/observation
     # .//{urn:hl7-org:v3}structuredBody/{urn:hl7-org:v3}component/{urn:hl7-org:v3}section/{urn:hl7-org:v3}code[@code="30954-2"][@codeSystem="2.16.840.1.113883.6.1"]/../{urn:hl7-org:v3}entry/{urn:hl7-org:v3}organizer/{urn:hl7-org:v3}component/{urn:hl7-org:v3}observation/
-    root = xml_doc.getroot()
     find_labs_xpath = './/{urn:hl7-org:v3}structuredBody/{urn:hl7-org:v3}component/{urn:hl7-org:v3}section/{urn:hl7-org:v3}code[@code="30954-2"][@codeSystem="2.16.840.1.113883.6.1"]/../{urn:hl7-org:v3}entry/{urn:hl7-org:v3}organizer/{urn:hl7-org:v3}component/{urn:hl7-org:v3}observation/.'
+    root = xml_doc.getroot()
 
     source_result_obj = ps.SourceResultObject()
 
     result_list = []
     for element in root.iterfind(find_labs_xpath):
+
         source_result_dict = source_result_obj.dict_template()
         source_result_dict["s_person_id"] = source_person_id
         source_result_dict["s_source_system"] = f"c-cda/{source_cda_file_name}"
 
-        for child in element:
-            if child.tag == ext("id"):
-                if "root" in child.attrib:
-                    source_result_dict["s_id"] = child.attrib["root"]
+        if element.tag == ext("observation"):
+            for child in element:
+                if child.tag == ext("id"):
+                    if "root" in child.attrib:
+                        source_result_dict["s_id"] = child.attrib["root"]
 
-            elif child.tag == ext("effectiveTime"):
-                if "value" in child.attrib:
-                    source_result_dict["s_result_datetime"] = clean_datetime(child.attrib["value"])
+                elif child.tag == ext("effectiveTime"):
 
-            elif child.tag == ext("code"):
+                    if "value" in child.attrib:
+                        source_result_dict["s_result_datetime"] = clean_datetime(child.attrib["value"])
 
-                if "code" in child.attrib:
-                    source_result_dict["s_code"] = child.attrib["code"]
+                elif child.tag == ext("code"):
 
-                if "codeSystem" in child.attrib:
-                    source_result_dict["s_code_type_oid"] = child.attrib["codeSystem"]
+                    if "code" in child.attrib:
+                        source_result_dict["s_code"] = child.attrib["code"]
 
-                if "codeSystemName" in child.attrib:
-                    source_result_dict["s_code_type"] = child.attrib["codeSystemName"]
+                    if "codeSystem" in child.attrib:
+                        source_result_dict["s_code_type_oid"] = child.attrib["codeSystem"]
 
-                for grandchild in child:
-                    if grandchild.tag == ext("originalText"):
-                        source_result_dict["s_name"] = grandchild.text
+                    if "codeSystemName" in child.attrib:
+                        source_result_dict["s_code_type"] = child.attrib["codeSystemName"]
 
-            elif child.tag == ext("interpretationCode"):
+                    for grandchild in child:
+                        if grandchild.tag == ext("originalText"):
+                            source_result_dict["s_name"] = grandchild.text
 
-                if "code" in child.attrib:
-                    source_result_dict["s_result_code"] = child.attrib["code"]
+                elif child.tag == ext("interpretationCode"):
 
-                if "codeSystem" in child.attrib:
-                    source_result_dict["s_result_code_type_oid"] = child.attrib["codeSystem"]
+                    if "code" in child.attrib:
+                        source_result_dict["s_result_code"] = child.attrib["code"]
 
-                if "codeSystemName" in child.attrib:
-                    source_result_dict["s_result_code_type"] = child.attrib["codeSystemName"]
+                    if "codeSystem" in child.attrib:
+                        source_result_dict["s_result_code_type_oid"] = child.attrib["codeSystem"]
 
-                for grandchild in child:
-                    if grandchild.tag == ext("originalText"):
-                        source_result_dict["s_result_text"] = grandchild.text
+                    if "codeSystemName" in child.attrib:
+                        source_result_dict["s_result_code_type"] = child.attrib["codeSystemName"]
 
-            elif child.tag == ext("value"):
-                if "{http://www.w3.org/2001/XMLSchema-instance}type" in child.attrib:
-                    value_type = child.attrib["{http://www.w3.org/2001/XMLSchema-instance}type"]
+                    for grandchild in child:
+                        if grandchild.tag == ext("originalText"):
+                            source_result_dict["s_result_text"] = grandchild.text
 
-                    if value_type == "PQ":
+                elif child.tag == ext("value"):
+                    if "{http://www.w3.org/2001/XMLSchema-instance}type" in child.attrib:
+                        value_type = child.attrib["{http://www.w3.org/2001/XMLSchema-instance}type"]
 
-                        if "value" in child.attrib:
-                            source_result_dict["s_result_number"] = child.attrib["value"]
+                        if value_type == "PQ":
 
-                        if "unit" in child.attrib:
-                            source_result_dict["s_result_unit"] = child.attrib["unit"]
+                            if "value" in child.attrib:
+                                source_result_dict["s_result_numeric"] = child.attrib["value"]
+
+                            if "unit" in child.attrib:
+                                source_result_dict["s_result_unit"] = child.attrib["unit"]
 
 
-            elif child.tag == ext("referenceRange"):
-                # TODO: Implemnt parsing of reference range
-                pass
+                elif child.tag == ext("referenceRange"):
+                    # TODO: Implement parsing of reference range
+                    pass
 
 
         result_list += [source_result_dict]
@@ -303,18 +368,109 @@ def extract_immunization_source_medication_ccda(xml_doc):
     source_medication_obj = ps.SourceMedicationObject()
 
 
-def extract_vitals_source_result_ccda(xml_doc):
+def extract_vitals_source_result_ccda(xml_doc, source_person_id, source_cda_file_name):
     # Vitals
     # ./ClinicalDocument/component/structuredBody/component/section/code[@code="8716-3"][@codeSystem="2.16.840.1.113883.6.1"]/../entry/organizer/component/observation
 
+    root = xml_doc.getroot()
+    find_labs_xpath = './/{urn:hl7-org:v3}structuredBody/{urn:hl7-org:v3}component/{urn:hl7-org:v3}section/{urn:hl7-org:v3}code[@code="8716-3"][@codeSystem="2.16.840.1.113883.6.1"]/../{urn:hl7-org:v3}entry/{urn:hl7-org:v3}organizer/{urn:hl7-org:v3}component/{urn:hl7-org:v3}observation/.'
+
     source_result_obj = ps.SourceResultObject()
 
+    result_list = []
+    for element in root.iterfind(find_labs_xpath):
+        source_result_dict = source_result_obj.dict_template()
+        source_result_dict["s_person_id"] = source_person_id
+        source_result_dict["s_source_system"] = f"c-cda/{source_cda_file_name}"
 
-def extract_vitals_source_result_apple_cda(xml_doc):
+        for child in element:
+            if child.tag == ext("id"):
+                if "root" in child.attrib:
+                    source_result_dict["s_id"] = child.attrib["root"]
+
+            elif child.tag == ext("effectiveTime"):
+                if "value" in child.attrib:
+                    source_result_dict["s_result_datetime"] = clean_datetime(child.attrib["value"])
+
+            elif child.tag == ext("code"):
+
+                if "code" in child.attrib:
+                    source_result_dict["s_code"] = child.attrib["code"]
+
+                if "codeSystem" in child.attrib:
+                    source_result_dict["s_code_type_oid"] = child.attrib["codeSystem"]
+
+                if "codeSystemName" in child.attrib:
+                    source_result_dict["s_code_type"] = child.attrib["codeSystemName"]
+
+                for grandchild in child:
+                    if grandchild.tag == ext("originalText"):
+                        source_result_dict["s_name"] = grandchild.text
+
+            elif child.tag == ext("value"):
+                if "{http://www.w3.org/2001/XMLSchema-instance}type" in child.attrib:
+                    value_type = child.attrib["{http://www.w3.org/2001/XMLSchema-instance}type"]
+
+                    if value_type == "PQ":
+
+                        if "value" in child.attrib:
+                            source_result_dict["s_result_numeric"] = child.attrib["value"]
+
+                        if "unit" in child.attrib:
+                            source_result_dict["s_result_unit"] = child.attrib["unit"]
+
+        result_list += [source_result_dict]
+    return result_list
+
+
+def extract_source_result_vital_apple_cda(xml_doc, source_person_id, source_cda_file_name):
     # Vitals (Apple CDA)
     # /ClinicalDocument/entry/organizer/code[@code="46680005"][@codeSystem="2.16.840.1.113883.6.96"]/../component/observation
-
+    find_vitals_xpath = './/{urn:hl7-org:v3}entry/{urn:hl7-org:v3}organizer/./{urn:hl7-org:v3}code[@code="46680005"][@codeSystem="2.16.840.1.113883.6.96"]/.././{urn:hl7-org:v3}component/./{urn:hl7-org:v3}observation'
+    root = xml_doc.getroot()
     source_result_obj = ps.SourceResultObject()
+    result_list = []
+    for element in root.iterfind(find_vitals_xpath):
+
+        source_result_dict = source_result_obj.dict_template()
+        source_result_dict["s_person_id"] = source_person_id
+        source_result_dict["s_source_system"] = f"cda/{source_cda_file_name}"
+
+        for child in element:
+            if child.tag == ext("id"):
+                if "root" in child.attrib:
+                    source_result_dict["s_id"] = child.attrib["root"]
+
+            elif child.tag == ext("effectiveTime"):
+                for grandchild in child:
+                    if grandchild.tag == ext("low"):
+                        if "value" in grandchild.attrib:
+                            source_result_dict["s_result_datetime"] = clean_datetime(grandchild.attrib["value"])
+
+            elif child.tag == ext("code"):
+                code_dict = code_to_dict(child)
+                source_result_dict["s_code"] = code_dict["s_code"]
+                source_result_dict["s_code_type"] = code_dict["s_code_type"]
+                source_result_dict["s_code_type_oid"] = code_dict["s_code_type_oid"]
+
+                if "displayName" in child.attrib:
+                    source_result_dict["s_text"] = child.attrib["displayName"]
+
+            elif child.tag == ext("value"):
+                if "{http://www.w3.org/2001/XMLSchema-instance}type" in child.attrib:
+                    value_type = child.attrib["{http://www.w3.org/2001/XMLSchema-instance}type"]
+
+                    if value_type == "PQ":
+
+                        if "value" in child.attrib:
+                            source_result_dict["s_result_numeric"] = child.attrib["value"]
+
+                        if "unit" in child.attrib:
+                            source_result_dict["s_result_unit"] = child.attrib["unit"]
+
+        result_list += [source_result_dict]
+
+    return result_list
 
 
 def extract_social_history_source_condition(xml_doc):
@@ -351,6 +507,7 @@ def create_directory(directory):
 
 
 def write_csv_list_dict(file_name, list_dict):
+
     header = list(list_dict[0].keys())
 
     with open(file_name, mode="w", newline="") as fw:
@@ -360,10 +517,10 @@ def write_csv_list_dict(file_name, list_dict):
         for row in list_dict:
             dw.writerow(row)
 
+
 def parse_xml_file(xml_file_name):
     """Parse the cda xml document"""
     cda = et.parse(xml_file_name)
-
     return cda
 
 
@@ -386,6 +543,12 @@ def main(directory, salting):
 
     s_person_id = generate_patient_identifier(directory, salt=salting)
 
+    s_generation_dict = {"s_person_id": s_person_id,
+                         "prepared_source": {},
+                         "fragments": {
+                             "source_person": [], "source_result": [], "source_medication": []}
+                         }
+
     for xml_file in xml_files_to_process:
         try:
             print(f"Parsing: '{xml_file}'")
@@ -393,7 +556,7 @@ def main(directory, salting):
         except IOError:
             raise IOError
 
-        # Get patient information
+        # source_person
         person_result_list = extract_source_person_ccda(xml_obj, s_person_id, xml_file)
 
         just_xml_file_name = os.path.split(xml_file)[-1]
@@ -401,13 +564,82 @@ def main(directory, salting):
 
         source_person_path = ps_frag_directory / source_person_file_name
         print(f"Writing: '{source_person_path}'")
-        write_csv_list_dict(source_person_path, person_result_list)
 
+        write_csv_list_dict(source_person_path, person_result_list)
+        s_generation_dict["fragments"]["source_person"] += [str(source_person_path.absolute())]
+
+        # Labs: source_result
         source_result_lab_file_name = "source_result.lab." + just_xml_file_name + ".csv"
         lab_result_list = extract_labs_source_result_ccda(xml_obj, s_person_id, xml_file)
         source_result_lab_path = ps_frag_directory / source_result_lab_file_name
-        print(f"Writing '{source_result_lab_path}")
-        write_csv_list_dict(source_result_lab_path, lab_result_list)
+
+        if len(lab_result_list):
+            print(f"Writing {len(lab_result_list)} rows in  '{source_result_lab_path}")
+            write_csv_list_dict(source_result_lab_path, lab_result_list)
+            s_generation_dict["fragments"]["source_result"] += [str(source_result_lab_path.absolute())]
+        else:
+            print(f"Did not find c-cda lab results; skipping: '{source_result_lab_path}'")
+
+        # source_medication
+        source_medication_file_name = "source_medication." + just_xml_file_name + ".csv"
+        source_medication_list = extract_source_medication_ccda(xml_obj, s_person_id, xml_file)
+
+        source_medication_path = ps_frag_directory / source_medication_file_name
+        if len(source_medication_list):
+            print(f"Writing {len(source_medication_list)} rows in '{source_medication_path}'")
+            write_csv_list_dict(source_medication_path, source_medication_list)
+            s_generation_dict["fragments"]["source_medication"] = [str(source_medication_path.absolute())]
+
+        else:
+            print(f"Did not find c-cda coded medications; skipping: '{source_medication_path}'")
+
+
+        # Problems: source_condition
+        source_condition_file_name = "source_condition." + just_xml_file_name + ".csv"
+        source_condition_list = extract_problems_source_condition_ccda(xml_obj, s_person_id, xml_file)
+
+        if len(source_condition_list) == 0:
+            source_condition_list = extract_problems_source_condition_ccda(xml_obj, s_person_id, xml_file,
+                                                                           snomed_code="404684003")
+
+        source_condition_path = ps_frag_directory / source_condition_file_name
+        if len(source_condition_list):
+            print(f"Writing {len(source_condition_list)} rows in '{source_condition_path}'")
+            write_csv_list_dict(source_condition_path, source_condition_list)
+            s_generation_dict["fragments"]["source_condition"] = [str(source_condition_path.absolute())]
+
+        else:
+            print(f"Did not find c-cda coded problems; skipping: '{source_medication_path}'")
+
+        # Vitals: source_result
+        source_result_vital_file_name = "source_result.vital." + just_xml_file_name + ".csv"
+        vital_result_list = extract_vitals_source_result_ccda(xml_obj, s_person_id, xml_file)
+        source_result_vital_path = ps_frag_directory / source_result_vital_file_name
+
+        if len(vital_result_list):
+            print(f"Writing {len(vital_result_list)} rows in  '{source_result_vital_path}")
+            write_csv_list_dict(source_result_vital_path, vital_result_list)
+            s_generation_dict["fragments"]["source_result"] += [str(source_result_vital_path.absolute())]
+        else:
+            print(f"Did not find c-cda vital results; skipping: '{source_result_vital_path}'")
+
+
+            # Vitals Apple CDA
+            source_result_vital_apple_file_name = "source_result.vital.apple." + just_xml_file_name + ".csv"
+            vital_result_list = extract_source_result_vital_apple_cda(xml_obj, s_person_id, xml_file)
+            source_result_vital_apple_path = ps_frag_directory / source_result_vital_apple_file_name
+
+            if len(vital_result_list):
+                print(f"Writing {len(vital_result_list)} rows in  '{source_result_vital_apple_path}")
+                write_csv_list_dict(source_result_vital_apple_path, vital_result_list)
+                s_generation_dict["fragments"]["source_result"] += [str(source_result_vital_apple_path.absolute())]
+            else:
+                print(f"Did not find cda vital results; skipping: '{source_result_vital_apple_path}'")
+
+    json_file_path = output_directory_root / "s_files_generated.json"
+    with open(json_file_path, "w") as fw:
+        json.dump(s_generation_dict, fw, indent=3)
+
 
 if __name__ == "__main__":
 
