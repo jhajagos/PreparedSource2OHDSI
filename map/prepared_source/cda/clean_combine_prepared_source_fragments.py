@@ -5,12 +5,38 @@ import pathlib
 import os
 
 
+def write_row(cvr, row_dict,  header):
+
+    row_to_write = [''] * len(header)
+    for column in row_dict:
+        position = header.index(column)
+
+        row_to_write[position] = row_dict[column]
+
+    cvr.writerow(row_to_write)
+
+
+def get_union_csv_file_header(*csv_files):
+    header_union = []
+    for csv_file in csv_files:
+        with open(csv_file, newline="", mode="r") as f:
+            cvr = csv.reader(f)
+            local_header = next(cvr)
+            for column in local_header:
+                if column not in header_union:
+                    header_union += [column]
+
+    return header_union
+
+
 def main(directory):
 
     p_directory = pathlib.Path(directory)
     output_directory_root = p_directory / "output"
 
     json_file_path = output_directory_root / "s_files_generated.json"
+    ps_path = output_directory_root / "ps"
+
     with open(json_file_path, "r") as f:
         s_generation_dict = json.load(f)
 
@@ -18,6 +44,24 @@ def main(directory):
 
     # Needed to take observation
     source_date_dict = {}
+
+    # We can have only one row per person so we only add values which have not been set yet
+
+    source_person_header = get_union_csv_file_header(s_generation_dict["fragments"]["source_person"])
+    source_person_dict = {sp: "" for sp in source_person_header}
+    for file in s_generation_dict["fragments"]["source_person"]:
+        with open(file, newline="", mode="r") as f:
+            cdr = csv.DictReader(f)
+            first_row = next(cdr)
+            for column in first_row:
+                if len(source_date_dict[column]) == 0:
+                    source_person_dict[column] = first_row[column]
+
+    source_person_path = ps_path / "source_person.csv"
+    with open(source_person_path, mode="w", newline="") as f:
+        cdw = csv.writer(f)
+        cdw.writerow(header)
+
 
 
 
