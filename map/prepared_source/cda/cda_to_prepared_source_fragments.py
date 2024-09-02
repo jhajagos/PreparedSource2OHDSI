@@ -423,10 +423,10 @@ def extract_vitals_source_result_ccda(xml_doc, source_person_id, source_cda_file
     return result_list
 
 
-def extract_source_result_vital_apple_cda(xml_doc, source_person_id, source_cda_file_name):
+def extract_source_result_apple_cda(xml_doc, source_person_id, source_cda_file_name, snomed_code="46680005"):
     # Vitals (Apple CDA)
     # /ClinicalDocument/entry/organizer/code[@code="46680005"][@codeSystem="2.16.840.1.113883.6.96"]/../component/observation
-    find_vitals_xpath = './/{urn:hl7-org:v3}entry/{urn:hl7-org:v3}organizer/./{urn:hl7-org:v3}code[@code="46680005"][@codeSystem="2.16.840.1.113883.6.96"]/.././{urn:hl7-org:v3}component/./{urn:hl7-org:v3}observation'
+    find_vitals_xpath = './/{urn:hl7-org:v3}entry/{urn:hl7-org:v3}organizer/./{urn:hl7-org:v3}code[@code="'+ snomed_code  +'"][@codeSystem="2.16.840.1.113883.6.96"]/.././{urn:hl7-org:v3}component/./{urn:hl7-org:v3}observation'
     root = xml_doc.getroot()
     source_result_obj = ps.SourceResultObject()
     result_list = []
@@ -467,6 +467,13 @@ def extract_source_result_vital_apple_cda(xml_doc, source_person_id, source_cda_
 
                         if "unit" in child.attrib:
                             source_result_dict["s_result_unit"] = child.attrib["unit"]
+
+            elif child.tag == ext("interpretationCode"):
+
+                code_dict = code_to_dict(child)
+                source_result_dict["s_result_code"] = code_dict["s_code"]
+                source_result_dict["s_result_code_type"] = code_dict["s_code_type"]
+                source_result_dict["s_result_code_type_oid"] = code_dict["s_code_type_oid"]
 
         result_list += [source_result_dict]
 
@@ -546,7 +553,8 @@ def main(directory, salting):
     s_generation_dict = {"s_person_id": s_person_id,
                          "prepared_source": {},
                          "fragments": {
-                             "source_person": [], "source_result": [], "source_medication": []}
+                             "source_person": [], "source_result": [], "source_medication": [],
+                             "source_condition": []}
                          }
 
     for xml_file in xml_files_to_process:
@@ -578,7 +586,14 @@ def main(directory, salting):
             write_csv_list_dict(source_result_lab_path, lab_result_list)
             s_generation_dict["fragments"]["source_result"] += [str(source_result_lab_path.absolute())]
         else:
-            print(f"Did not find c-cda lab results; skipping: '{source_result_lab_path}'")
+
+            lab_result_list = extract_source_result_apple_cda(xml_obj, s_person_id, xml_file, snomed_code="386053000")
+            if len(lab_result_list):
+                print(f"Writing {len(lab_result_list)} rows in  '{source_result_lab_path}")
+                write_csv_list_dict(source_result_lab_path, lab_result_list)
+                s_generation_dict["fragments"]["source_result"] += [str(source_result_lab_path.absolute())]
+            else:
+                print(f"Did not find c-cda lab results; skipping: '{source_result_lab_path}'")
 
         # source_medication
         source_medication_file_name = "source_medication." + just_xml_file_name + ".csv"
@@ -588,7 +603,7 @@ def main(directory, salting):
         if len(source_medication_list):
             print(f"Writing {len(source_medication_list)} rows in '{source_medication_path}'")
             write_csv_list_dict(source_medication_path, source_medication_list)
-            s_generation_dict["fragments"]["source_medication"] = [str(source_medication_path.absolute())]
+            s_generation_dict["fragments"]["source_medication"] += [str(source_medication_path.absolute())]
 
         else:
             print(f"Did not find c-cda coded medications; skipping: '{source_medication_path}'")
@@ -606,7 +621,7 @@ def main(directory, salting):
         if len(source_condition_list):
             print(f"Writing {len(source_condition_list)} rows in '{source_condition_path}'")
             write_csv_list_dict(source_condition_path, source_condition_list)
-            s_generation_dict["fragments"]["source_condition"] = [str(source_condition_path.absolute())]
+            s_generation_dict["fragments"]["source_condition"] += [str(source_condition_path.absolute())]
 
         else:
             print(f"Did not find c-cda coded problems; skipping: '{source_medication_path}'")
@@ -621,12 +636,10 @@ def main(directory, salting):
             write_csv_list_dict(source_result_vital_path, vital_result_list)
             s_generation_dict["fragments"]["source_result"] += [str(source_result_vital_path.absolute())]
         else:
-            print(f"Did not find c-cda vital results; skipping: '{source_result_vital_path}'")
-
 
             # Vitals Apple CDA
             source_result_vital_apple_file_name = "source_result.vital.apple." + just_xml_file_name + ".csv"
-            vital_result_list = extract_source_result_vital_apple_cda(xml_obj, s_person_id, xml_file)
+            vital_result_list = extract_source_result_apple_cda(xml_obj, s_person_id, xml_file)
             source_result_vital_apple_path = ps_frag_directory / source_result_vital_apple_file_name
 
             if len(vital_result_list):
