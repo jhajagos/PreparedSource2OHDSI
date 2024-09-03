@@ -3,12 +3,14 @@
   "export_concept_mapping_table_path": "/data/ohdsi/vocabulary/export/",
   "concept_csv_file_extension": ".csv.bz2",
   "prepared_source_table_path": "/data/prepared_source/parquet/",
-  "prepared_source_csv_table_path": "/data/prepared_source/csv/",
+  "prepared_source_csv_extension": ".csv",
+  "staging_table_prefix": "",
   "ohdsi_output_location": "/data/ohdsi/output/",
   "check_pointing": "NONE",
   "ohdsi_version": "5.4",
-  "prepared_source_tables_to_exclude": ["source_device","source_provider", "source_procedure", "source_encounter_map",
-  "source_person_map", "source_location", "source_care_site", "source_payer", "source_encounter"
+   "prepared_source_csv_table_path": "/data/prepared_source/csv/",
+  "prepared_source_tables_to_exclude": ["source_device","source_provider", "source_encounter_map",
+  "source_person_map", "source_location", "source_care_site", "source_payer", "source_encounter", "source_encounter_detail"
   ],
   "jdbc": {
     "connection_string": "",
