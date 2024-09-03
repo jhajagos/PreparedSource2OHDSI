@@ -106,6 +106,14 @@ def main(directory):
                             else:
                                 date_to_evaluate = s_obtained_datetime
 
+                        elif source_fragment == "source_procedure":
+
+                            s_start_procedure_datetime = row_dict["s_start_procedure_datetime"]
+                            if len(s_start_procedure_datetime):
+                                date_to_evaluate = s_start_procedure_datetime
+                            else:
+                                date_to_evaluate = None
+
                         elif source_fragment == "source_condition":
 
                             s_start_condition_datetime = row_dict["s_start_condition_datetime"]
@@ -116,8 +124,7 @@ def main(directory):
                                 s_start_condition_datetime = s_end_condition_datetime
                                 row_dict["s_start_condition_datetime"] = s_start_condition_datetime
                                 date_to_evaluate = s_start_condition_datetime
-
-                            elif len(s_start_condition_datetime) == 0 and len(s_end_condition_datetime) == 0:
+                            elif len(s_start_condition_datetime) == 0 and (s_end_condition_datetime) == 0:
                                 date_to_evaluate = None
                                 row_dict["i_exclude"] = 1
 
@@ -142,12 +149,14 @@ def main(directory):
                                 date_to_evaluate = None
                                 row_dict["i_exclude"] = 1
 
+                        #TODO: Troubleshoot setting min_datetime as it is blank when on real data
                         if date_to_evaluate is not None:
                             if date_to_evaluate[0:10] < min_datetime:
                                 min_datetime = date_to_evaluate[0:10]
 
                             if date_to_evaluate[0:10] > max_datetime:
                                 max_datetime = date_to_evaluate[0:10]
+
 
                         write_row(cdw, row_dict, source_header)
                         i += 1
@@ -174,9 +183,6 @@ def main(directory):
         cdw = csv.writer(fw)
         cdw.writerow(source_ob_header)
         write_row(cdw, source_observation_period_dict, source_ob_header)
-
-
-    ""
 
 
 if __name__ == "__main__":

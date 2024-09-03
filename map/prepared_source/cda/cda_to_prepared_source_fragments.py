@@ -184,7 +184,38 @@ def extract_source_procedures_ccda(xml_doc, source_person_id, source_cda_file_na
     # /ClinicalDocument/component/structuredBody/component/section/code[@code="47519-4"][@codeSystem="2.16.840.1.113883.6.1"]/../entry/observation
     # /ClinicalDocument/component/structuredBody/component/section/code[@code="47519-4"][@codeSystem="2.16.840.1.113883.6.1"]/../entry/procedure
 
-    source_procedure_obj = ps.SourceProviderObject()
+    find_procedures_xpath = './/{urn:hl7-org:v3}structuredBody/{urn:hl7-org:v3}component/{urn:hl7-org:v3}section/{urn:hl7-org:v3}code[@code="47519-4"][@codeSystem="2.16.840.1.113883.6.1"]/../{urn:hl7-org:v3}entry/{urn:hl7-org:v3}procedure'
+    root = xml_doc.getroot()
+
+    source_procedure_obj = ps.SourceProcedureObject()
+
+    result_list = []
+    for element in root.iterfind(find_procedures_xpath):
+        if element.tag == ext("procedure"):
+            source_proc_dict = source_procedure_obj.dict_template()
+            source_proc_dict["s_person_id"] = source_person_id
+            source_proc_dict["s_source_system"] = f"c-cda/{source_cda_file_name}"
+
+            for child in element:
+
+                if child.tag == ext("id"):
+                    if "root" in child.attrib:
+                        source_proc_dict["s_id"] = child.attrib["root"]
+
+                elif child.tag == ext("effectiveTime"):
+
+                    if "value" in child.attrib:
+                        source_proc_dict["s_start_procedure_datetime"] = clean_datetime(child.attrib["value"])
+
+                elif child.tag == ext("code"):
+                    code_dict = code_to_dict(child)
+                    source_proc_dict["s_procedure_code"] = code_dict["s_code"]
+                    source_proc_dict["s_procedure_code_type"] = code_dict["s_code_type"]
+                    source_proc_dict["s_procedure_code_type_oid"] = code_dict["s_code_type_oid"]
+
+            result_list += [source_proc_dict]
+
+    return result_list
 
 
 def extract_source_encounter_ccda(xml_doc):
@@ -554,7 +585,7 @@ def main(directory, salting):
                          "prepared_source": {},
                          "fragments": {
                              "source_person": [], "source_result": [], "source_medication": [],
-                             "source_condition": []}
+                             "source_condition": [], "source_procedure": []}
                          }
 
     for xml_file in xml_files_to_process:
@@ -624,8 +655,20 @@ def main(directory, salting):
             s_generation_dict["fragments"]["source_condition"] += [str(source_condition_path.absolute())]
 
         else:
-            print(f"Did not find c-cda coded problems; skipping: '{source_medication_path}'")
+            print(f"Did not find c-cda coded problems; skipping: '{source_condition_path}'")
 
+        # Procedure
+        source_procedure_file_name = "source_procedure." + just_xml_file_name + ".csv"
+        source_procedure_path = ps_frag_directory / source_procedure_file_name
+        source_procedure_list = extract_source_procedures_ccda(xml_obj, s_person_id, xml_file)
+
+        if len(source_procedure_list):
+            print(f"Writing {len(source_procedure_list)} rows in '{source_procedure_path}'")
+            write_csv_list_dict(source_procedure_path, source_procedure_list)
+            s_generation_dict["fragments"]["source_procedure"] += [str(source_procedure_path.absolute())]
+        else:
+            print(f"Did not find c-cda coded procedure; "
+                  f"skipping: '{source_procedure_path}'")
         # Vitals: source_result
         source_result_vital_file_name = "source_result.vital." + just_xml_file_name + ".csv"
         vital_result_list = extract_vitals_source_result_ccda(xml_obj, s_person_id, xml_file)

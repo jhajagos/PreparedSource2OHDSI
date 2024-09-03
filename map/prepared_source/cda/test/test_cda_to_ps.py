@@ -4,7 +4,8 @@ import unittest
 from ..cda_to_prepared_source_fragments import (generate_patient_identifier, parse_xml_file,
                                                 extract_source_medication_ccda, extract_labs_source_result_ccda,
                                                 extract_source_person_ccda, extract_vitals_source_result_ccda,
-                                                extract_problems_source_condition_ccda
+                                                extract_problems_source_condition_ccda,
+                                                extract_source_procedures_ccda
                                                 )
 
 
@@ -74,6 +75,12 @@ class TestPSConversion(unittest.TestCase):
         self.assertTrue(len(results) > 0)
 
         self.assertIsNotNone("s_result_numeric")
+
+    def test_extract_source_procedures(self):
+        results = extract_source_procedures_ccda(self.d1, self.spid, self.file_name)
+        print(results)
+        self.assertTrue(len(results) > 0)
+
 
 
 if __name__ == '__main__':
