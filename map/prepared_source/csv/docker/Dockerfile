@@ -72,6 +72,9 @@ RUN cd /root/github && git clone https://github.com/OHDSI/CommonDataModel.git
 COPY load_all_staged_tables_into_ohdsi_rdbms.sh /root/scripts/
 RUN chmod u+x /root/scripts/load_all_staged_tables_into_ohdsi_rdbms.sh
 
+COPY prepared_source_csv_to_parquet.sh /root/scripts/
+RUN chmod u+x /root/scripts/prepared_source_csv_to_parquet.sh
+
 COPY fully_load_ohdsi_parquet_files_into_rdbms.sh /root/scripts/
 RUN chmod u+x /root/scripts/fully_load_ohdsi_parquet_files_into_rdbms.sh
 

@@ -1,6 +1,6 @@
 
 ```bash
-docker build -t ps2csv:latest ./
+docker build -t csv2ohdsi:latest ./
 ```
 
 ```bash

@@ -250,7 +250,7 @@ def extract_labs_source_result_ccda(xml_doc, source_person_id, source_cda_file_n
                 elif child.tag == ext("effectiveTime"):
 
                     if "value" in child.attrib:
-                        source_result_dict["s_result_datetime"] = clean_datetime(child.attrib["value"])
+                        source_result_dict["s_obtained_datetime"] = clean_datetime(child.attrib["value"])
 
                 elif child.tag == ext("code"):
 
@@ -421,7 +421,7 @@ def extract_vitals_source_result_ccda(xml_doc, source_person_id, source_cda_file
 
             elif child.tag == ext("effectiveTime"):
                 if "value" in child.attrib:
-                    source_result_dict["s_result_datetime"] = clean_datetime(child.attrib["value"])
+                    source_result_dict["s_obtained_datetime"] = clean_datetime(child.attrib["value"])
 
             elif child.tag == ext("code"):
 
@@ -476,7 +476,7 @@ def extract_source_result_apple_cda(xml_doc, source_person_id, source_cda_file_n
                 for grandchild in child:
                     if grandchild.tag == ext("low"):
                         if "value" in grandchild.attrib:
-                            source_result_dict["s_result_datetime"] = clean_datetime(grandchild.attrib["value"])
+                            source_result_dict["s_obtained_datetime"] = clean_datetime(grandchild.attrib["value"])
 
             elif child.tag == ext("code"):
                 code_dict = code_to_dict(child)
