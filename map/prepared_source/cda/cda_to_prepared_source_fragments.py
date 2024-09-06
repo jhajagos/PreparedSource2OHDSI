@@ -1,4 +1,3 @@
-import json
 import xml.etree.ElementTree as et
 import hashlib
 import os
@@ -9,7 +8,7 @@ import preparedsource2ohdsi.prepared_source as ps
 import argparse
 import glob
 import datetime
-import re
+
 
 CDANS = "{urn:hl7-org:v3}"
 
