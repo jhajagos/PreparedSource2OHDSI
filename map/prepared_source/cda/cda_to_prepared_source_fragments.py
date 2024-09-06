@@ -9,6 +9,7 @@ import preparedsource2ohdsi.prepared_source as ps
 import argparse
 import glob
 import datetime
+import re
 
 CDANS = "{urn:hl7-org:v3}"
 
@@ -179,6 +180,7 @@ def extract_problems_source_condition_ccda(xml_doc, source_person_id, source_cda
         result_list += [source_prob_dict]
     return result_list
 
+
 def extract_source_procedures_ccda(xml_doc, source_person_id, source_cda_file_name):
     # Procedures
     # /ClinicalDocument/component/structuredBody/component/section/code[@code="47519-4"][@codeSystem="2.16.840.1.113883.6.1"]/../entry/observation
@@ -293,12 +295,24 @@ def extract_labs_source_result_ccda(xml_doc, source_person_id, source_cda_file_n
 
                             if "unit" in child.attrib:
                                 source_result_dict["s_result_unit"] = child.attrib["unit"]
-
+                                if len(source_result_dict["s_result_unit"]):
+                                    source_result_dict["s_result_unit_code"] = source_result_dict["s_result_unit"]
+                                    source_result_dict["s_result_unit_code_type"] = "UCUM"
+                                    source_result_dict["s_result_unit_code_type_oid"] = "2.16.840.1.113883.6.8"
 
                 elif child.tag == ext("referenceRange"):
-                    # TODO: Implement parsing of reference range
-                    pass
+                    for grandchild in child:
+                        if grandchild.tag == ext("observationRange"):
+                            for greatgrandchild in grandchild:
 
+                                if greatgrandchild.tag == ext("value"):
+                                    for greatgreatgrandchild in greatgrandchild:
+                                        if greatgreatgrandchild.tag == ext("low"):
+                                            if "value" in greatgreatgrandchild.attrib:
+                                                source_result_dict["s_result_numeric_lower"] = greatgreatgrandchild.attrib["value"]
+                                        elif greatgreatgrandchild.tag == ext("high"):
+                                            if "value" in greatgreatgrandchild.attrib:
+                                                source_result_dict["s_result_numeric_upper"] = greatgreatgrandchild.attrib["value"]
 
         result_list += [source_result_dict]
 
