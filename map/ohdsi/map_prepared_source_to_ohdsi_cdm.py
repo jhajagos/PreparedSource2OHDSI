@@ -354,7 +354,8 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
             "g_discharge_to_concept_id": "discharged_to_concept_id",
             "s_person_id": "s_person_id",
             "g_care_site_id": "care_site_id",
-            "g_provider_id": "provider_id"
+            "g_provider_id": "provider_id",
+            "s_id": "s_id"
         }
 
     ohdsi_visit_sdf = mapping_utilities.map_table_column_names(source_encounter_sdf, visit_field_map)
