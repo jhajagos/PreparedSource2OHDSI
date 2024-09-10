@@ -206,7 +206,8 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
         "s_ethnicity": "ethnicity_source_value",
         "g_ethnicity_source_concept_id": "ethnicity_source_concept_id",
         "g_ethnicity_concept_id": "ethnicity_concept_id",
-        "g_location_id": "location_id"
+        "g_location_id": "location_id",
+        "s_id": "s_id"
     }
 
     ohdsi_person_sdf = mapping_utilities.map_table_column_names(source_person_sdf, patient_field_map)
@@ -331,7 +332,8 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
             "g_discharge_to_concept_id": "discharge_to_concept_id",
             "s_person_id": "s_person_id",
             "g_care_site_id": "care_site_id",
-            "g_provider_id": "provider_id"
+            "g_provider_id": "provider_id",
+            "s_id": "s_id"
         }
     elif ohdsi_version == "5.4":
         visit_field_map = {
