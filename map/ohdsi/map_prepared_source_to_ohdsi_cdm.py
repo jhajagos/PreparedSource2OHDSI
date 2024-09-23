@@ -190,6 +190,7 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
                                                                 "l.location_source_value"), how="left_outer"). \
         select("p.*", F.col("l.location_id").alias("g_location_id"))
 
+    # Todo: and g_source_table_name
     patient_field_map = {
         "g_id": "person_id",
         "s_person_id": "person_source_value",
@@ -312,6 +313,7 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
                                                               "p.provider_source_value"), how="left_outer"). \
         select("e.*", F.col("p.provider_id").alias("g_provider_id"))
 
+    # Todo: and g_source_table_name
     # Map fields for visit_occurrence_id
     if ohdsi_version == "5.3.1":
         visit_field_map = {
