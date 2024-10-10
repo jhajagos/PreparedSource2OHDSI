@@ -1288,7 +1288,7 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
 
         cdm_source_sdf, sdf_path = mapping_utilities.write_parquet_file_and_reload(spark, cdm_source_sdf, "cdm_source", output_path)
 
-        exported_table_dict["ohdsi"]["metadata"] = sdf_path
+        exported_table_dict["ohdsi"]["cdm_source"] = sdf_path
 
     if ohdsi_version == "5.3.1":
         empty_tables_dict["attribute_definition"] = ohdsi.AttributeDefinitionObject()
