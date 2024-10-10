@@ -1,5 +1,8 @@
+import datetime
 import json
 import logging
+
+import pyspark
 from pyspark.sql import SparkSession
 import pyspark.sql.functions as F
 from pyspark.sql.window import Window
@@ -30,7 +33,9 @@ logging.basicConfig(level=logging.INFO)
 CHECK_POINTING = 'LOCAL' #  BY default checkpointing is 'LOCAL' other option are ('REMOTE', 'NONE') this can be overwritten in the configuration file
 
 
-def main(config, compute_data_checks=False, evaluate_samples=True, export_json_file_name=None, ohdsi_version=None):
+def main(config, compute_data_checks=False, evaluate_samples=True, export_json_file_name=None, ohdsi_version=None,
+         write_metadata = False):
+
     output_path = config["ohdsi_output_location"]
 
     logging.info(f"Check pointing mode: {CHECK_POINTING}")
@@ -1197,6 +1202,57 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
     # Add empty tables
     logging.info(f"Processing empty tables")
 
+    if write_metadata:
+
+        cdm_source_name = None
+        cdm_source_abbreviation = None
+        cdm_holder = None
+        source_description = None
+        source_description_reference = None
+        source_release_date = None
+
+        cdm_release_date = datetime.datetime.utcnow()
+
+        if ohdsi_version == "5.3.1":
+            cdm_version = "CDM v5.3.1"
+
+        elif ohdsi_version == "5.4":
+            cdm_version = "CDM v5.4"
+
+        if "metadata" in config:
+            metadata_dict = config["metadata"]
+
+            if "cdm_source_name" in metadata_dict:
+                cdm_source_name = metadata_dict["cdm_source_name"]
+
+            if "cdm_source_abbreviation" in metadata_dict:
+                cdm_source_version = metadata_dict["cdm_source_version"]
+
+            if "cdm_holder" in metadata_dict:
+                cdm_holder = metadata_dict["cdm_holder"]
+
+            if "source_description" in metadata_dict:
+                source_description = metadata_dict["source_description"]
+
+            if "source_description_reference" in metadata_dict:
+                source_description = metadata_dict["source_description_reference"]
+
+            if "source_release_date" in metadata_dict:
+                source_release_date = metadata_dict["source_release_date"]
+
+
+        meta_data_dict = {
+            "cdm_source_name": cdm_source_name,
+            "cdm_source_abbreviation": cdm_source_version,
+            "cdm_holder": cdm_holder,
+            "source_description": source_description,
+            "source_documentation_reference": source_description_reference,
+            "cdm_etl_reference": "https://github.com/jhajagos/PreparedSource2OHDSI",
+            "source_release_date": source_release_date,
+            "cdm_release_date": cdm_release_date,
+            "cdm_version": cdm_version
+        }
+
     empty_tables_dict = {
         "dose_era": ohdsi.DoseEraObject(),
         "drug_era": ohdsi.DrugEraObject(),
@@ -1215,6 +1271,17 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
         "metadata": ohdsi.MetadataObject(),
         "cdm_source": ohdsi.CdmSourceObject(),
     }
+
+    if write_metadata:
+        empty_tables_dict.pop("metadata")
+
+        meta_data_schema = mapping_utilities.create_schema_from_table_object(spark, ohdsi.MetadataObject(), add_g_id=False)
+
+        meta_data_sdf = spark.createDataFrame([empty_tables_dict], meta_data_schema)
+
+        meta_data_sdf, sdf_path = mapping_utilities.write_parquet_file_and_reload(spark, meta_data_sdf, "metadata", output_path)
+
+        exported_table_dict["ohdsi"]["metadata"] = sdf_path
 
     if ohdsi_version == "5.3.1":
         empty_tables_dict["attribute_definition"] = ohdsi.AttributeDefinitionObject()
