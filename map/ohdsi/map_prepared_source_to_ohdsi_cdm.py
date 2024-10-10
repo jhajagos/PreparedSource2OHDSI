@@ -1285,6 +1285,7 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
         "cdm_source": ohdsi.CdmSourceObject(),
     }
 
+    exported_table_dict["ohdsi"] = {}
     if write_metadata:
         empty_tables_dict.pop("metadata")
 
@@ -1306,7 +1307,7 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
 
     # Add empty tables
     logging.info(f"Processing empty tables")
-    exported_table_dict["ohdsi"] = {}
+
     for table in empty_tables_dict:
         sdf = mapping_utilities.create_empty_table_from_table_object(spark, empty_tables_dict[table], add_g_id=False)
         sdf, sdf_path = mapping_utilities.write_parquet_file_and_reload(spark, sdf, table, output_path)
