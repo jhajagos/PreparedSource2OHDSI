@@ -1199,13 +1199,10 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
     if evaluate_samples:
         generate_local_samples(ohdsi_observation_sdf, local_path, "observation")
 
-    # Add empty tables
-    logging.info(f"Processing empty tables")
-
+    logging.info("Generating metadata")
     if write_metadata:
 
         cdm_source_name = None
-        cdm_source_abbreviation = None
         cdm_holder = None
         source_description = None
         source_description_reference = None
@@ -1221,24 +1218,38 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
 
         if "metadata" in config:
             metadata_dict = config["metadata"]
+        else:
+            metadata_dict = {}
 
-            if "cdm_source_name" in metadata_dict:
-                cdm_source_name = metadata_dict["cdm_source_name"]
+        if "cdm_source_name" in metadata_dict:
+            cdm_source_name = metadata_dict["cdm_source_name"]
+        else:
+            cdm_source_name = "Prepared source mapped to OHDSI"
 
-            if "cdm_source_abbreviation" in metadata_dict:
-                cdm_source_version = metadata_dict["cdm_source_version"]
+        if "cdm_source_abbreviation" in metadata_dict:
+            cdm_source_version = metadata_dict["cdm_source_version"]
+        else:
+            cdm_source_version = None
 
-            if "cdm_holder" in metadata_dict:
-                cdm_holder = metadata_dict["cdm_holder"]
+        if "cdm_holder" in metadata_dict:
+            cdm_holder = metadata_dict["cdm_holder"]
+        else:
+            cdm_holder = None
 
-            if "source_description" in metadata_dict:
-                source_description = metadata_dict["source_description"]
+        if "source_description" in metadata_dict:
+            source_description = metadata_dict["source_description"]
+        else:
+            source_description = None
 
-            if "source_description_reference" in metadata_dict:
-                source_description = metadata_dict["source_description_reference"]
+        if "source_description_reference" in metadata_dict:
+            source_description_reference = metadata_dict["source_description_reference"]
+        else:
+            source_description_reference = None
 
-            if "source_release_date" in metadata_dict:
-                source_release_date = metadata_dict["source_release_date"]
+        if "source_release_date" in metadata_dict:
+            source_release_date = metadata_dict["source_release_date"]
+        else:
+            source_release_date = None
 
 
         meta_data_dict = {
@@ -1252,6 +1263,8 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
             "cdm_release_date": cdm_release_date,
             "cdm_version": cdm_version
         }
+
+    logging.info(str(meta_data_dict))
 
     empty_tables_dict = {
         "dose_era": ohdsi.DoseEraObject(),
@@ -1277,7 +1290,7 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
 
         meta_data_schema = mapping_utilities.create_schema_from_table_object(spark, ohdsi.MetadataObject(), add_g_id=False)
 
-        meta_data_sdf = spark.createDataFrame([empty_tables_dict], meta_data_schema)
+        meta_data_sdf = spark.createDataFrame([meta_data_dict], meta_data_schema)
 
         meta_data_sdf, sdf_path = mapping_utilities.write_parquet_file_and_reload(spark, meta_data_sdf, "metadata", output_path)
 
@@ -1290,6 +1303,9 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
         empty_tables_dict["episode"] = ohdsi.EpisodeObject()
         empty_tables_dict["episode_event"] = ohdsi.EpisodeEventObject()
 
+
+    # Add empty tables
+    logging.info(f"Processing empty tables")
     exported_table_dict["ohdsi"] = {}
     for table in empty_tables_dict:
         sdf = mapping_utilities.create_empty_table_from_table_object(spark, empty_tables_dict[table], add_g_id=False)
