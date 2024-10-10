@@ -34,7 +34,7 @@ CHECK_POINTING = 'LOCAL' #  BY default checkpointing is 'LOCAL' other option are
 
 
 def main(config, compute_data_checks=False, evaluate_samples=True, export_json_file_name=None, ohdsi_version=None,
-         write_metadata=True):
+         write_cdm_source=True):
 
     output_path = config["ohdsi_output_location"]
 
@@ -1200,13 +1200,7 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
         generate_local_samples(ohdsi_observation_sdf, local_path, "observation")
 
     logging.info("Generating metadata")
-    if write_metadata:
-
-        cdm_source_name = None
-        cdm_holder = None
-        source_description = None
-        source_description_reference = None
-        source_release_date = None
+    if write_cdm_source:
 
         cdm_release_date = datetime.datetime.utcnow()
 
@@ -1216,43 +1210,42 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
         elif ohdsi_version == "5.4":
             cdm_version = "CDM v5.4"
 
-        if "metadata" in config:
-            metadata_dict = config["metadata"]
+        if "cdm_source" in config:
+            cdm_source_dict = config["cdm_source"]
         else:
-            metadata_dict = {}
+            cdm_source_dict = {}
 
-        if "cdm_source_name" in metadata_dict:
-            cdm_source_name = metadata_dict["cdm_source_name"]
+        if "cdm_source_name" in cdm_source_dict:
+            cdm_source_name = cdm_source_dict["cdm_source_name"]
         else:
             cdm_source_name = "Prepared source mapped to OHDSI"
 
-        if "cdm_source_abbreviation" in metadata_dict:
-            cdm_source_version = metadata_dict["cdm_source_version"]
+        if "cdm_source_abbreviation" in cdm_source_dict:
+            cdm_source_version = cdm_source_dict["cdm_source_version"]
         else:
             cdm_source_version = None
 
-        if "cdm_holder" in metadata_dict:
-            cdm_holder = metadata_dict["cdm_holder"]
+        if "cdm_holder" in cdm_source_dict:
+            cdm_holder = cdm_source_dict["cdm_holder"]
         else:
             cdm_holder = None
 
-        if "source_description" in metadata_dict:
-            source_description = metadata_dict["source_description"]
+        if "source_description" in cdm_source_dict:
+            source_description = cdm_source_dict["source_description"]
         else:
             source_description = None
 
-        if "source_description_reference" in metadata_dict:
-            source_description_reference = metadata_dict["source_description_reference"]
+        if "source_description_reference" in cdm_source_dict:
+            source_description_reference = cdm_source_dict["source_description_reference"]
         else:
             source_description_reference = None
 
-        if "source_release_date" in metadata_dict:
-            source_release_date = metadata_dict["source_release_date"]
+        if "source_release_date" in cdm_source_dict:
+            source_release_date = cdm_source_dict["source_release_date"]
         else:
             source_release_date = None
 
-
-        meta_data_dict = {
+        cdm_source_dict = {
             "cdm_source_name": cdm_source_name,
             "cdm_source_abbreviation": cdm_source_version,
             "cdm_holder": cdm_holder,
@@ -1264,7 +1257,7 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
             "cdm_version": cdm_version
         }
 
-    logging.info(str(meta_data_dict))
+    logging.info(str(cdm_source_dict))
 
     empty_tables_dict = {
         "dose_era": ohdsi.DoseEraObject(),
@@ -1286,14 +1279,14 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
     }
 
     exported_table_dict["ohdsi"] = {}
-    if write_metadata:
-        empty_tables_dict.pop("metadata")
+    if write_cdm_source:
+        empty_tables_dict.pop("cdm_source")
 
-        meta_data_schema = mapping_utilities.create_schema_from_table_object(ohdsi.MetadataObject(), add_g_id=False)
+        cdm_source_schema = mapping_utilities.create_schema_from_table_object(ohdsi.CdmSourceObject(), add_g_id=False)
 
-        meta_data_sdf = spark.createDataFrame([meta_data_dict], meta_data_schema)
+        cdm_source_sdf = spark.createDataFrame([cdm_source_dict], cdm_source_schema)
 
-        meta_data_sdf, sdf_path = mapping_utilities.write_parquet_file_and_reload(spark, meta_data_sdf, "metadata", output_path)
+        cdm_source_sdf, sdf_path = mapping_utilities.write_parquet_file_and_reload(spark, cdm_source_sdf, "cdm_source", output_path)
 
         exported_table_dict["ohdsi"]["metadata"] = sdf_path
 
