@@ -1288,7 +1288,7 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
     if write_metadata:
         empty_tables_dict.pop("metadata")
 
-        meta_data_schema = mapping_utilities.create_schema_from_table_object(spark, ohdsi.MetadataObject(), add_g_id=False)
+        meta_data_schema = mapping_utilities.create_schema_from_table_object(ohdsi.MetadataObject(), add_g_id=False)
 
         meta_data_sdf = spark.createDataFrame([meta_data_dict], meta_data_schema)
 

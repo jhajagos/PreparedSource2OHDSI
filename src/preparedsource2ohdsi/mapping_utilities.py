@@ -171,7 +171,7 @@ def distinct_and_add_row_id(sdf):
     return sdf
 
 
-def create_schema_from_table_object(table_object, add_g_id=True):
+def create_schema_from_table_object(table_object, add_g_id):
     field_list = table_object.fields()
     try:
         data_types = table_object.data_types()
@@ -207,7 +207,7 @@ def create_schema_from_table_object(table_object, add_g_id=True):
 
 def create_empty_table_from_table_object(spark, table_object, add_g_id=True):
 
-    schema = create_schema_from_table_object(table_object, add_g_id=add_g_id)
+    schema = create_schema_from_table_object(table_object, add_g_id)
 
     empty_rdd = spark.sparkContext.emptyRDD()
 
