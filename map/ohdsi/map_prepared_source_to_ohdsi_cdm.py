@@ -34,7 +34,7 @@ CHECK_POINTING = 'LOCAL' #  BY default checkpointing is 'LOCAL' other option are
 
 
 def main(config, compute_data_checks=False, evaluate_samples=True, export_json_file_name=None, ohdsi_version=None,
-         write_metadata = False):
+         write_metadata=True):
 
     output_path = config["ohdsi_output_location"]
 
