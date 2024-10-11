@@ -1261,7 +1261,7 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
 
         }
 
-        if ohdsi_version == "5.4.1":
+        if ohdsi_version == "5.4":
 
             vocabulary_sdf = concept_map_sdf_dict["vocabulary"]
             vocabulary_version = vocabulary_sdf.where(F.col("vocabulary_id") == F.lit("None")).select(F.col("vocabulary_version")).toPandas().values[0][0]  #SELECT vocabulary_version from vocabulary  where vocabulary_id = 'None'
