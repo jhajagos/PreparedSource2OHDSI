@@ -17,14 +17,6 @@ truncate table "ohdsi"."person";
 truncate table "ohdsi"."provider";
 truncate table "ohdsi"."care_site";
 truncate table "ohdsi"."location";
-truncate table "ohdsi"."domain";
-
---Alter table domain
-
-insert into "ohdsi"."domain" (domain_id,domain_name,domain_concept_id)
-select "domain_id","domain_name","domain_concept_id" 
-    from "ohdsi"."transferDOMAIN";
-
 
 --Alter table location
 alter table "ohdsi"."location" alter column "state" VARCHAR(512);

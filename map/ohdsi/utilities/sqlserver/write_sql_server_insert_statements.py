@@ -185,7 +185,7 @@ if __name__ == "__main__":
                    ]
 
     concept_tables = [
-        "concept", "vocabulary", "concept_ancestor", "concept_relationship", "drug_strength"
+        "concept", "vocabulary", "concept_ancestor", "concept_relationship", "drug_strength", "domain"
     ]
 
     custom_field_dict = {
