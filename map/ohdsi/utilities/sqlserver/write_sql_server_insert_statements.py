@@ -86,12 +86,18 @@ def main(schema_dict, outfile_name, schema_name="dbo", transfer_table_prefix="tr
             # OHDSI CDM by default does not support BIGINT
             for column in table_dict:
                 if column in columns_to_bigint:
-                    sql_string += f"alter table {en(sn)}.{en(tn)} alter column {en(column)} BIGINT;\n"
+                    if dialect == "mssql":
+                        sql_string += f"alter table {en(sn)}.{en(tn)} alter column {en(column)} BIGINT;\n"
+                    else:
+                        sql_string += f"alter table {en(sn)}.{en(tn)} alter column {en(column)} type BIGINT;\n"
 
             # Extend length of VARCHAR to handle long descriptions found in source
             for column in table_dict:
                 if column in columns_to_expand:
-                    sql_string += f"alter table {en(sn)}.{en(tn)} alter column {en(column)} VARCHAR(512);\n"
+                    if dialect == "mssql":
+                        sql_string += f"alter table {en(sn)}.{en(tn)} alter column {en(column)} VARCHAR(512);\n"
+                    else:
+                        sql_string += f"alter table {en(sn)}.{en(tn)} alter column {en(column)} type VARCHAR(512);\n"
                     table_dict[column] = "VARCHAR(512)"
 
             sql_string += "\n"
@@ -124,7 +130,6 @@ def main(schema_dict, outfile_name, schema_name="dbo", transfer_table_prefix="tr
                 sql_string += f"{en(sn)}.{en(transfer_table_prefix + tn)}"
             elif dialect == "psql":
                 sql_string += f"{en(sn)}.{en(transfer_table_prefix + tn.upper())}"
-
 
             if table in custom_where:
                 sql_string += f"\n where {custom_where[table]}"
