@@ -69,8 +69,6 @@ RUN chmod u+x /root/scripts/map_prepared_source_to_ohdsi.sh
 
 RUN mkdir /root/jdbc/ # Hold JDBC drivers for connecting to a database
 
-COPY db_configure.py /root/scripts/
-
 COPY stage_tables_into_rdbms.sh /root/scripts/
 RUN chmod u+x /root/scripts/stage_tables_into_rdbms.sh
 
@@ -80,7 +78,6 @@ RUN chmod u+x /root/scripts/map_synthea_csv_to_ohdsi_parquet.sh
 # Add the ability to run arbitrary SQL RDBMS code from witin the container
 RUN $conda init && . $bashrc && conda activate PySpark && pip install JayDeBeApi # Connect through JDBC to databases
 RUN $conda init && . $bashrc && conda activate PySpark && pip install sqlparse
-COPY jdbc_sql_loader.py /root/scripts/
 
 # In case you need to execute the CDM
 RUN cd /root/github && git clone https://github.com/OHDSI/CommonDataModel.git
