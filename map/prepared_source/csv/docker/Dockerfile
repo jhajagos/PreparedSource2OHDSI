@@ -42,9 +42,9 @@ RUN mkdir /data/ohdsi/output/
 RUN mkdir /root/scripts/
 
 
-RUN cd /root/scripts/; ln -s /root/github/PreparedSource2OHDSI/map/ohdsi/utilities/basic_mapped_data_stats.py ./
-RUN cd /root/scripts/; ln -s /root/github/PreparedSource2OHDSI/map/ohdsi/utilities/db_configure.py ./
-RUN cd /root/scripts/; ln -s /root/github/PreparedSource2OHDSI/map/ohdsi/utilities/jdbc_sql_loader.py ./
+RUN cd /root/scripts/ && ln -s /root/github/PreparedSource2OHDSI/map/ohdsi/utilities/basic_mapped_data_stats.py ./
+RUN cd /root/scripts/ && ln -s /root/github/PreparedSource2OHDSI/map/ohdsi/utilities/jdbc_sql_loader.py ./
+RUN cd /root/scripts/ && ln -s /root/github/PreparedSource2OHDSI/map/ohdsi/utilities/db_configure.py ./
 
 RUN echo '/root/miniconda3/bin/conda init'  >> /root/.bashrc
 

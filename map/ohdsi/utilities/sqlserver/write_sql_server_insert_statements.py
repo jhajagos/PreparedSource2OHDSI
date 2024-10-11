@@ -33,7 +33,8 @@ def escape_name(object_name, dialect="mssql"):
 
 
 def main(schema_dict, outfile_name, schema_name="dbo", transfer_table_prefix="transfer", columns_to_bigint=None, columns_to_expand=None,
-         columns_to_trim=False, custom_field_dict=None, table_order=None, dialect="mssql", custom_where=None):
+         columns_to_trim=False, custom_field_dict=None, table_order=None, dialect="mssql", custom_where=None, concept_tables=None,
+         exclude_concept_tables=False):
 
     if columns_to_bigint is None:
         columns_to_bigint = []
@@ -61,63 +62,74 @@ def main(schema_dict, outfile_name, schema_name="dbo", transfer_table_prefix="tr
     sql_string += "\n"
     rev_table_order = reversed(table_order)
     for table in rev_table_order:
-        tn, _ = get_table(schema_dict, table, dialect)
-        sql_string += f"truncate table {en(sn)}.{en(tn)};\n"
+
+        truncate_table = True
+        if table in concept_tables and exclude_concept_tables is True:
+            truncate_table = False
+
+        if truncate_table:
+            tn, _ = get_table(schema_dict, table, dialect)
+            sql_string += f"truncate table {en(sn)}.{en(tn)};\n"
 
     for table in table_order:
 
-        sql_string += "\n"
-        sql_string += f"--Alter table {table}\n"
+        write_table = True
+        if table in concept_tables and exclude_concept_tables is True:
+            write_table = False
 
-        tn, table_dict = get_table(schema_dict, table, dialect)
+        if write_table:
+            sql_string += "\n"
+            sql_string += f"--Alter table {table}\n"
 
-        # OHDSI CDM by default does not support BIGINT
-        for column in table_dict:
-            if column in columns_to_bigint:
-                sql_string += f"alter table {en(sn)}.{en(tn)} alter column {en(column)} BIGINT;\n"
+            tn, table_dict = get_table(schema_dict, table, dialect)
 
-        # Extend length of VARCHAR to handle long descriptions found in source
-        for column in table_dict:
-            if column in columns_to_expand:
-                sql_string += f"alter table {en(sn)}.{en(tn)} alter column {en(column)} VARCHAR(512);\n"
-                table_dict[column] = "VARCHAR(512)"
+            # OHDSI CDM by default does not support BIGINT
+            for column in table_dict:
+                if column in columns_to_bigint:
+                    sql_string += f"alter table {en(sn)}.{en(tn)} alter column {en(column)} BIGINT;\n"
 
-        sql_string += "\n"
-        sql_string += f"insert into {en(sn)}.{en(tn)}"
-        column_str = ""
-        for column in table_dict:
-            column_str += f"{column},"
+            # Extend length of VARCHAR to handle long descriptions found in source
+            for column in table_dict:
+                if column in columns_to_expand:
+                    sql_string += f"alter table {en(sn)}.{en(tn)} alter column {en(column)} VARCHAR(512);\n"
+                    table_dict[column] = "VARCHAR(512)"
 
-        column_str = column_str[:-1]
-        sql_string += f" ({column_str})\n"
-        sql_string += f"select "
+            sql_string += "\n"
+            sql_string += f"insert into {en(sn)}.{en(tn)}"
+            column_str = ""
+            for column in table_dict:
+                column_str += f"{column},"
 
-        select_str = ""
-        for column in table_dict:
-            if column in custom_field_dict:
-                select_str += f"{custom_field_dict[column]},"
-            elif column in columns_to_trim:
-                data_type = table_dict[column]
-                g = re_col_len.match(data_type).groups()
-                field_len = g[0]
-                select_str += f"left({en(column)},{field_len}),"
-            else:
-                select_str += f"{en(column)},"
-        select_str = select_str[:-1]
+            column_str = column_str[:-1]
+            sql_string += f" ({column_str})\n"
+            sql_string += f"select "
 
-        select_str += " "
-        sql_string += select_str
-        sql_string += "\n    from "
-        if dialect == "mssql":
-            sql_string += f"{en(sn)}.{en(transfer_table_prefix + tn)}"
-        elif dialect == "psql":
-            sql_string += f"{en(sn)}.{en(transfer_table_prefix + tn.upper())}"
+            select_str = ""
+            for column in table_dict:
+                if column in custom_field_dict:
+                    select_str += f"{custom_field_dict[column]},"
+                elif column in columns_to_trim:
+                    data_type = table_dict[column]
+                    g = re_col_len.match(data_type).groups()
+                    field_len = g[0]
+                    select_str += f"left({en(column)},{field_len}),"
+                else:
+                    select_str += f"{en(column)},"
+            select_str = select_str[:-1]
+
+            select_str += " "
+            sql_string += select_str
+            sql_string += "\n    from "
+            if dialect == "mssql":
+                sql_string += f"{en(sn)}.{en(transfer_table_prefix + tn)}"
+            elif dialect == "psql":
+                sql_string += f"{en(sn)}.{en(transfer_table_prefix + tn.upper())}"
 
 
-        if table in custom_where:
-            sql_string += f"\n where {custom_where[table]}"
+            if table in custom_where:
+                sql_string += f"\n where {custom_where[table]}"
 
-        sql_string += ";\n\n"
+            sql_string += ";\n\n"
 
     with open(outfile_name, "w") as fw:
         fw.write(sql_string)
@@ -132,9 +144,11 @@ if __name__ == "__main__":
     arg_parse_obj.add_argument("-j", "--json-schema-file", dest="json_schema_file",
                                default="../../../../src/ohdsi_datatypes_5_4.json")
 
-    arg_parse_obj.add_argument("-d", "-d", "--dialect", dest="sql_dialect", default="mssql")
+    arg_parse_obj.add_argument("-d", "-d", "--dialect", dest="sql_dialect", default="mssql", help="Currently supported: psql (postgresql) & mssql (Microsoft SQL Server)")
 
     arg_parse_obj.add_argument("-o", "--output-file", dest="output_file", default="./transfer_sql_inserts_54.sql")
+
+    arg_parse_obj.add_argument("-x", "--exclude-concept-tables", dest='exclude_concept_tables', default=False, action="store_true")
 
     arg_obj = arg_parse_obj.parse_args()
 
@@ -170,6 +184,10 @@ if __name__ == "__main__":
                    "payer_plan_period"
                    ]
 
+    concept_tables = [
+        "concept", "vocabulary", "concept_ancestor", "concept_relationship", "drug_strength"
+    ]
+
     custom_field_dict = {
         "valid_start_date": "cast(cast(valid_start_date as varchar(8)) as date)",
         "valid_end_date": "cast(cast(valid_start_date as varchar(8)) as date)",
@@ -185,4 +203,5 @@ if __name__ == "__main__":
 
     main(schema_dict, arg_obj.output_file, arg_obj.schema_name, table_order=table_order,
          columns_to_bigint=columns_to_bigint, columns_to_expand=columns_to_expand, columns_to_trim=columns_to_trim,
-         custom_field_dict=custom_field_dict, dialect=arg_obj.sql_dialect, custom_where=custom_where)
+         custom_field_dict=custom_field_dict, dialect=arg_obj.sql_dialect, custom_where=custom_where,
+         concept_tables=concept_tables, exclude_concept_tables=arg_obj.exclude_concept_tables)
