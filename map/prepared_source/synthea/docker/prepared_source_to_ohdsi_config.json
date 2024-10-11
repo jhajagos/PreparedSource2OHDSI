@@ -5,7 +5,7 @@
   "prepared_source_table_path": "/data/preparedsource/synthea/",
   "ohdsi_output_location": "/data/ohdsi/output/",
   "check_pointing": "NONE",
-  "ohdsi_version": "5.4",
+  "ohdsi_version": "5.4.1",
   "jdbc": {
     "connection_string": "",
     "properties": {"username":  "", "password":  ""}

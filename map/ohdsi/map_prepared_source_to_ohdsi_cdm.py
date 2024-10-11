@@ -126,7 +126,7 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
             "s_county": "county",
             "k_location": "location_source_value"
         }
-    elif ohdsi_version == "5.4":
+    elif ohdsi_version == "5.4.1":
         location_field_map = {
             "g_id": "location_id",
             "s_address_1": "address_1",
@@ -342,7 +342,7 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
             "g_provider_id": "provider_id",
             "s_id": "s_id"
         }
-    elif ohdsi_version == "5.4":
+    elif ohdsi_version == "5.4.1":
         visit_field_map = {
             "g_id": "visit_occurrence_id",
             "g_person_id": "person_id",
@@ -616,7 +616,7 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
             "s_id": "s_id",
             "g_source_table_name": "g_source_table_name"
         }
-    elif ohdsi_version == "5.4":
+    elif ohdsi_version == "5.4.1":
         procedure_domain_condition_source_field_map = {
             "g_condition_occurrence_id": "procedure_occurrence_id",
             "g_person_id": "person_id",
@@ -710,7 +710,7 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
     source_procedure_sdf = source_procedure_sdf.withColumn("g_start_procedure_date", F.to_date("s_start_procedure_datetime"))
     if ohdsi_version == "5.3.1":
         pass
-    elif ohdsi_version == "5.4":
+    elif ohdsi_version == "5.4.1":
         source_procedure_sdf = source_procedure_sdf.withColumn("g_end_procedure_date", F.to_date("s_end_procedure_datetime"))
 
     source_procedure_sdf = procedure_type_code_mapper(source_procedure_sdf, concept_sdf, oid_to_vocab_sdf)
@@ -747,7 +747,7 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
             "g_source_table_name": "g_source_table_name",
             "g_provider_id": "provider_id"
         }
-    elif ohdsi_version == "5.4":
+    elif ohdsi_version == "5.4.1":
         procedure_field_map = {
             "g_procedure_occurrence_id": "procedure_occurrence_id",
             "g_person_id": "person_id",
@@ -795,7 +795,7 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
             "s_id": "s_id",
             "g_source_table_name": "g_source_table_name"
         }
-    elif ohdsi_version == "5.4":
+    elif ohdsi_version == "5.4.1":
         drug_domain_procedure_source_field_map = {
             "g_procedure_occurrence_id": "drug_exposure_id",
             "g_person_id": "person_id",
@@ -890,7 +890,7 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
             "s_id": "s_id",
             "g_source_table_name": "g_source_table_name"
         }
-    elif ohdsi_version == "5.4":
+    elif ohdsi_version == "5.4.1":
         device_domain_procedure_source_field_map = {
             "g_procedure_occurrence_id": "device_exposure_id",
             "g_person_id": "person_id",
@@ -1163,7 +1163,7 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
             "s_id": "s_id",
             "g_source_table_name": "g_source_table_name"
         }
-    elif ohdsi_version == "5.4":
+    elif ohdsi_version == "5.4.1":
 
         observation_field_map = {
             "g_id": "observation_id",
@@ -1207,7 +1207,7 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
         if ohdsi_version == "5.3.1":
             cdm_version = "CDM v5.3.1"
 
-        elif ohdsi_version == "5.4":
+        elif ohdsi_version == "5.4.1":
             cdm_version = "CDM v5.4"
         else:
             cdm_version = None
@@ -1261,7 +1261,7 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
 
         }
 
-        if ohdsi_version == "5.4":
+        if ohdsi_version == "5.4.1":
 
             vocabulary_sdf = concept_map_sdf_dict["vocabulary"]
             vocabulary_version = vocabulary_sdf.where(F.col("vocabulary_id") == F.lit("None")).select(F.col("vocabulary_version")).toPandas().values[0][0]  #SELECT vocabulary_version from vocabulary  where vocabulary_id = 'None'
@@ -1305,7 +1305,7 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
     if ohdsi_version == "5.3.1":
         empty_tables_dict["attribute_definition"] = ohdsi.AttributeDefinitionObject()
 
-    elif ohdsi_version == "5.4":
+    elif ohdsi_version == "5.4.1":
         empty_tables_dict["episode"] = ohdsi.EpisodeObject()
         empty_tables_dict["episode_event"] = ohdsi.EpisodeEventObject()
 
@@ -1836,14 +1836,14 @@ if __name__ == "__main__":
     if "check_pointing" in config_dict:
         CHECK_POINTING = config_dict["check_pointing"]
 
-    if "ohdsi_version" in config_dict and config_dict["ohdsi_version"] == "5.4":
-        ohdsi_version = "5.4"
+    if "ohdsi_version" in config_dict and config_dict["ohdsi_version"] == "5.4.1":
+        ohdsi_version = "5.4.1"
         import preparedsource2ohdsi.ohdsi_cdm_5_4 as ohdsi
     else:
         import preparedsource2ohdsi.ohdsi_cdm_5_3_1 as ohdsi
         ohdsi_version = "5.3.1"
 
-    if ohdsi_version not in ("5.3.1", "5.4"):
+    if ohdsi_version not in ("5.3.1", "5.4.1"):
         raise RuntimeError("Only OHDSI versions 5.3.1 and 5.4 supported")
 
     main(config_dict, compute_data_checks=arg_obj.compute_checks, evaluate_samples=arg_obj.evaluate_samples,

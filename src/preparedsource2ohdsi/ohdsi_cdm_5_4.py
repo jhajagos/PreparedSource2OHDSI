@@ -115,7 +115,7 @@ class ConditionEraObject(OHDSI54OutputClass):
         return ["condition_era_id", "person_id", "condition_concept_id", "condition_era_start_date", "condition_era_end_date", "condition_occurrence_count"]
 
     def _data_types(self):
-        return {"condition_era_id": "INTEGER", "person_id": "INTEGER", "condition_concept_id": "INTEGER", "condition_era_start_date": "TIMESTAMP", "condition_era_end_date": "TIMESTAMP", "condition_occurrence_count": "INTEGER"}
+        return {"condition_era_id": "INTEGER", "person_id": "INTEGER", "condition_concept_id": "INTEGER", "condition_era_start_date": "DATE", "condition_era_end_date": "DATE", "condition_occurrence_count": "INTEGER"}
 
 
 class ConditionOccurrenceObject(OHDSI54OutputClass):
@@ -181,7 +181,7 @@ class DoseEraObject(OHDSI54OutputClass):
         return ["dose_era_id", "person_id", "drug_concept_id", "unit_concept_id", "dose_value", "dose_era_start_date", "dose_era_end_date"]
 
     def _data_types(self):
-        return {"dose_era_id": "INTEGER", "person_id": "INTEGER", "drug_concept_id": "INTEGER", "unit_concept_id": "INTEGER", "dose_value": "NUMERIC", "dose_era_start_date": "TIMESTAMP", "dose_era_end_date": "TIMESTAMP"}
+        return {"dose_era_id": "INTEGER", "person_id": "INTEGER", "drug_concept_id": "INTEGER", "unit_concept_id": "INTEGER", "dose_value": "NUMERIC", "dose_era_start_date": "DATE", "dose_era_end_date": "DATE"}
 
 
 class DrugEraObject(OHDSI54OutputClass):
@@ -192,7 +192,7 @@ class DrugEraObject(OHDSI54OutputClass):
         return ["drug_era_id", "person_id", "drug_concept_id", "drug_era_start_date", "drug_era_end_date", "drug_exposure_count", "gap_days"]
 
     def _data_types(self):
-        return {"drug_era_id": "INTEGER", "person_id": "INTEGER", "drug_concept_id": "INTEGER", "drug_era_start_date": "TIMESTAMP", "drug_era_end_date": "TIMESTAMP", "drug_exposure_count": "INTEGER", "gap_days": "INTEGER"}
+        return {"drug_era_id": "INTEGER", "person_id": "INTEGER", "drug_concept_id": "INTEGER", "drug_era_start_date": "DATE", "drug_era_end_date": "DATE", "drug_exposure_count": "INTEGER", "gap_days": "INTEGER"}
 
 
 class DrugExposureObject(OHDSI54OutputClass):
@@ -225,7 +225,7 @@ class EpisodeObject(OHDSI54OutputClass):
         return ["episode_id", "person_id", "episode_concept_id", "episode_start_date", "episode_start_datetime", "episode_end_date", "episode_end_datetime", "episode_parent_id", "episode_number", "episode_object_concept_id", "episode_type_concept_id", "episode_source_value", "episode_source_concept_id"]
 
     def _data_types(self):
-        return {"episode_id": "BIGINT", "person_id": "BIGINT", "episode_concept_id": "INTEGER", "episode_start_date": "DATE", "episode_start_datetime": "TIMESTAMP", "episode_end_date": "DATE", "episode_end_datetime": "TIMESTAMP", "episode_parent_id": "BIGINT", "episode_number": "INTEGER", "episode_object_concept_id": "INTEGER", "episode_type_concept_id": "INTEGER", "episode_source_value": "VARCHAR(50)", "episode_source_concept_id": "INTEGER"}
+        return {"episode_id": "INTEGER", "person_id": "INTEGER", "episode_concept_id": "INTEGER", "episode_start_date": "DATE", "episode_start_datetime": "TIMESTAMP", "episode_end_date": "DATE", "episode_end_datetime": "TIMESTAMP", "episode_parent_id": "INTEGER", "episode_number": "INTEGER", "episode_object_concept_id": "INTEGER", "episode_type_concept_id": "INTEGER", "episode_source_value": "VARCHAR(50)", "episode_source_concept_id": "INTEGER"}
 
 
 class EpisodeEventObject(OHDSI54OutputClass):
@@ -236,7 +236,7 @@ class EpisodeEventObject(OHDSI54OutputClass):
         return ["episode_id", "event_id", "episode_event_field_concept_id"]
 
     def _data_types(self):
-        return {"episode_id": "BIGINT", "event_id": "BIGINT", "episode_event_field_concept_id": "INTEGER"}
+        return {"episode_id": "INTEGER", "event_id": "INTEGER", "episode_event_field_concept_id": "INTEGER"}
 
 
 class FactRelationshipObject(OHDSI54OutputClass):
@@ -269,7 +269,7 @@ class MeasurementObject(OHDSI54OutputClass):
         return ["measurement_id", "person_id", "measurement_concept_id", "measurement_date", "measurement_datetime", "measurement_time", "measurement_type_concept_id", "operator_concept_id", "value_as_number", "value_as_concept_id", "unit_concept_id", "range_low", "range_high", "provider_id", "visit_occurrence_id", "visit_detail_id", "measurement_source_value", "measurement_source_concept_id", "unit_source_value", "unit_source_concept_id", "value_source_value", "measurement_event_id", "meas_event_field_concept_id"]
 
     def _data_types(self):
-        return {"measurement_id": "INTEGER", "person_id": "INTEGER", "measurement_concept_id": "INTEGER", "measurement_date": "DATE", "measurement_datetime": "TIMESTAMP", "measurement_time": "VARCHAR(10)", "measurement_type_concept_id": "INTEGER", "operator_concept_id": "INTEGER", "value_as_number": "NUMERIC", "value_as_concept_id": "INTEGER", "unit_concept_id": "INTEGER", "range_low": "NUMERIC", "range_high": "NUMERIC", "provider_id": "INTEGER", "visit_occurrence_id": "INTEGER", "visit_detail_id": "INTEGER", "measurement_source_value": "VARCHAR(50)", "measurement_source_concept_id": "INTEGER", "unit_source_value": "VARCHAR(50)", "unit_source_concept_id": "INTEGER", "value_source_value": "VARCHAR(50)", "measurement_event_id": "BIGINT", "meas_event_field_concept_id": "INTEGER"}
+        return {"measurement_id": "INTEGER", "person_id": "INTEGER", "measurement_concept_id": "INTEGER", "measurement_date": "DATE", "measurement_datetime": "TIMESTAMP", "measurement_time": "VARCHAR(10)", "measurement_type_concept_id": "INTEGER", "operator_concept_id": "INTEGER", "value_as_number": "NUMERIC", "value_as_concept_id": "INTEGER", "unit_concept_id": "INTEGER", "range_low": "NUMERIC", "range_high": "NUMERIC", "provider_id": "INTEGER", "visit_occurrence_id": "INTEGER", "visit_detail_id": "INTEGER", "measurement_source_value": "VARCHAR(50)", "measurement_source_concept_id": "INTEGER", "unit_source_value": "VARCHAR(50)", "unit_source_concept_id": "INTEGER", "value_source_value": "VARCHAR(50)", "measurement_event_id": "INTEGER", "meas_event_field_concept_id": "INTEGER"}
 
 
 class MetadataObject(OHDSI54OutputClass):
@@ -291,7 +291,7 @@ class NoteObject(OHDSI54OutputClass):
         return ["note_id", "person_id", "note_date", "note_datetime", "note_type_concept_id", "note_class_concept_id", "note_title", "note_text", "encoding_concept_id", "language_concept_id", "provider_id", "visit_occurrence_id", "visit_detail_id", "note_source_value", "note_event_id", "note_event_field_concept_id"]
 
     def _data_types(self):
-        return {"note_id": "INTEGER", "person_id": "INTEGER", "note_date": "DATE", "note_datetime": "TIMESTAMP", "note_type_concept_id": "INTEGER", "note_class_concept_id": "INTEGER", "note_title": "VARCHAR(250)", "note_text": "STRING", "encoding_concept_id": "INTEGER", "language_concept_id": "INTEGER", "provider_id": "INTEGER", "visit_occurrence_id": "INTEGER", "visit_detail_id": "INTEGER", "note_source_value": "VARCHAR(50)", "note_event_id": "BIGINT", "note_event_field_concept_id": "INTEGER"}
+        return {"note_id": "INTEGER", "person_id": "INTEGER", "note_date": "DATE", "note_datetime": "TIMESTAMP", "note_type_concept_id": "INTEGER", "note_class_concept_id": "INTEGER", "note_title": "VARCHAR(250)", "note_text": "STRING", "encoding_concept_id": "INTEGER", "language_concept_id": "INTEGER", "provider_id": "INTEGER", "visit_occurrence_id": "INTEGER", "visit_detail_id": "INTEGER", "note_source_value": "VARCHAR(50)", "note_event_id": "INTEGER", "note_event_field_concept_id": "INTEGER"}
 
 
 class NoteNlpObject(OHDSI54OutputClass):
@@ -313,7 +313,7 @@ class ObservationObject(OHDSI54OutputClass):
         return ["observation_id", "person_id", "observation_concept_id", "observation_date", "observation_datetime", "observation_type_concept_id", "value_as_number", "value_as_string", "value_as_concept_id", "qualifier_concept_id", "unit_concept_id", "provider_id", "visit_occurrence_id", "visit_detail_id", "observation_source_value", "observation_source_concept_id", "unit_source_value", "qualifier_source_value", "value_source_value", "observation_event_id", "obs_event_field_concept_id"]
 
     def _data_types(self):
-        return {"observation_id": "INTEGER", "person_id": "INTEGER", "observation_concept_id": "INTEGER", "observation_date": "DATE", "observation_datetime": "TIMESTAMP", "observation_type_concept_id": "INTEGER", "value_as_number": "NUMERIC", "value_as_string": "VARCHAR(60)", "value_as_concept_id": "INTEGER", "qualifier_concept_id": "INTEGER", "unit_concept_id": "INTEGER", "provider_id": "INTEGER", "visit_occurrence_id": "INTEGER", "visit_detail_id": "INTEGER", "observation_source_value": "VARCHAR(50)", "observation_source_concept_id": "INTEGER", "unit_source_value": "VARCHAR(50)", "qualifier_source_value": "VARCHAR(50)", "value_source_value": "VARCHAR(50)", "observation_event_id": "BIGINT", "obs_event_field_concept_id": "INTEGER"}
+        return {"observation_id": "INTEGER", "person_id": "INTEGER", "observation_concept_id": "INTEGER", "observation_date": "DATE", "observation_datetime": "TIMESTAMP", "observation_type_concept_id": "INTEGER", "value_as_number": "NUMERIC", "value_as_string": "VARCHAR(60)", "value_as_concept_id": "INTEGER", "qualifier_concept_id": "INTEGER", "unit_concept_id": "INTEGER", "provider_id": "INTEGER", "visit_occurrence_id": "INTEGER", "visit_detail_id": "INTEGER", "observation_source_value": "VARCHAR(50)", "observation_source_concept_id": "INTEGER", "unit_source_value": "VARCHAR(50)", "qualifier_source_value": "VARCHAR(50)", "value_source_value": "VARCHAR(50)", "observation_event_id": "INTEGER", "obs_event_field_concept_id": "INTEGER"}
 
 
 class ObservationPeriodObject(OHDSI54OutputClass):

@@ -35,4 +35,4 @@ def main(ddl_link, version="5.3.1"):
 
 main("https://raw.githubusercontent.com/OHDSI/CommonDataModel/v5.4.0/inst/ddl/5.3/postgresql/OMOPCDM_postgresql_5.3_ddl.sql")
 
-main("https://raw.githubusercontent.com/OHDSI/CommonDataModel/v5.4.0/inst/ddl/5.4/postgresql/OMOPCDM_postgresql_5.4_ddl.sql", "5.4")
+main("https://raw.githubusercontent.com/OHDSI/CommonDataModel/refs/heads/main/inst/ddl/5.4/postgresql/OMOPCDM_postgresql_5.4_ddl.sql", "5.4")
