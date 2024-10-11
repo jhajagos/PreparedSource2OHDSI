@@ -39,7 +39,8 @@ RUN $conda init && . $bashrc && conda activate PySpark && conda install ipython
 RUN mkdir /root/config/
 
 RUN cd /root/scripts/; ln -s /root/github/PreparedSource2OHDSI/map/ohdsi/utilities/basic_mapped_data_stats.py ./
-
+RUN cd /root/scripts/; ln -s /root/github/PreparedSource2OHDSI/map/ohdsi/utilities/jdbc_sql_loader.py ./
+RUN cd /root/scripts/; ln -s /root/github/PreparedSource2OHDSI/map/ohdsi/utilities/db_configure.py ./
 
 # Add scripts for running the pipeline
 COPY synthea_config.json /root/config/
