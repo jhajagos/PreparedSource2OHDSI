@@ -84,9 +84,6 @@ RUN $conda init && . $bashrc && conda activate PySpark && pip install sqlparse
 # In case you need to execute the CDM
 RUN cd /root/github && git clone https://github.com/OHDSI/CommonDataModel.git
 
-COPY load_all_staged_tables_into_ohdsi_rdbms.sh /root/scripts/
-RUN chmod u+x /root/scripts/load_all_staged_tables_into_ohdsi_rdbms.sh
-
 COPY fully_load_ohdsi_parquet_files_into_rdbms.sh /root/scripts/
 RUN chmod u+x /root/scripts/fully_load_ohdsi_parquet_files_into_rdbms.sh
 
@@ -99,8 +96,23 @@ RUN chmod u+x /root/scripts/fully_load_ohdsi_parquet_files_excluding_concepts_in
 COPY generate_synthea_module_data.sh /root/scripts/
 RUN chmod u+x /root/scripts/fully_load_ohdsi_parquet_files_excluding_concepts_into_rdbms.sh
 
-COPY load_staged_tables_into_ohdsi_rdbms.sh /root/scripts/
-RUN chmod u+x /root/scripts/load_staged_tables_into_ohdsi_rdbms.sh
+RUN mkdir /root/scripts/mssql/
+
+COPY ./mssql/load_staged_tables_into_ohdsi_rdbms.sh /root/scripts/mssql/
+RUN chmod u+x /root/scripts/mssql/load_staged_tables_into_ohdsi_rdbms.sh
+
+COPY ./mssql/load_all_staged_tables_into_ohdsi_rdbms.sh /root/scripts/mssql/
+RUN chmod u+x /root/scripts/mssql/load_all_staged_tables_into_ohdsi_rdbms.sh
+
+RUN mkdir /root/scripts/psql/
+
+COPY ./psql/load_staged_tables_into_ohdsi_rdbms.sh /root/scripts/psql/
+RUN chmod u+x /root/scripts/psql/load_staged_tables_into_ohdsi_rdbms.sh
+
+COPY ./psql/load_all_staged_tables_into_ohdsi_rdbms.sh /root/scripts/psql/
+RUN chmod u+x /root/scripts/psql/load_all_staged_tables_into_ohdsi_rdbms.sh
+
+RUN ln -s /root/scripts/psql/*.sh /root/scripts/
 
 
 COPY .setup_environment /root/scripts
