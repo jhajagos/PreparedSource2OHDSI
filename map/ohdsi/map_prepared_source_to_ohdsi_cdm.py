@@ -53,7 +53,7 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
 
     # Get Concept Tables Needed for mapping
     concept_map_load_start_time = time.time()
-    concept_map_sdf_dict = mapping_utilities.load_parquet_from_table_names(spark, ["concept", "concept_map"], config["export_concept_mapping_table_path"], cache=True)
+    concept_map_sdf_dict = mapping_utilities.load_parquet_from_table_names(spark, ["concept", "concept_map", "vocabulary"], config["export_concept_mapping_table_path"], cache=True)
     concept_map_load_end_time = time.time()
     logging.info(f"Total time to load concept and concept_map: {format_log_time(concept_map_load_start_time, concept_map_load_end_time)}")
 
