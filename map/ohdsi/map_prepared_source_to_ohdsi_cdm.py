@@ -1209,6 +1209,8 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
 
         elif ohdsi_version == "5.4":
             cdm_version = "CDM v5.4"
+        else:
+            cdm_version = None
 
         if "cdm_source" in config:
             cdm_source_dict = config["cdm_source"]
@@ -1223,7 +1225,7 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
         if "cdm_source_abbreviation" in cdm_source_dict:
             cdm_source_version = cdm_source_dict["cdm_source_version"]
         else:
-            cdm_source_version = None
+            cdm_source_version = "ps2ohdsi"
 
         if "cdm_holder" in cdm_source_dict:
             cdm_holder = cdm_source_dict["cdm_holder"]
@@ -1243,7 +1245,8 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
         if "source_release_date" in cdm_source_dict:
             source_release_date = cdm_source_dict["source_release_date"]
         else:
-            source_release_date = None
+            source_release_date = cdm_release_date
+
 
         cdm_source_dict = {
             "cdm_source_name": cdm_source_name,
@@ -1254,8 +1257,17 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
             "cdm_etl_reference": "https://github.com/jhajagos/PreparedSource2OHDSI",
             "source_release_date": source_release_date,
             "cdm_release_date": cdm_release_date,
-            "cdm_version": cdm_version
+            "cdm_version": cdm_version,
+
         }
+
+        if ohdsi_version == "5.4.1":
+
+            vocabulary_sdf = concept_map_sdf_dict["vocabulary"]
+            vocabulary_version = vocabulary_sdf.where(F.col("vocabulary_id") == F.lit("None")).select(F.col("vocabulary_version")).toPandas().values[0][0]  #SELECT vocabulary_version from vocabulary  where vocabulary_id = 'None'
+            cdm_version_source_id = concept_sdf.where((F.col("vocabulary_id") == F.lit("CDM")) & (F.col("concept_class_id") == F.lit("CDM")) & (F.col("concept_code") == F.lit(cdm_version))).toPandas().values[0][0]
+            cdm_source_dict["vocabulary_version"] = vocabulary_version
+            cdm_source_dict["cdm_version_concept_id"] = cdm_version_source_id
 
     logging.info(str(cdm_source_dict))
 
