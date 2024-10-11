@@ -1208,7 +1208,7 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
             cdm_version = "CDM v5.3.1"
 
         elif ohdsi_version == "5.4.1":
-            cdm_version = "CDM v5.4"
+            cdm_version = "CDM v5.4.1"
         else:
             cdm_version = None
 
