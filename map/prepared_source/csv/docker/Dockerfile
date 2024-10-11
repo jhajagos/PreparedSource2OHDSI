@@ -42,6 +42,8 @@ RUN mkdir /data/ohdsi/output/
 RUN mkdir /root/scripts/
 
 
+RUN cd /root/scripts/; ln -s /root/github/PreparedSource2OHDSI/map/ohdsi/utilities/basic_mapped_data_stats.py ./
+
 RUN echo '/root/miniconda3/bin/conda init'  >> /root/.bashrc
 
 COPY prepared_source_to_ohdsi_config.json /root/config/
@@ -51,8 +53,6 @@ RUN chmod u+x /root/scripts/build_vocabulary_files_for_mapping.sh
 
 COPY map_prepared_source_to_ohdsi.sh /root/scripts/
 RUN chmod u+x /root/scripts/map_prepared_source_to_ohdsi.sh
-
-COPY basic_mapped_data_stats.py /root/scripts/
 
 RUN mkdir /root/jdbc/ # Hold JDBC drivers for connecting to a database
 

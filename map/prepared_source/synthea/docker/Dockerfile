@@ -38,6 +38,9 @@ RUN $conda init && . $bashrc && conda activate PySpark && conda install ipython
 
 RUN mkdir /root/config/
 
+RUN cd /root/scripts/; ln -s /root/github/PreparedSource2OHDSI/map/ohdsi/utilities/basic_mapped_data_stats.py ./
+
+
 # Add scripts for running the pipeline
 COPY synthea_config.json /root/config/
 
@@ -62,8 +65,6 @@ RUN chmod u+x /root/scripts/build_vocabulary_files_for_mapping.sh
 
 COPY map_prepared_source_to_ohdsi.sh /root/scripts/
 RUN chmod u+x /root/scripts/map_prepared_source_to_ohdsi.sh
-
-COPY basic_mapped_data_stats.py /root/scripts/
 
 RUN mkdir /root/jdbc/ # Hold JDBC drivers for connecting to a database
 
