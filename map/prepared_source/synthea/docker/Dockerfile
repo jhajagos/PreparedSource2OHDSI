@@ -99,6 +99,10 @@ RUN chmod u+x /root/scripts/fully_load_ohdsi_parquet_files_excluding_concepts_in
 COPY generate_synthea_module_data.sh /root/scripts/
 RUN chmod u+x /root/scripts/fully_load_ohdsi_parquet_files_excluding_concepts_into_rdbms.sh
 
+COPY load_staged_tables_into_ohdsi_rdbms.sh /root/scripts/
+RUN chmod u+x /root/scripts/load_staged_tables_into_ohdsi_rdbms.sh
+
+
 COPY .setup_environment /root/scripts
 RUN chmod u+x /root/scripts/.setup_environment
 
