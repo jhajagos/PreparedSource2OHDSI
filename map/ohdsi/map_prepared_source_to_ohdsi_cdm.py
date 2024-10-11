@@ -1265,7 +1265,7 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
 
             vocabulary_sdf = concept_map_sdf_dict["vocabulary"]
             vocabulary_version = vocabulary_sdf.where(F.col("vocabulary_id") == F.lit("None")).select(F.col("vocabulary_version")).toPandas().values[0][0]  #SELECT vocabulary_version from vocabulary  where vocabulary_id = 'None'
-            cdm_version_source_df = concept_sdf.where((F.col("vocabulary_id") == F.lit("CDM")) & (F.col("concept_class_id") == F.lit("CDM")) & (F.col("concept_code") == F.lit(cdm_version)))
+            cdm_version_source_df = concept_sdf.where((F.col("vocabulary_id") == F.lit("CDM")) & (F.col("concept_class_id") == F.lit("CDM")) & (F.col("concept_code") == F.lit(cdm_version))).toPandas()
             if len(cdm_version_source_df):
                 cdm_version_source_id = cdm_version_source_df.toPandas().values[0][0]
             else:
