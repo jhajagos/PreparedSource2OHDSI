@@ -116,7 +116,7 @@ alter table "ohdsi"."procedure_occurrence" alter column "visit_occurrence_id" ty
 alter table "ohdsi"."procedure_occurrence" alter column "visit_detail_id" type BIGINT;
 
 insert into "ohdsi"."procedure_occurrence" (procedure_occurrence_id,person_id,procedure_concept_id,procedure_date,procedure_datetime,procedure_end_date,procedure_end_datetime,procedure_type_concept_id,modifier_concept_id,quantity,provider_id,visit_occurrence_id,visit_detail_id,procedure_source_value,procedure_source_concept_id,modifier_source_value)
-select "procedure_occurrence_id","person_id","procedure_concept_id","procedure_date",cast(procedure_datetime as timestamp),"procedure_end_date",cast(procedure_end_datetime as timestamp),"procedure_type_concept_id","modifier_concept_id","quantity","provider_id","visit_occurrence_id","visit_detail_id","procedure_source_value","procedure_source_concept_id","modifier_source_value" 
+select "procedure_occurrence_id","person_id","procedure_concept_id","procedure_date",cast(procedure_datetime as timestamp),"procedure_end_date",cast(procedure_end_datetime as timestamp),"procedure_type_concept_id","modifier_concept_id",cast(quantity as float),"provider_id","visit_occurrence_id","visit_detail_id","procedure_source_value","procedure_source_concept_id","modifier_source_value" 
     from "ohdsi"."transferprocedure_occurrence";
 
 
@@ -155,7 +155,7 @@ alter table "ohdsi"."drug_exposure" alter column "visit_detail_id" type BIGINT;
 alter table "ohdsi"."drug_exposure" alter column "drug_source_value" type VARCHAR(512);
 
 insert into "ohdsi"."drug_exposure" (drug_exposure_id,person_id,drug_concept_id,drug_exposure_start_date,drug_exposure_start_datetime,drug_exposure_end_date,drug_exposure_end_datetime,verbatim_end_date,drug_type_concept_id,stop_reason,refills,quantity,days_supply,sig,route_concept_id,lot_number,provider_id,visit_occurrence_id,visit_detail_id,drug_source_value,drug_source_concept_id,route_source_value,dose_unit_source_value)
-select "drug_exposure_id","person_id","drug_concept_id","drug_exposure_start_date",cast(drug_exposure_start_datetime as timestamp),coalesce(drug_exposure_end_date, drug_exposure_start_date),cast(drug_exposure_end_datetime as timestamp),"verbatim_end_date","drug_type_concept_id","stop_reason","refills","quantity","days_supply","sig","route_concept_id","lot_number","provider_id","visit_occurrence_id","visit_detail_id",left("drug_source_value",512),"drug_source_concept_id","route_source_value","dose_unit_source_value" 
+select "drug_exposure_id","person_id","drug_concept_id","drug_exposure_start_date",cast(drug_exposure_start_datetime as timestamp),coalesce(drug_exposure_end_date, drug_exposure_start_date),cast(drug_exposure_end_datetime as timestamp),"verbatim_end_date","drug_type_concept_id","stop_reason","refills",cast(quantity as float),"days_supply","sig","route_concept_id","lot_number","provider_id","visit_occurrence_id","visit_detail_id",left("drug_source_value",512),"drug_source_concept_id","route_source_value","dose_unit_source_value" 
     from "ohdsi"."transferdrug_exposure"
  where drug_exposure_start_date is not NULL;
 
@@ -168,7 +168,7 @@ alter table "ohdsi"."device_exposure" alter column "visit_occurrence_id" type BI
 alter table "ohdsi"."device_exposure" alter column "visit_detail_id" type BIGINT;
 
 insert into "ohdsi"."device_exposure" (device_exposure_id,person_id,device_concept_id,device_exposure_start_date,device_exposure_start_datetime,device_exposure_end_date,device_exposure_end_datetime,device_type_concept_id,unique_device_id,production_id,quantity,provider_id,visit_occurrence_id,visit_detail_id,device_source_value,device_source_concept_id,unit_concept_id,unit_source_value,unit_source_concept_id)
-select "device_exposure_id","person_id","device_concept_id","device_exposure_start_date",cast(device_exposure_start_datetime as timestamp),"device_exposure_end_date",cast(device_exposure_end_datetime as timestamp),"device_type_concept_id","unique_device_id","production_id","quantity","provider_id","visit_occurrence_id","visit_detail_id","device_source_value","device_source_concept_id","unit_concept_id","unit_source_value","unit_source_concept_id" 
+select "device_exposure_id","person_id","device_concept_id","device_exposure_start_date",cast(device_exposure_start_datetime as timestamp),"device_exposure_end_date",cast(device_exposure_end_datetime as timestamp),"device_type_concept_id","unique_device_id","production_id",cast(quantity as float),"provider_id","visit_occurrence_id","visit_detail_id","device_source_value","device_source_concept_id","unit_concept_id","unit_source_value","unit_source_concept_id" 
     from "ohdsi"."transferdevice_exposure";
 
 

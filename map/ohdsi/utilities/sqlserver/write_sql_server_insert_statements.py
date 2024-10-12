@@ -61,6 +61,10 @@ def main(schema_dict, outfile_name, schema_name="dbo", transfer_table_prefix="tr
     sql_string += "--Truncate tables"
     sql_string += "\n"
     rev_table_order = reversed(table_order)
+
+    if dialect == "psql":
+        custom_field_dict["quantity"] = "cast(quantity as float)"
+
     for table in rev_table_order:
 
         truncate_table = True
