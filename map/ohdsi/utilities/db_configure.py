@@ -16,6 +16,7 @@ def main(jdbc_connection_string, username, password):
 
     config["jdbc"]["connection_string"] = jdbc_connection_string
     config["jdbc"]["properties"]["username"] = username
+    config["jdbc"]["properties"]["user"] = username
     config["jdbc"]["properties"]["password"] = password
 
     print("")

@@ -71,9 +71,6 @@ RUN chmod u+x /root/scripts/map_prepared_source_to_ohdsi.sh
 
 RUN mkdir /root/jdbc/ # Hold JDBC drivers for connecting to a database
 
-COPY stage_tables_into_rdbms.sh /root/scripts/
-RUN chmod u+x /root/scripts/stage_tables_into_rdbms.sh
-
 COPY map_synthea_csv_to_ohdsi_parquet.sh /root/scripts/
 RUN chmod u+x /root/scripts/map_synthea_csv_to_ohdsi_parquet.sh
 
@@ -86,9 +83,6 @@ RUN cd /root/github && git clone https://github.com/OHDSI/CommonDataModel.git
 
 COPY fully_load_ohdsi_parquet_files_into_rdbms.sh /root/scripts/
 RUN chmod u+x /root/scripts/fully_load_ohdsi_parquet_files_into_rdbms.sh
-
-COPY stage_tables_excluding_concepts_into_rdbms.sh /root/scripts/
-RUN chmod u+x /root/scripts/stage_tables_excluding_concepts_into_rdbms.sh
 
 COPY fully_load_ohdsi_parquet_files_excluding_concepts_into_rdbms.sh /root/scripts/
 RUN chmod u+x /root/scripts/fully_load_ohdsi_parquet_files_excluding_concepts_into_rdbms.sh
@@ -112,7 +106,24 @@ RUN chmod u+x /root/scripts/psql/load_staged_tables_into_ohdsi_rdbms.sh
 COPY ./psql/load_all_staged_tables_into_ohdsi_rdbms.sh /root/scripts/psql/
 RUN chmod u+x /root/scripts/psql/load_all_staged_tables_into_ohdsi_rdbms.sh
 
+
+COPY ./mssql/stage_tables_excluding_concepts_into_rdbms.sh /root/scripts/mssql/
+RUN chmod u+x /root/scripts/mssql/stage_tables_excluding_concepts_into_rdbms.sh
+
+COPY ./mssql/stage_tables_into_rdbms.sh /root/scripts/mssql/
+RUN chmod u+x /root/scripts/mssql/stage_tables_into_rdbms.sh
+
+
+COPY ./psql/stage_tables_excluding_concepts_into_rdbms.sh /root/scripts/psql/
+RUN chmod u+x /root/scripts/mssql/stage_tables_excluding_concepts_into_rdbms.sh
+
+COPY ./psql/stage_tables_into_rdbms.sh /root/scripts/psql/
+RUN chmod u+x /root/scripts/psql/stage_tables_into_rdbms.sh
+
+
 RUN ln -s /root/scripts/psql/*.sh /root/scripts/
+
+
 
 
 COPY .setup_environment /root/scripts
