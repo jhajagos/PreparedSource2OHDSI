@@ -129,7 +129,7 @@ def main(schema_dict, outfile_name, schema_name="dbo", transfer_table_prefix="tr
             if dialect == "mssql":
                 sql_string += f"{en(sn)}.{en(transfer_table_prefix + tn)}"
             elif dialect == "psql":
-                sql_string += f"{en(sn)}.{en(transfer_table_prefix + tn.upper())}"
+                sql_string += f"{en(sn)}.{en(transfer_table_prefix + tn)}"
 
             if table in custom_where:
                 sql_string += f"\n where {custom_where[table]}"
