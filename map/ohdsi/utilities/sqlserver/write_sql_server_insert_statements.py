@@ -112,6 +112,11 @@ def main(schema_dict, outfile_name, schema_name="dbo", transfer_table_prefix="tr
 
             select_str = ""
             for column in table_dict:
+
+                if dialect == "psql":
+                    if "datetime" in column:
+                        custom_field_dict[column] = f"cast({column} as timestamp)"
+
                 if column in custom_field_dict:
                     select_str += f"{custom_field_dict[column]},"
                 elif column in columns_to_trim:
