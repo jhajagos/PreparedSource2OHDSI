@@ -38,7 +38,8 @@ def main(spark, tbs):
                           "drug_concepts_count": "select count(distinct person_id) as n, count(*) as n_r, drug_concept_id, c.concept_name from drug_exposure de join concept c on c.concept_id = de.drug_concept_id group by drug_concept_id, c.concept_name order by count(*) desc",
 
                           "measurement_concepts_count": "select count(distinct person_id) as n, count(*) as n_r, measurement_concept_id, c.concept_name as measurement_concept_name, "
-                                                        "min(value_as_number) as min_value_as_number, max(value_as_number) as max_value_as_number from measurement m join concept c on c.concept_id = m.measurement_concept_id group by measurement_concept_id, c.concept_name order by count(*) desc",
+                                                        "min(value_as_number) as min_value_as_number, max(value_as_number) as max_value_as_number from measurement m join concept c on c.concept_id = m.measurement_concept_id  "
+                                                        "left outer join concept c2 on c2.concept_id = m.unit_concept_id group by measurement_concept_id, c.concept_name, c2.concept_code order by count(1) desc",
 
                           "observation_concepts_count": "select count(distinct person_id) as n, count(*) as n_r, observation_concept_id, concept_name from observation o join concept c on o.observation_concept_id = c.concept_id group by concept_name, observation_concept_id order by count(*) desc",
 
