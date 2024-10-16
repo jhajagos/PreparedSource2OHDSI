@@ -106,7 +106,6 @@ RUN chmod u+x /root/scripts/psql/load_staged_tables_into_ohdsi_rdbms.sh
 COPY ./psql/load_all_staged_tables_into_ohdsi_rdbms.sh /root/scripts/psql/
 RUN chmod u+x /root/scripts/psql/load_all_staged_tables_into_ohdsi_rdbms.sh
 
-
 COPY ./mssql/stage_tables_excluding_concepts_into_rdbms.sh /root/scripts/mssql/
 RUN chmod u+x /root/scripts/mssql/stage_tables_excluding_concepts_into_rdbms.sh
 
@@ -120,11 +119,7 @@ RUN chmod u+x /root/scripts/mssql/stage_tables_excluding_concepts_into_rdbms.sh
 COPY ./psql/stage_tables_into_rdbms.sh /root/scripts/psql/
 RUN chmod u+x /root/scripts/psql/stage_tables_into_rdbms.sh
 
-
 RUN ln -s /root/scripts/psql/*.sh /root/scripts/
-
-
-
 
 COPY .setup_environment /root/scripts
 RUN chmod u+x /root/scripts/.setup_environment
