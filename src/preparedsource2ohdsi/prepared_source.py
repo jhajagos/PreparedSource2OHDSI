@@ -573,3 +573,13 @@ class SourcePayerObject(PreparedSourceObject):
                 "s_payer": "The name of the payer",
                 "s_plan": "The plan type e.g, PPO, silver, bronze",
                 }
+
+
+class SourceNoteObject(PreparedSourceObject):
+    def _fields(self):
+        return ["s_id", "s_person_id", "s_encounter_id", "s_note_datetime", "s_note_text", "s_note_title",
+                "s_note_type", "s_note_type_code", "s_note_type_code_type", "s_note_type_code_type_oid",
+                "k_provider"]
+
+    def _meta_data(self):
+        return {}
