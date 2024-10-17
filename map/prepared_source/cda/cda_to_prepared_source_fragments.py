@@ -63,6 +63,13 @@ def clean_datetime(datetime_str):
         return datetime_str
 
 
+def clean_file_name(file_name):
+
+    directory, file_name = os.path.split(os.path.abspath(file_name))
+
+    parent_directory = directory.split(os.path.sep)[-1]
+    return parent_directory + "/" + file_name
+
 # cda = et.parse(cda_filename)
 # observations = list(cda.iterfind("./{urn:hl7-org:v3}entry/{urn:hl7-org:v3}organizer/{urn:hl7-org:v3}component/{urn:hl7-org:v3}observation"))
 def extract_source_person_ccda(xml_doc, source_person_id, source_cda_file_name):
@@ -82,7 +89,7 @@ def extract_source_person_ccda(xml_doc, source_person_id, source_cda_file_name):
     source_person_obj = ps.SourcePersonObject()
     source_person_dict = source_person_obj.dict_template()
     source_person_dict["s_person_id"] = source_person_id
-    source_person_dict["s_source_system"] = f"c-cda/{source_cda_file_name}"
+    source_person_dict["s_source_system"] = f"c-cda/{clean_file_name(source_cda_file_name)}"
 
     for element in root.iterfind(find_person_xpath):
         if element.tag == ext("patientRole"):
@@ -141,7 +148,7 @@ def extract_problems_source_condition_ccda(xml_doc, source_person_id, source_cda
     for element in root.iterfind(find_problems_xpath):
         source_prob_dict = source_condition_obj.dict_template()
         source_prob_dict["s_person_id"] = source_person_id
-        source_prob_dict["s_source_system"] = f"c-cda/{source_cda_file_name}"
+        source_prob_dict["s_source_system"] = f"c-cda/{clean_file_name(source_cda_file_name)}"
 
         for child in element:
             if child.tag == ext("id"):
@@ -195,7 +202,7 @@ def extract_source_procedures_ccda(xml_doc, source_person_id, source_cda_file_na
         if element.tag == ext("procedure"):
             source_proc_dict = source_procedure_obj.dict_template()
             source_proc_dict["s_person_id"] = source_person_id
-            source_proc_dict["s_source_system"] = f"c-cda/{source_cda_file_name}"
+            source_proc_dict["s_source_system"] = f"c-cda/{clean_file_name(source_cda_file_name)}"
 
             for child in element:
 
@@ -240,7 +247,7 @@ def extract_labs_source_result_ccda(xml_doc, source_person_id, source_cda_file_n
 
         source_result_dict = source_result_obj.dict_template()
         source_result_dict["s_person_id"] = source_person_id
-        source_result_dict["s_source_system"] = f"c-cda/{source_cda_file_name}"
+        source_result_dict["s_source_system"] = f"c-cda/{clean_file_name(source_cda_file_name)}"
 
         if element.tag == ext("observation"):
             for child in element:
@@ -333,7 +340,7 @@ def extract_source_medication_ccda(xml_doc, source_person_id, source_cda_file_na
 
         source_med_dict = source_med_obj.dict_template()
         source_med_dict["s_person_id"] = source_person_id
-        source_med_dict["s_source_system"] = f"c-cda/{source_cda_file_name}"
+        source_med_dict["s_source_system"] = f"c-cda/{clean_file_name(source_cda_file_name)}"
 
         for child in element:
             if child.tag == ext("id"):
@@ -425,7 +432,7 @@ def extract_vitals_source_result_ccda(xml_doc, source_person_id, source_cda_file
     for element in root.iterfind(find_labs_xpath):
         source_result_dict = source_result_obj.dict_template()
         source_result_dict["s_person_id"] = source_person_id
-        source_result_dict["s_source_system"] = f"c-cda/{source_cda_file_name}"
+        source_result_dict["s_source_system"] = f"c-cda/{clean_file_name(source_cda_file_name)}"
 
         for child in element:
             if child.tag == ext("id"):
@@ -478,7 +485,7 @@ def extract_source_result_apple_cda(xml_doc, source_person_id, source_cda_file_n
 
         source_result_dict = source_result_obj.dict_template()
         source_result_dict["s_person_id"] = source_person_id
-        source_result_dict["s_source_system"] = f"cda/{source_cda_file_name}"
+        source_result_dict["s_source_system"] = f"cda/{clean_file_name(source_cda_file_name)}"
 
         for child in element:
             if child.tag == ext("id"):
