@@ -578,8 +578,10 @@ class SourcePayerObject(PreparedSourceObject):
 class SourceNoteObject(PreparedSourceObject):
     def _fields(self):
         return ["s_id", "s_person_id", "s_encounter_id", "s_note_datetime", "s_note_text", "s_note_title",
-                "s_note_type", "s_note_type_code", "s_note_type_code_type", "s_note_type_code_type_oid",
-                "k_provider"]
+                "s_note_class", "s_note_class_code", "s_note_class_code_type", "s_note_class_code_type_oid",
+                "k_provider", "s_note_type", "s_note_type_code", "s_note_type_oid",
+                "s_language", "s_language_code", "s_language_code_type", "s_language_code_type_oid",
+                "s_encoding", "s_encoding_code", "s_encoding_code_type", "s_encoding_code_type_oid"]
 
     def _meta_data(self):
         return {}
