@@ -125,6 +125,7 @@ def extract_source_person_ccda(xml_doc, source_person_id, source_cda_file_name):
                                 source_person_dict["s_birth_datetime"] = clean_datetime(grandchild.attrib["value"])
     return [source_person_dict]
 
+
 def extract_source_provider_ccda(xml_doc):
     # source_provider
     # ./ClinicalDocument/documentationOf/serviceEvent/performer
