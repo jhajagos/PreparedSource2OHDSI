@@ -32,7 +32,7 @@ RUN cd ~/github/ && git clone  https://github.com/jhajagos/PreparedSource2OHDSI.
 RUN $conda init && . $bashrc && conda activate PySpark && pip install build
 RUN $conda init && . $bashrc && conda activate PySpark && cd ~/github/PreparedSource2OHDSI/ && python -m build --wheel
 RUN $conda init && . $bashrc && conda activate PySpark && cd ~/github/PreparedSource2OHDSI/dist/ \
-    && pip install preparedsource2ohdsi-0.1.1-py3-none-any.whl # Change for new version
+    && pip install preparedsource2ohdsi-0.1.2-py3-none-any.whl # Change for new version
 
 RUN $conda init && . $bashrc && conda activate PySpark && conda install ipython
 

@@ -476,6 +476,7 @@ def extract_vitals_source_result_ccda(xml_doc, source_person_id, source_cda_file
     return result_list
 
 
+
 def extract_source_result_apple_cda(xml_doc, source_person_id, source_cda_file_name, snomed_code="46680005"):
     # Vitals (Apple CDA)
     # /ClinicalDocument/entry/organizer/code[@code="46680005"][@codeSystem="2.16.840.1.113883.6.96"]/../component/observation
@@ -539,11 +540,56 @@ def extract_social_history_source_condition(xml_doc):
     pass
 
 
-def extract_source_note_ccda(xml_doc):
+def extract_source_note_ccda(xml_doc, source_person_id, source_cda_file_name):
     # Notes
     # /ClinicalDocument/component/structuredBody/component/section/entry/act/code[@code="34109-9"][@codeSystem="2.16.840.1.113883.6.1"]/..
-    pass
+    find_notes_xpath = './/{urn:hl7-org:v3}structuredBody/{urn:hl7-org:v3}component/{urn:hl7-org:v3}section/{urn:hl7-org:v3}entry/{urn:hl7-org:v3}act/{urn:hl7-org:v3}code[@code="34109-9"][@codeSystem="2.16.840.1.113883.6.1"]/..'
+    root = xml_doc.getroot()
+    source_note_list = []
+    source_note_obj = ps.SourceNoteObject()
+    i = 0
+    for element in root.iterfind(find_notes_xpath):
+        source_note_dict = source_note_obj.dict_template()
+        source_note_dict["s_person_id"] = source_person_id
+        source_note_dict["s_source_system"] = f"cda/{clean_file_name(source_cda_file_name)}"
 
+        i += 1
+
+        source_note_dict["s_id"] = i
+        for child in element:
+
+            if child.tag == ext("code"):
+                for grandchild in child:
+                    if grandchild.tag == ext("translation"):
+                        code_dict = code_to_dict(grandchild)
+
+                        if "displayName" in grandchild.attrib:
+                            source_note_dict["s_note_class"] = grandchild.attrib["displayName"]
+
+                        source_note_dict["s_note_class_code"] = code_dict["s_code"]
+                        source_note_dict["s_note_class_code_type_oid"] = code_dict["s_code_type_oid"]
+                        source_note_dict["s_note_class_code_type"] = code_dict["s_code_type"]
+
+            elif child.tag == ext("effectiveTime"):
+                if "value" in child.attrib:
+                    source_note_dict["s_note_datetime"] = clean_datetime(child.attrib["value"])
+
+            elif child.tag == ext("text"): # Need to rework this
+                if "representation" in child.attrib:
+                    if child.attrib["representation"] == "B64":
+                        pass
+                        #source_note_dict["s_note_binary_64"] = child.text.strip()[1:-1]
+                else:
+                    if child.text is not None:
+                        for grandchild in child:
+                            source_note_dict["s_note_text"] = grandchild.text
+
+                    else:
+                        source_note_dict["s_note_text"] = child.text
+
+        source_note_list += [source_note_dict]
+
+    return source_note_list
 
 # Assessment and plan
 # /ClinicalDocument/component/structuredBody/component/section/code[@code="51847-2"][@codeSystem="2.16.840.1.113883.6.1"]/..
@@ -607,7 +653,7 @@ def main(directory, salting):
                          "prepared_source": {},
                          "fragments": {
                              "source_person": [], "source_result": [], "source_medication": [],
-                             "source_condition": [], "source_procedure": []}
+                             "source_condition": [], "source_procedure": [], "source_note": []}
                          }
 
     for xml_file in xml_files_to_process:
@@ -628,6 +674,15 @@ def main(directory, salting):
 
         write_csv_list_dict(source_person_path, person_result_list)
         s_generation_dict["fragments"]["source_person"] += [str(source_person_path.absolute())]
+
+        # Source note
+        source_note_file_name = "source_note." + just_xml_file_name + ".csv"
+        source_note_list = extract_source_note_ccda(xml_obj, s_person_id, xml_file)
+        source_note_path = ps_frag_directory / source_note_file_name
+        if len(source_note_list):
+            print(f"Writing {len(source_note_list)} rows in  '{source_note_path}")
+            write_csv_list_dict(source_note_path, source_note_list)
+            s_generation_dict["fragments"]["source_note"] += [str(source_note_path.absolute())]
 
         # Labs: source_result
         source_result_lab_file_name = "source_result.lab." + just_xml_file_name + ".csv"
