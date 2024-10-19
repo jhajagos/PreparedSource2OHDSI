@@ -66,6 +66,7 @@ def load_true_csv_file(spark_ptr, file_path):
     logging.info(f"Loading: '{file_path}'")
     return spark_ptr.read.option("inferSchema", "true").\
         option("header", "true").\
+        option("multiLine", "true").\
         csv(file_path)
 
 
