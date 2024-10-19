@@ -8,7 +8,8 @@ import preparedsource2ohdsi.prepared_source as ps
 import argparse
 import glob
 import datetime
-
+import base64
+import PyPDF2
 
 CDANS = "{urn:hl7-org:v3}"
 
@@ -548,14 +549,14 @@ def extract_source_note_ccda(xml_doc, source_person_id, source_cda_file_name):
     source_note_list = []
     source_note_obj = ps.SourceNoteObject()
     i = 0
+
+    reference_dict = {}
     for element in root.iterfind(find_notes_xpath):
         source_note_dict = source_note_obj.dict_template()
         source_note_dict["s_person_id"] = source_person_id
         source_note_dict["s_source_system"] = f"cda/{clean_file_name(source_cda_file_name)}"
 
-        i += 1
-
-        source_note_dict["s_id"] = i
+        source_note_dict["s_id"] = f"{i}_{source_note_dict['s_source_system']}"
         for child in element:
 
             if child.tag == ext("code"):
@@ -577,17 +578,56 @@ def extract_source_note_ccda(xml_doc, source_person_id, source_cda_file_name):
             elif child.tag == ext("text"): # Need to rework this
                 if "representation" in child.attrib:
                     if child.attrib["representation"] == "B64":
-                        pass
-                        #source_note_dict["s_note_binary_64"] = child.text.strip()[1:-1]
+
+                        note_b64 = child.text.strip()[1:-1]
+                        directory, file_name = os.path.split(source_cda_file_name)
+
+                        files_directory = os.path.join(directory, "output", "files")
+                        if not os.path.exists(files_directory):
+                            os.mkdir(files_directory)
+
+                        binary_file_name = os.path.join(directory, "output", "files", str(i) + "_" + file_name + ".pdf")
+                        print(f"Writing '{binary_file_name}'")
+                        source_note_dict["m_binary_file_name"] = clean_file_name(binary_file_name)
+
+                        with open(binary_file_name, "wb") as fw:
+                            fw.write(base64.standard_b64decode(note_b64))
+
+                        print(f"Extracting text from '{binary_file_name}'")
+                        with open(binary_file_name, "rb") as fb:
+                            pdf_reader = PyPDF2.PdfReader(fb)
+                            p_text = ""
+                            for page_number in range(len(pdf_reader.pages)):
+                                page = pdf_reader.pages[page_number]
+                                p_text += page.extract_text()
+
+                            source_note_dict["s_note_text"] = p_text
+
                 else:
-                    if child.text is not None:
-                        for grandchild in child:
-                            source_note_dict["s_note_text"] = grandchild.text
-
-                    else:
-                        source_note_dict["s_note_text"] = child.text
-
+                    for grandchild in child:
+                        if grandchild.tag == ext("reference"):
+                            if "value" in grandchild.attrib:
+                                reference_dict[i] = grandchild.attrib["value"][1:]
+        i += 1
         source_note_list += [source_note_dict]
+
+    if len(reference_dict):
+        root_obj = xml_doc.getroot()
+
+        for reference in reference_dict:
+            content_reference_xpath = f'.//{ext("content")}[@ID="{reference_dict[reference]}"]'
+            note_text = ""
+            for match in root_obj.iterfind(content_reference_xpath):
+                for mtext in match.itertext():
+                   note_text += mtext + "\n"
+
+            paragraph_reference_xpath = f'.//{ext("paragraph")}[@ID="{reference_dict[reference]}"]'
+            for match in root_obj.iterfind(paragraph_reference_xpath):
+                for mtext in match.itertext():
+                    note_text += mtext + "\n"
+
+            source_note_list[reference]["s_note_text"] = note_text
+                
 
     return source_note_list
 
@@ -616,7 +656,7 @@ def write_csv_list_dict(file_name, list_dict):
 
     header = list(list_dict[0].keys())
 
-    with open(file_name, mode="w", newline="") as fw:
+    with open(file_name, mode="w", newline="", errors="replace") as fw:
         dw = csv.DictWriter(fw, fieldnames=header)
         dw.writeheader()
 
