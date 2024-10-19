@@ -599,9 +599,9 @@ def extract_source_note_ccda(xml_doc, source_person_id, source_cda_file_name):
                             p_text = ""
                             for page_number in range(len(pdf_reader.pages)):
                                 page = pdf_reader.pages[page_number]
-                                p_text += page.extract_text()
-
-                            source_note_dict["s_note_text"] = p_text
+                                extracted_page_text = page.extract_text()
+                                p_text += extracted_page_text
+                            source_note_dict["s_note_text"] = "" #TODO: deal with conversion issues p_text
 
                 else:
                     for grandchild in child:
@@ -656,7 +656,7 @@ def write_csv_list_dict(file_name, list_dict):
 
     header = list(list_dict[0].keys())
 
-    with open(file_name, mode="w", newline="", errors="replace") as fw:
+    with open(file_name, mode="w", newline="", errors="replace", encoding="utf-8") as fw:
         dw = csv.DictWriter(fw, fieldnames=header)
         dw.writeheader()
 

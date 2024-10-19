@@ -80,13 +80,13 @@ def main(directory):
         source_path = ps_path / source_file_name
         source_header = get_union_csv_file_header(fragment_paths)
 
-        with open(source_path, newline="", mode="w") as fw:
+        with open(source_path, newline="", mode="w", encoding="utf-8", errors="replace") as fw:
             cdw = csv.writer(fw)
             cdw.writerow(source_header)
             i = 0
             for fragment in fragment_paths:
                 print(f"Reading '{fragment}'")
-                with open(fragment, "r") as f:
+                with open(fragment, "r", newline="", encoding="utf-8", errors="replace") as f:
                     cdr = csv.DictReader(f)
 
                     for row_dict in cdr:
