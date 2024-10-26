@@ -1425,11 +1425,11 @@ def write_source_to_parquet_partitioned_by_domain(source_matched_sdf, base_path,
     source_matched_path = base_path + "support/" + table_name +".parquet"
     logging.info(f"Writing '{table_name}' to '{source_matched_path}'")
 
-    if len(source_matched_sdf):
+    if source_matched_sdf.count():
         source_matched_sdf.write.mode("overwrite").partitionBy("mapped_domain_id").parquet(source_matched_path)
     else:
-        source_matched_sdf.write.mode("overwrite").parquet(source_matched_path)
         print(source_matched_sdf.printSchema())
+        source_matched_sdf.write.mode("overwrite").parquet(source_matched_path)
 
     source_matched_sdf = spark.read.parquet(source_matched_path)
 
