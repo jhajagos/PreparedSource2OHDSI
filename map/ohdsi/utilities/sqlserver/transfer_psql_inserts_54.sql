@@ -17,6 +17,7 @@ truncate table "ohdsi"."person";
 truncate table "ohdsi"."provider";
 truncate table "ohdsi"."care_site";
 truncate table "ohdsi"."location";
+truncate table "ohdsi"."cdm_source";
 truncate table "ohdsi"."drug_strength";
 truncate table "ohdsi"."concept_relationship";
 truncate table "ohdsi"."concept_ancestor";
@@ -66,16 +67,29 @@ select "drug_concept_id","ingredient_concept_id","amount_value","amount_unit_con
     from "ohdsi"."transferdrug_strength";
 
 
+--Alter table cdm_source
+
+insert into "ohdsi"."cdm_source" (cdm_source_name,cdm_source_abbreviation,cdm_holder,source_description,source_documentation_reference,cdm_etl_reference,source_release_date,cdm_release_date,cdm_version,cdm_version_concept_id,vocabulary_version)
+select "cdm_source_name","cdm_source_abbreviation","cdm_holder","source_description","source_documentation_reference","cdm_etl_reference","source_release_date","cdm_release_date","cdm_version","cdm_version_concept_id","vocabulary_version" 
+    from "ohdsi"."transfercdm_source";
+
+
 --Alter table location
+alter table "ohdsi"."location" alter column "location_id" type BIGINT;
+alter table "ohdsi"."location" alter column "address_1" type VARCHAR(512);
+alter table "ohdsi"."location" alter column "address_2" type VARCHAR(512);
 alter table "ohdsi"."location" alter column "state" type VARCHAR(512);
 alter table "ohdsi"."location" alter column "zip" type VARCHAR(512);
+alter table "ohdsi"."location" alter column "county" type VARCHAR(512);
+alter table "ohdsi"."location" alter column "country_source_value" type VARCHAR(512);
 
 insert into "ohdsi"."location" (location_id,address_1,address_2,city,state,zip,county,location_source_value,country_concept_id,country_source_value,latitude,longitude)
-select "location_id","address_1","address_2","city","state","zip","county","location_source_value","country_concept_id","country_source_value","latitude","longitude" 
+select "location_id","address_1","address_2","city","state","zip","county","location_source_value","country_concept_id","country_source_value",cast(latitude as float),cast(longitude as float) 
     from "ohdsi"."transferlocation";
 
 
 --Alter table care_site
+alter table "ohdsi"."care_site" alter column "location_id" type BIGINT;
 
 insert into "ohdsi"."care_site" (care_site_id,care_site_name,place_of_service_concept_id,location_id,care_site_source_value,place_of_service_source_value)
 select "care_site_id","care_site_name","place_of_service_concept_id","location_id","care_site_source_value","place_of_service_source_value" 
@@ -92,6 +106,7 @@ select "provider_id","provider_name","npi","dea","specialty_concept_id","care_si
 
 --Alter table person
 alter table "ohdsi"."person" alter column "person_id" type BIGINT;
+alter table "ohdsi"."person" alter column "location_id" type BIGINT;
 alter table "ohdsi"."person" alter column "provider_id" type BIGINT;
 alter table "ohdsi"."person" alter column "race_source_value" type VARCHAR(512);
 alter table "ohdsi"."person" alter column "ethnicity_source_value" type VARCHAR(512);
