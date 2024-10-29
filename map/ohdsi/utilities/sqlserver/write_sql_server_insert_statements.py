@@ -193,7 +193,8 @@ if __name__ == "__main__":
                          "county"
                          ]
 
-    table_order = ["domain", "concept", "vocabulary", "concept_ancestor", "concept_relationship", "drug_strength", "location",
+    table_order = ["domain", "concept", "vocabulary", "concept_ancestor", "concept_relationship", "drug_strength",
+                   "cdm_source", "location",
                    "care_site", "provider", "person", "death", "observation_period", "visit_occurrence", "visit_detail",
                    "condition_occurrence", "procedure_occurrence",
                    "measurement", "observation", "drug_exposure", "device_exposure",
