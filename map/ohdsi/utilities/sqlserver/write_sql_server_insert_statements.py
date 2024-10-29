@@ -205,8 +205,8 @@ if __name__ == "__main__":
     custom_field_dict = {
         "valid_start_date": "cast(cast(valid_start_date as varchar(8)) as date)",
         "valid_end_date": "cast(cast(valid_start_date as varchar(8)) as date)",
-        "drug_exposure_end_date": "coalesce(drug_exposure_end_date, drug_exposure_start_date)"
-
+        "drug_exposure_end_date": "coalesce(drug_exposure_end_date, drug_exposure_start_date)",
+        "latitude": "cast(latitude as float)", "longitude": "cast(longitude as float)"
     }
 
     custom_where = {
