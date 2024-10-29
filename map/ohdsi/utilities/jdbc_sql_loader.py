@@ -26,10 +26,11 @@ if __name__ == "__main__":
     argparse_obj.add_argument("-f", "--sql-file-name", dest="sql_file_name")
     argparse_obj.add_argument("-c", "--class-path", dest="class_path", default="com.microsoft.sqlserver.jdbc.SQLServerDriver")
     argparse_obj.add_argument("-p", "--path-to-jdbc-jar", dest="jar_path", default="/root/jdbc/mssql-jdbc-12.6.2.jre11.jar")
+    argparse_obj.add_argument("--config-json-filename", dest="config_json_filename", default="/root/config/prepared_source_to_ohdsi_config.json")
 
     arg_obj = argparse_obj.parse_args()
 
-    with open("/root/config/prepared_source_to_ohdsi_config.json") as f:
+    with open(arg_obj.config_json_filename) as f:
         c = json.load(f)
 
     username = c["jdbc"]["properties"]["username"]
