@@ -15,7 +15,6 @@ import preparedsource2ohdsi.mapping_utilities as mapping_utilities
 
 logging.basicConfig(level=logging.INFO)
 
-# TODO: Write metadata table which includes data about when mapping was run (see cdm_source)
 
 # TODO: Stable patient_id(s) and visit_occurrence_id(s)
 
@@ -1230,7 +1229,7 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
         if "cdm_holder" in cdm_source_dict:
             cdm_holder = cdm_source_dict["cdm_holder"]
         else:
-            cdm_holder = None
+            cdm_holder = "Not specified"
 
         if "source_description" in cdm_source_dict:
             source_description = cdm_source_dict["source_description"]
