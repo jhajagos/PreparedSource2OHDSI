@@ -189,7 +189,7 @@ if __name__ == "__main__":
 
     columns_to_expand = ["value_source_value", "zip", "state", "ethnicity_source_value", "race_source_value",
                          "discharged_to_source_value", "admitted_from_source_value", "condition_status_source_value",
-                         "drug_source_value", "payer_source_value", "address_1","address_2"
+                         "drug_source_value", "payer_source_value", "address_1", "address_2", "city"
                          ]
 
     table_order = ["domain", "concept", "vocabulary", "concept_ancestor", "concept_relationship", "drug_strength", "location",
