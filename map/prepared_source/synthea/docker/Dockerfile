@@ -121,6 +121,9 @@ RUN chmod u+x /root/scripts/psql/stage_tables_into_rdbms.sh
 
 RUN ln -s /root/scripts/psql/*.sh /root/scripts/
 
+COPY ./switch_rdbms_to_load_to.sh /root/scripts/
+RUN chmod u+x /root/scripts/switch_rdbms_to_load_to.sh
+
 COPY .setup_environment /root/scripts
 RUN chmod u+x /root/scripts/.setup_environment
 
