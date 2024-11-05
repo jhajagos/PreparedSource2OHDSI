@@ -3,7 +3,7 @@ import argparse
 import json
 
 
-def main(config, generated_tables_dict, schema=None, exclude_concepts=False):
+def main(config, generated_tables_dict, schema=None, exclude_concepts=False, exclude_prepared_source_tables=False):
 
     print(config)
     print(generated_tables_dict)
@@ -11,10 +11,13 @@ def main(config, generated_tables_dict, schema=None, exclude_concepts=False):
     jdbc_connection_string = config["jdbc"]["connection_string"]
     jdbc_properties = config["jdbc"]["properties"]
 
+    domains_to_load = ["ohdsi", "concept", "prepared_source"]
+
     if exclude_concepts:
-        domains_to_load = ["ohdsi"]
-    else:
-        domains_to_load = ["concept", "ohdsi"]
+        domains_to_load = [d for d in domains_to_load if d != "concept"]
+
+    if exclude_prepared_source_tables:
+        domains_to_load = [d for d in domains_to_load if d != "prepared_source"]
 
     for domain in domains_to_load:
         tables_dict = generated_tables_dict[domain]
@@ -24,10 +27,15 @@ def main(config, generated_tables_dict, schema=None, exclude_concepts=False):
             print(f"Reading: '{table}'")
             sdf = spark.read.parquet(parquet_path)
 
-            if schema is None:
-                write_table_name = "transfer" + table.upper()
+            if domain == "prepared_source":  # We don't create transfer tables
+                table_name = table.upper()
             else:
-                write_table_name = schema + "." + "transfer" + table.upper()
+                table_name = "transfer" + table.upper()
+
+            if schema is None:
+                write_table_name = table_name
+            else:
+                write_table_name = schema + "." + table_name
 
             print(f"Writing: '{write_table_name}'")
 
@@ -44,6 +52,8 @@ if __name__ == "__main__":
     arg_parser_obj.add_argument("-s", "--schema", dest="schema_name", default=None)
     arg_parser_obj.add_argument("-l", "--run-local", dest="run_local", default=False, action="store_true")
     arg_parser_obj.add_argument("-x", "--exclude-concept-tables", dest="exclude_concept_tables", default=False, action="store_true")
+    arg_parser_obj.add_argument("--exclude-prepared-source-tables", dest="exclude_prepared_source_tables", default=False, action="store_true")
+
 
     arg_obj = arg_parser_obj.parse_args()
     RUN_LOCAL = arg_obj.run_local
@@ -69,4 +79,5 @@ if __name__ == "__main__":
         config = json.load(f)
 
     main(config, generated_tables, schema=arg_obj.schema_name,
-         exclude_concepts=arg_obj.exclude_concept_tables)
+         exclude_concepts=arg_obj.exclude_concept_tables,
+         exclude_prepared_source_tables=arg_obj.exclude_prepared_source_tables)
