@@ -84,8 +84,13 @@ def main(config, evaluate_samples=False):
     concept_ancestor_sdf = spark.read.option("inferSchema", "true").\
         option("header", "true").option("delimiter", "\t").\
         csv(concept_ancestor_sdf_spark_path)
-
     tables_to_export["concept_ancestor"] = concept_ancestor_sdf
+
+    concept_class_sdf_spark_path = f"{concept_base_path}CONCEPT_CLASS{csv_file_extension}"
+    concept_class_sdf = spark.read.option("inferSchema", "true"). \
+        option("header", "true").option("delimiter", "\t"). \
+        csv(concept_class_sdf_spark_path)
+    tables_to_export["concept_class"] = concept_class_sdf
 
     concept_synonym_sdf_spark_path = f"{concept_base_path}CONCEPT_SYNONYM{csv_file_extension}"
     concept_synonym_sdf = spark.read.option("inferSchema", "true").\
