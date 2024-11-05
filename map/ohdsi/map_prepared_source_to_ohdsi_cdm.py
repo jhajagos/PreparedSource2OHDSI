@@ -89,7 +89,8 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
         "domain",
         "drug_strength",
         "vocabulary",
-        "relationship"
+        "relationship",
+        "concept_class"
     ]
 
     exported_table_dict = {}
