@@ -20,9 +20,11 @@ truncate table "ohdsi"."location";
 truncate table "ohdsi"."cdm_source";
 truncate table "ohdsi"."drug_strength";
 truncate table "ohdsi"."concept_relationship";
+truncate table "ohdsi"."relationship";
 truncate table "ohdsi"."concept_ancestor";
 truncate table "ohdsi"."vocabulary";
 truncate table "ohdsi"."concept";
+truncate table "ohdsi"."concept_class";
 truncate table "ohdsi"."domain";
 
 --Alter table domain
@@ -30,6 +32,13 @@ truncate table "ohdsi"."domain";
 insert into "ohdsi"."domain" (domain_id,domain_name,domain_concept_id)
 select "domain_id","domain_name","domain_concept_id" 
     from "ohdsi"."transferdomain";
+
+
+--Alter table concept_class
+
+insert into "ohdsi"."concept_class" (concept_class_id,concept_class_name,concept_class_concept_id)
+select "concept_class_id","concept_class_name","concept_class_concept_id" 
+    from "ohdsi"."transferconcept_class";
 
 
 --Alter table concept
@@ -51,6 +60,13 @@ select "vocabulary_id","vocabulary_name","vocabulary_reference","vocabulary_vers
 insert into "ohdsi"."concept_ancestor" (ancestor_concept_id,descendant_concept_id,min_levels_of_separation,max_levels_of_separation)
 select "ancestor_concept_id","descendant_concept_id","min_levels_of_separation","max_levels_of_separation" 
     from "ohdsi"."transferconcept_ancestor";
+
+
+--Alter table relationship
+
+insert into "ohdsi"."relationship" (relationship_id,relationship_name,is_hierarchical,defines_ancestry,reverse_relationship_id,relationship_concept_id)
+select "relationship_id","relationship_name","is_hierarchical","defines_ancestry","reverse_relationship_id","relationship_concept_id" 
+    from "ohdsi"."transferrelationship";
 
 
 --Alter table concept_relationship

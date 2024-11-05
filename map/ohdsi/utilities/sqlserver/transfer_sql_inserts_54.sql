@@ -20,9 +20,11 @@ truncate table [dbo].[location];
 truncate table [dbo].[cdm_source];
 truncate table [dbo].[drug_strength];
 truncate table [dbo].[concept_relationship];
+truncate table [dbo].[relationship];
 truncate table [dbo].[concept_ancestor];
 truncate table [dbo].[vocabulary];
 truncate table [dbo].[concept];
+truncate table [dbo].[concept_class];
 truncate table [dbo].[domain];
 
 --Alter table domain
@@ -30,6 +32,13 @@ truncate table [dbo].[domain];
 insert into [dbo].[domain] (domain_id,domain_name,domain_concept_id)
 select [domain_id],[domain_name],[domain_concept_id] 
     from [dbo].[transferdomain];
+
+
+--Alter table concept_class
+
+insert into [dbo].[concept_class] (concept_class_id,concept_class_name,concept_class_concept_id)
+select [concept_class_id],[concept_class_name],[concept_class_concept_id] 
+    from [dbo].[transferconcept_class];
 
 
 --Alter table concept
@@ -51,6 +60,13 @@ select [vocabulary_id],[vocabulary_name],[vocabulary_reference],[vocabulary_vers
 insert into [dbo].[concept_ancestor] (ancestor_concept_id,descendant_concept_id,min_levels_of_separation,max_levels_of_separation)
 select [ancestor_concept_id],[descendant_concept_id],[min_levels_of_separation],[max_levels_of_separation] 
     from [dbo].[transferconcept_ancestor];
+
+
+--Alter table relationship
+
+insert into [dbo].[relationship] (relationship_id,relationship_name,is_hierarchical,defines_ancestry,reverse_relationship_id,relationship_concept_id)
+select [relationship_id],[relationship_name],[is_hierarchical],[defines_ancestry],[reverse_relationship_id],[relationship_concept_id] 
+    from [dbo].[transferrelationship];
 
 
 --Alter table concept_relationship

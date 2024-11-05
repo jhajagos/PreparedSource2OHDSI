@@ -193,7 +193,8 @@ if __name__ == "__main__":
                          "county"
                          ]
 
-    table_order = ["domain", "concept", "vocabulary", "concept_ancestor", "concept_relationship", "drug_strength",
+    table_order = ["domain", "concept_class", "concept", "vocabulary", "concept_ancestor",
+                   "relationship", "concept_relationship", "drug_strength",
                    "cdm_source", "location",
                    "care_site", "provider", "person", "death", "observation_period", "visit_occurrence", "visit_detail",
                    "condition_occurrence", "procedure_occurrence",
@@ -202,7 +203,7 @@ if __name__ == "__main__":
                    ]
 
     concept_tables = [
-        "concept", "vocabulary", "concept_ancestor", "concept_relationship", "drug_strength", "domain"
+        "vocabulary", "concept_class", "concept",  "concept_ancestor", "relationship", "concept_relationship", "drug_strength", "domain"
     ]
 
     custom_field_dict = {
