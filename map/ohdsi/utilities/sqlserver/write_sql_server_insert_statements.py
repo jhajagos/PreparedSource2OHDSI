@@ -184,7 +184,8 @@ if __name__ == "__main__":
         "device_exposure_id",
         "provider_id",
         "payer_plan_period_id",
-        "location_id"
+        "location_id",
+        "subject_id"
     ]
 
     columns_to_expand = ["value_source_value", "zip", "state", "ethnicity_source_value", "race_source_value",

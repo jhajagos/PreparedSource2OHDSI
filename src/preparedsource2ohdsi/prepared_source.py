@@ -348,6 +348,9 @@ class SourceProcedureObject(PreparedSourceObject):
                 "k_provider",
                 "i_exclude",
                 "s_id",
+                "s_place_of_service_code",
+                "s_place_of_service_code_type",
+                "s_place_of_service_code_type_oid",
                 "s_source_system",
                 "m_source_system"
                 ]

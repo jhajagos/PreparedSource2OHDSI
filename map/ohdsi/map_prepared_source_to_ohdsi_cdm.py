@@ -196,6 +196,7 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
         select("p.*", F.col("l.location_id").alias("g_location_id"))
 
     # Todo: and g_source_table_name
+    # Todo: pyspark.sql.functions.xxhash64 for hashing s_person_id
     patient_field_map = {
         "g_id": "person_id",
         "s_person_id": "person_source_value",

@@ -218,6 +218,31 @@ select
 from SourceMedicationObject;
 
 select
+    NULL as s_id --Row source identifier
+   ,NULL as s_person_id --Source identifier for patient or person
+   ,NULL as s_encounter_id --Source identifier for encounter or visit
+   ,NULL as s_note_datetime
+   ,NULL as s_note_text
+   ,NULL as s_note_title
+   ,NULL as s_note_class
+   ,NULL as s_note_class_code
+   ,NULL as s_note_class_code_type
+   ,NULL as s_note_class_code_type_oid
+   ,NULL as k_provider --Foreign key to the provider
+   ,NULL as s_note_type
+   ,NULL as s_note_type_code
+   ,NULL as s_note_type_oid
+   ,NULL as s_language
+   ,NULL as s_language_code
+   ,NULL as s_language_code_type
+   ,NULL as s_language_code_type_oid
+   ,NULL as s_encoding
+   ,NULL as s_encoding_code
+   ,NULL as s_encoding_code_type
+   ,NULL as s_encoding_code_type_oid
+from SourceNoteObject;
+
+select
     NULL as s_person_id --Source identifier for patient or person
    ,NULL as s_start_observation_datetime
    ,NULL as s_end_observation_datetime
@@ -321,6 +346,9 @@ select
    ,NULL as k_provider --Foreign key to the provider
    ,NULL as i_exclude --Value of 1 instructs the mapper to skip the row
    ,NULL as s_id --Row source identifier
+   ,NULL as s_place_of_service_code
+   ,NULL as s_place_of_service_code_type
+   ,NULL as s_place_of_service_code_type_oid
    ,NULL as s_source_system --Source system row was extracted from
    ,NULL as m_source_system --Mapped source system the row was extracted from
 from SourceProcedureObject;
