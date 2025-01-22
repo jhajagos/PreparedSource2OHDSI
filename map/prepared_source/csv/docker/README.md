@@ -1,7 +1,12 @@
+# Rapid mapping of PS to OHDSI
+
+## Building the image
 
 ```bash
 docker build -t csv2ohdsi:latest ./
 ```
+
+## Running the container
 
 ```bash
 docker run -it \
@@ -12,4 +17,6 @@ docker run -it \
   -v /home/user/data/prepared_source/parquet:/data/prepared_source/parquet
   ps2csv:latest /bin/bash 
 ```
+
+## Mapping to OHDSI
 
