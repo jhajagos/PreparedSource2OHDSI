@@ -9,7 +9,7 @@ import argparse
 import glob
 import datetime
 import base64
-import PyPDF2
+import PyPDF
 
 CDANS = "{urn:hl7-org:v3}"
 
@@ -595,12 +595,13 @@ def extract_source_note_ccda(xml_doc, source_person_id, source_cda_file_name):
 
                         print(f"Extracting text from '{binary_file_name}'")
                         with open(binary_file_name, "rb") as fb:
-                            pdf_reader = PyPDF2.PdfReader(fb)
+                            pdf_reader = PyPDF.PdfReader(fb)
                             p_text = ""
                             for page_number in range(len(pdf_reader.pages)):
                                 page = pdf_reader.pages[page_number]
                                 extracted_page_text = page.extract_text()
                                 p_text += extracted_page_text
+                            print(p_text)
                             source_note_dict["s_note_text"] = "" #TODO: deal with conversion issues p_text
 
                 else:
