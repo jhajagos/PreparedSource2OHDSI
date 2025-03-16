@@ -72,7 +72,8 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
         "source_encounter_map",
         "source_person_map",
         "source_provider",
-        "source_payer"
+        "source_payer",
+        "source_note"
     ]
 
     prepared_source_load_start_time = time.time()
