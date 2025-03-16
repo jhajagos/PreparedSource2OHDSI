@@ -606,7 +606,7 @@ def extract_source_note_ccda(xml_doc, source_person_id, source_cda_file_name):
 
                                 p_text += extracted_page_text
 
-                            source_note_dict["s_note_text"] = "" #TODO: deal with conversion issues p_text
+                            source_note_dict["s_note_text"] = p_text #TODO: deal with conversion issues p_text
 
                 else:
                     for grandchild in child:
