@@ -116,8 +116,8 @@ def main(directory):
                                 row_dict["i_exclude"] = 0
 
                             if row_dict["s_result_unit_code"] in unit_map: # Clean up non-standard or UCUM codes that do not map to OHDSI CDM
-                                row_dict["m_result_unit_code"] = unit_map[row_dict["s_unit_code"]]
-                                row_dict["m_result_unit_code_type"] = unit_map[row_dict["s_result_unit_code_type"]]
+                                row_dict["m_result_unit_code"] = unit_map[row_dict["s_result_unit_code"]]
+                                row_dict["m_result_unit_code_type"] = row_dict["s_result_unit_code_type"]
                                 row_dict["m_result_unit_code_type_oid"] = row_dict["s_result_unit_code_type_oid"]
 
                         elif source_fragment == "source_procedure":
