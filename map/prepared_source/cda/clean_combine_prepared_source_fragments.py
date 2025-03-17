@@ -5,6 +5,14 @@ import pathlib
 from preparedsource2ohdsi.prepared_source import SourceObservationPeriodObject
 import os
 
+def read_unit_map(file_name='./mappings/units_mapping.csv'):
+
+    with open(file_name, newline='') as csvfile:
+        reader = csv.DictReader(csvfile)
+        unit_map = {}
+        for row in reader:
+            unit_map[row["s_unit_code"]] = row["m_unit_code"]
+        return unit_map
 
 def write_row(cvr, row_dict,  header):
     """Write a row"""
@@ -41,6 +49,8 @@ def main(directory):
     max_datetime = "1900-01-01"
 
     date_to_evaluate = None
+
+    unit_map = read_unit_map()
 
     with open(json_file_path, "r") as f:
         s_generation_dict = json.load(f)
@@ -104,6 +114,11 @@ def main(directory):
                             elif len(s_obtained_datetime) == 0 and len(s_result_datetime) == 0:
                                 date_to_evaluate = None
                                 row_dict["i_exclude"] = 0
+
+                            if row_dict["s_result_unit_code"] in unit_map: # Clean up non-standard or UCUM codes that do not map to OHDSI CDM
+                                row_dict["m_result_unit_code"] = unit_map[row_dict["s_unit_code"]]
+                                row_dict["m_result_unit_code_type"] = unit_map[row_dict["s_result_unit_code_type"]]
+                                row_dict["m_result_unit_code_type_oid"] = row_dict["s_result_unit_code_type_oid"]
 
                         elif source_fragment == "source_procedure":
 
