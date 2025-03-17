@@ -1711,8 +1711,8 @@ def result_source_code_mapper(source_result_sdf, concept_sdf, oid_vocab_sdf):
 
 def result_unit_code_mapper(source_result_sdf, concept_sdf, oid_vocab_sdf, concept_map_sdf):
     return mapped_and_source_standard_code_mapper(source_result_sdf, concept_sdf, oid_vocab_sdf, concept_map_sdf,
-                                "s_result_unit_code", "s_result_unit_code_type_oid",
                                 "m_result_unit_code", "m_result_unit_code_type_oid",
+                                "s_result_unit_code", "s_result_unit_code_type_oid",
                                 "g_unit_source_concept_id", "g_unit_concept_id", mapped_domain_id="Unit")
 
 
