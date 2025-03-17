@@ -526,6 +526,10 @@ def extract_source_result_apple_cda(xml_doc, source_person_id, source_cda_file_n
 
                         if "unit" in child.attrib:
                             source_result_dict["s_result_unit"] = child.attrib["unit"]
+                            if len(source_result_dict["s_result_unit"]):
+                                source_result_dict["s_result_unit_code"] = source_result_dict["s_result_unit"]
+                                source_result_dict["s_result_unit_code_type"] = "UCUM"
+                                source_result_dict["s_result_unit_code_type_oid"] = "2.16.840.1.113883.6.8"
 
             elif child.tag == ext("interpretationCode"):
 
