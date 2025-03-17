@@ -50,7 +50,7 @@ def main(directory):
 
     date_to_evaluate = None
 
-    unit_map = read_unit_map()
+    unit_map = read_unit_map(os.path.join(os.path.dirname(__file__), "./mappings/units_mapping.csv"))
 
     with open(json_file_path, "r") as f:
         s_generation_dict = json.load(f)
