@@ -309,6 +309,12 @@ def extract_labs_source_result_ccda(xml_doc, source_person_id, source_cda_file_n
                                     source_result_dict["s_result_unit_code_type"] = "UCUM"
                                     source_result_dict["s_result_unit_code_type_oid"] = "2.16.840.1.113883.6.8"
 
+                        elif value_type == "ST":
+                            if "value" in child.attrib:
+                                source_result_dict["m_result_text"] = child.attrib["value"]
+                            else:
+                                source_result_dict["m_result_text"] = child.text
+
                 elif child.tag == ext("referenceRange"):
                     for grandchild in child:
                         if grandchild.tag == ext("observationRange"):
@@ -476,6 +482,8 @@ def extract_vitals_source_result_ccda(xml_doc, source_person_id, source_cda_file
                                 source_result_dict["s_result_unit_code"] = source_result_dict["s_result_unit"]
                                 source_result_dict["s_result_unit_code_type"] = "UCUM"
                                 source_result_dict["s_result_unit_code_type_oid"] = "2.16.840.1.113883.6.8"
+
+
 
         result_list += [source_result_dict]
     return result_list
