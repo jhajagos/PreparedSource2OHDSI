@@ -71,7 +71,6 @@ if __name__ == "__main__":
     arg_parser_obj = argparse.ArgumentParser(description="Stage CSV files that confirm to the PreparedSource format for mapping to OHDSI")
     arg_parser_obj.add_argument("-c", "--config-json-file-name", dest="config_json_file_name", default="./config.json")
     arg_parser_obj.add_argument("-l", "--run-local", dest="run_local", default=False, action="store_true")
-    arg_parser_obj.add_argument("-l", "--run-local", dest="run_local", default=False, action="store_true")
     arg_parser_obj.add_argument("--spark-config", dest="spark_config_file_name", default=None)
 
     arg_obj = arg_parser_obj.parse_args()
