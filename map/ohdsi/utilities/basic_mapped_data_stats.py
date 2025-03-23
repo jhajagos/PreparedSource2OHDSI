@@ -3,6 +3,8 @@ import preparedsource2ohdsi.mapping_utilities as mu
 import pyspark
 import json
 import argparse
+import pprint
+from pyspark import SparkConf
 
 
 def main(spark, tbs):
@@ -69,33 +71,50 @@ if __name__ == "__main__":
     arg_parser_obj = argparse.ArgumentParser(description="Stage CSV files that confirm to the PreparedSource format for mapping to OHDSI")
     arg_parser_obj.add_argument("-c", "--config-json-file-name", dest="config_json_file_name", default="/root/config/prepared_source_to_ohdsi_config.json.generated.parquet.json")
     arg_parser_obj.add_argument("-l", "--run-local", dest="run_local", default=False, action="store_true")
+    arg_parser_obj.add_argument("--spark-config", dest="spark_config_file_name", default=None)
 
     arg_obj = arg_parser_obj.parse_args()
 
-    spark = pyspark.sql.SparkSession.builder \
-        .config("spark.driver.memory", "16g") \
-        .getOrCreate()
-
-    with open(arg_obj.config_json_file_name) as f:
-        tbs = json.load(f)
-
     RUN_LOCAL = arg_obj.run_local
 
-    if RUN_LOCAL:
-        spark = SparkSession.builder.appName("StageStreamlinedPreparedSource") \
-            .config('spark.driver.extraJavaOptions', '-Duser.timezone=GMT') \
-            .config('spark.executor.extraJavaOptions', '-Duser.timezone=GMT') \
-            .config('spark.sql.session.timeZone', 'UTC') \
-            .config("spark.driver.memory", "16g") \
-            .getOrCreate()
+    if arg_obj.spark_config_file_name is not None:
+        with open(arg_obj.spark_config_file_name, "r") as f:
+            extra_spark_configs = json.load(f)
     else:
-        spark = SparkSession.builder.appName("StageStreamlinedPreparedSource") \
-            .config('spark.driver.extraJavaOptions', '-Duser.timezone=GMT') \
-            .config('spark.executor.extraJavaOptions', '-Duser.timezone=GMT') \
-            .config('spark.sql.session.timeZone', 'UTC') \
-            .getOrCreate()
+        extra_spark_configs = {}
 
-    with open(arg_obj.config_json_file_name, mode="r") as f:
+    sconf = SparkConf()
+    default_spark_conf_dict = {
+        "spark.driver.extraJavaOptions": "-Duser.timezone=GMT",
+        "spark.executor.extraJavaOptions": "-Duser.timezone=GMT",
+        "spark.sql.session.timeZone": "UTC",
+    }
+
+    if RUN_LOCAL:
+        default_spark_conf_dict["spark.driver.memory"] =  "16g"
+    else:
+        pass
+
+    for key in extra_spark_configs:
+        if key in default_spark_conf_dict:
+            if key == "spark.driver.extraJavaOptions":
+                default_spark_conf_dict[key] += f" {extra_spark_configs[key]}"
+            elif key == "spark.executor.extraJavaOptions":
+                default_spark_conf_dict[key] += f" {extra_spark_configs[key]}"
+            else:
+                default_spark_conf_dict[key] = extra_spark_configs[key]
+        else:
+            default_spark_conf_dict[key] = extra_spark_configs[key]
+
+    print("Spark Configuration:")
+    pprint.pprint(default_spark_conf_dict)
+
+    for key in default_spark_conf_dict:
+        sconf.set(key, default_spark_conf_dict[key])
+
+    spark = SparkSession.builder.config(conf=sconf).appName("StageStreamlinedPreparedSource").getOrCreate()
+
+    with open(arg_obj.config_json_file_name) as f:
         config = json.load(f)
 
     main(spark, config)
