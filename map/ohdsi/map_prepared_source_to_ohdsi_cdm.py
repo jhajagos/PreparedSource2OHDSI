@@ -1855,6 +1855,8 @@ if __name__ == "__main__":
                 default_spark_conf_dict[key] = extra_spark_configs[key]
         else:
             default_spark_conf_dict[key] = extra_spark_configs[key]
+
+    print("Spark Configuration:")
     pprint.pprint(default_spark_conf_dict)
 
     for key in default_spark_conf_dict:
@@ -1864,7 +1866,7 @@ if __name__ == "__main__":
 
     export_parquet_json_name = arg_obj.config_json + ".generated.parquet.json"
 
-    print("Configuration:")
+    print("Mapping Configuration:")
     pprint.pprint(config_dict)
 
     if "check_pointing" in config_dict:

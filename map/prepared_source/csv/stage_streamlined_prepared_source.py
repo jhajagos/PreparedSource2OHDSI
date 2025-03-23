@@ -104,6 +104,8 @@ if __name__ == "__main__":
                 default_spark_conf_dict[key] = extra_spark_configs[key]
         else:
             default_spark_conf_dict[key] = extra_spark_configs[key]
+
+    print("Spark Configuration:")
     pprint.pprint(default_spark_conf_dict)
 
     for key in default_spark_conf_dict:

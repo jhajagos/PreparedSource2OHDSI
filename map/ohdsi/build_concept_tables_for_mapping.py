@@ -11,7 +11,7 @@ import preparedsource2ohdsi.mapping_utilities as mapping_utilities
 logging.basicConfig(level=logging.INFO)
 
 
-def main(config, evaluate_samples=False):
+def main(config, spark, evaluate_samples=False):
     """Build Optimized Concept Tables for Mapping to OHDSI and loading standard tables to Parquet"""
 
     concept_base_path = config["concept_base_path"]
@@ -178,6 +178,8 @@ if __name__ == '__main__':
                 default_spark_conf_dict[key] = extra_spark_configs[key]
         else:
             default_spark_conf_dict[key] = extra_spark_configs[key]
+
+    print("Spark Configuration:")
     pprint.pprint(default_spark_conf_dict)
 
     for key in default_spark_conf_dict:
@@ -190,5 +192,4 @@ if __name__ == '__main__':
 
     main(config, spark)
 
-    main(config_dict)
 
