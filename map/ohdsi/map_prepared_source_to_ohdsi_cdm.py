@@ -1860,9 +1860,7 @@ if __name__ == "__main__":
     for key in default_spark_conf_dict:
         sconf.set(key, default_spark_conf_dict[key])
 
-    spark = SparkSession.builder.config(conf=sconf).appName("StageStreamlinedPreparedSource").getOrCreate()
-
-
+    spark = SparkSession.builder.config(conf=sconf).appName("MapPreparedSourceToOHDSI").getOrCreate()
 
     export_parquet_json_name = arg_obj.config_json + ".generated.parquet.json"
 

@@ -3,6 +3,8 @@ import pyspark.sql.functions as F
 import json
 import logging
 import argparse
+import pprint
+from pyspark import SparkConf
 
 import preparedsource2ohdsi.mapping_utilities as mapping_utilities
 
@@ -129,6 +131,7 @@ if __name__ == '__main__':
         description="Stage (convert to Parquet) and preprocess for mapping OHDSI CDM files")
     arg_parser_obj.add_argument("-c", "--config-json-file-name", dest="config_json_file_name", default="./config.json")
     arg_parser_obj.add_argument("-l", "--run-local", dest="run_local", default=False, action="store_true")
+    arg_parser_obj.add_argument("--spark-config", dest="spark_config_file_name", default=None)
 
     arg_obj = arg_parser_obj.parse_args()
     RUN_LOCAL = arg_obj.run_local
@@ -147,19 +150,45 @@ if __name__ == '__main__':
             concept_base_path += "/"
             config_dict["concept_base_path"] = concept_base_path
 
-    if RUN_LOCAL:
-        spark = SparkSession.builder \
-            .config('spark.driver.extraJavaOptions', '-Duser.timezone=GMT') \
-            .config('spark.executor.extraJavaOptions', '-Duser.timezone=GMT') \
-            .config('spark.sql.session.timeZone', 'UTC') \
-            .config("spark.driver.memory", "16g") \
-            .getOrCreate()
+    if arg_obj.spark_config_file_name is not None:
+        with open(arg_obj.spark_config_file_name, "r") as f:
+            extra_spark_configs = json.load(f)
     else:
-        spark = SparkSession.builder \
-            .config('spark.driver.extraJavaOptions', '-Duser.timezone=GMT') \
-            .config('spark.executor.extraJavaOptions', '-Duser.timezone=GMT') \
-            .config('spark.sql.session.timeZone', 'UTC') \
-            .getOrCreate()
+        extra_spark_configs = {}
+
+    sconf = SparkConf()
+    default_spark_conf_dict = {
+        "spark.driver.extraJavaOptions": "-Duser.timezone=GMT",
+        "spark.executor.extraJavaOptions": "-Duser.timezone=GMT",
+        "spark.sql.session.timeZone": "UTC",
+    }
+
+    if RUN_LOCAL:
+        default_spark_conf_dict["spark.driver.memory"] = "16g"
+    else:
+        pass
+
+    for key in extra_spark_configs:
+        if key in default_spark_conf_dict:
+            if key == "spark.driver.extraJavaOptions":
+                default_spark_conf_dict[key] += f" {extra_spark_configs[key]}"
+            elif key == "spark.executor.extraJavaOptions":
+                default_spark_conf_dict[key] += f" {extra_spark_configs[key]}"
+            else:
+                default_spark_conf_dict[key] = extra_spark_configs[key]
+        else:
+            default_spark_conf_dict[key] = extra_spark_configs[key]
+    pprint.pprint(default_spark_conf_dict)
+
+    for key in default_spark_conf_dict:
+        sconf.set(key, default_spark_conf_dict[key])
+
+    spark = SparkSession.builder.config(conf=sconf).appName("BuildConceptTablesForMapping").getOrCreate()
+
+    with open(arg_obj.config_json_file_name, mode="r") as f:
+        config = json.load(f)
+
+    main(config, spark)
 
     main(config_dict)
 
