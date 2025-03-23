@@ -1824,6 +1824,9 @@ if __name__ == "__main__":
     arg_obj = arg_parser_obj.parse_args()
     RUN_LOCAL = arg_obj.run_local
 
+    with open(arg_obj.config_json, mode="r") as f:
+        config_dict = json.load(f)
+
     if arg_obj.spark_config_file_name is not None:
         with open(arg_obj.spark_config_file_name, "r") as f:
             extra_spark_configs = json.load(f)
@@ -1859,8 +1862,6 @@ if __name__ == "__main__":
 
     spark = SparkSession.builder.config(conf=sconf).appName("StageStreamlinedPreparedSource").getOrCreate()
 
-    with open(arg_obj.config_json_file_name, mode="r") as f:
-        config_dict = json.load(f)
 
 
     export_parquet_json_name = arg_obj.config_json + ".generated.parquet.json"
