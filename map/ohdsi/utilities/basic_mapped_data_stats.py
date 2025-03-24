@@ -41,6 +41,8 @@ def main(spark, tbs):
 
                           "measurement_concepts_count": "select count(distinct person_id) as n, count(*) as n_r, measurement_concept_id, c.concept_name as measurement_concept_name, "
                                                         "min(value_as_number) as min_value_as_number, max(value_as_number) as max_value_as_number, c2.concept_code as unit_concept_code "
+                                                        " min(measurement_date) as min_measurement_date, max(measurement_date) as max_measurement_date, percentile(value_as_number, 0.25) as p25, "
+                                                         "percentile(value_as_number, 0.5) as p50, percentile(value_as_number, 0.75) as p75 " 
                                                         "from measurement m join concept c on c.concept_id = m.measurement_concept_id  "
                                                         "left outer join concept c2 on c2.concept_id = m.unit_concept_id group by measurement_concept_id, c.concept_name, c2.concept_code order by count(1) desc",
 
