@@ -388,6 +388,10 @@ select
    ,NULL as s_result_unit_code
    ,NULL as s_result_unit_code_type
    ,NULL as s_result_unit_code_type_oid
+   ,NULL as m_result_unit
+   ,NULL as m_result_unit_code
+   ,NULL as m_result_unit_code_type
+   ,NULL as m_result_unit_code_type_oid
    ,NULL as s_result_numeric_lower
    ,NULL as s_result_numeric_upper
    ,NULL as s_operator
