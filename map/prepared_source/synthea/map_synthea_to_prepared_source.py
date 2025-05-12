@@ -590,6 +590,14 @@ from observations o left outer join result_code_mapping rcm on o.`VALUE` = rcm.s
                                                                                 config[
                                                                                     "prepared_source_output_location"])
 
+    # Add empty source_note
+    source_note_sdf = create_empty_table_from_table_object(spark, prepared_source.SourceNoteObject())
+
+    prepared_source_dict["source_note"], _ = write_parquet_file_and_reload(spark, source_note_sdf,
+                                                                                    "source_note",
+                                                                                    config[
+                                                                                        "prepared_source_output_location"])
+
 
 if __name__ == "__main__":
 

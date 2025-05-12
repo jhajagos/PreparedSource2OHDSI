@@ -90,7 +90,7 @@ vocabulary file and will be mounted to the running container.
 Once the container is compiled/built you will need to run it.
 ```bash
 docker run -it \
-  --name syntheohdsi --hostname syntheaohdsi \
+  --name syntheaohdsi --hostname syntheaohdsi \
   -v /home/user/data/vocabulary/20231114:/data/ohdsi/vocabulary  \
   -v /home/user/data/synthea/covid19:/data/ohdsi/output \  
   -v /home/user/jdbc:/root/jdbc \ 

@@ -12,13 +12,13 @@ RUN ./Miniconda3-latest-Linux-x86_64.sh -b
 
 # Setup Python
 
-RUN /root/miniconda3/bin/conda create --name PySpark python=3.9 pandas
+RUN /root/miniconda3/bin/conda create --name PySpark python=3.10 pandas
 RUN /root/miniconda3/bin/conda init && bash ~/.bashrc && . ~/.bashrc
 
 ENV conda /root/miniconda3/bin/conda
 ENV bashrc /root/.bashrc
 
-RUN $conda init && . $bashrc && conda activate PySpark && pip install pyspark
+RUN $conda init && . $bashrc && conda activate PySpark && pip install pyspark==3.5.5
 
 
 RUN mkdir /root/github/
