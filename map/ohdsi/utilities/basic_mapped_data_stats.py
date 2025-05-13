@@ -114,7 +114,7 @@ if __name__ == "__main__":
     for key in default_spark_conf_dict:
         sconf.set(key, default_spark_conf_dict[key])
 
-    spark = SparkSession.builder.config(conf=sconf).appName("StageStreamlinedPreparedSource").getOrCreate()
+    spark = SparkSession.builder.config(conf=sconf).appName("BasicStatistics").getOrCreate()
 
     with open(arg_obj.config_json_file_name) as f:
         config = json.load(f)
