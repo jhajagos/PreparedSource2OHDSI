@@ -483,8 +483,6 @@ def extract_vitals_source_result_ccda(xml_doc, source_person_id, source_cda_file
                                 source_result_dict["s_result_unit_code_type"] = "UCUM"
                                 source_result_dict["s_result_unit_code_type_oid"] = "2.16.840.1.113883.6.8"
 
-
-
         result_list += [source_result_dict]
     return result_list
 
@@ -573,6 +571,13 @@ def extract_source_note_ccda(xml_doc, source_person_id, source_cda_file_name):
         source_note_dict["s_source_system"] = f"cda/{clean_file_name(source_cda_file_name)}"
 
         source_note_dict["s_id"] = f"{i}_{source_note_dict['s_source_system']}"
+
+        source_note_dict["s_note_type"] = "EHR"
+        source_note_dict["s_note_type_code_type_oid"] = "ohdsi.type_concept"
+        source_note_dict["s_note_type_code"] = "OMOP4976890"
+
+        source_note_dict["s"]
+
         for child in element:
 
             if child.tag == ext("code"):
@@ -586,6 +591,9 @@ def extract_source_note_ccda(xml_doc, source_person_id, source_cda_file_name):
                         source_note_dict["s_note_class_code"] = code_dict["s_code"]
                         source_note_dict["s_note_class_code_type_oid"] = code_dict["s_code_type_oid"]
                         source_note_dict["s_note_class_code_type"] = code_dict["s_code_type"]
+
+                        source_note_dict["m_note_class_code"] = code_dict["s_note_class_code"]
+                        source_note_dict["m_note_class_code_type_oid"] = code_dict["s_note_class_code_type_oid"]
 
             elif child.tag == ext("effectiveTime"):
                 if "value" in child.attrib:

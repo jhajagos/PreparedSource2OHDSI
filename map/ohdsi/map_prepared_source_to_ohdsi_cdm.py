@@ -417,7 +417,7 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
     if evaluate_samples:
         generate_local_samples(ohdsi_observation_period_sdf, local_path, "observation_period")
 
-    # Plan Provider
+    # Payer Plan Period
     logging.info("Building payer_plan_period")
     payer_plan_period_build_start_time = time.time()
     source_payer_sdf = prepared_source_sdf_dict["source_payer"]
@@ -440,7 +440,8 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
     source_payer_sdf = mapping_utilities.map_table_column_names(source_payer_sdf, payer_plan_build_map)
     ohdsi_payer_plan_period_sdf = mapping_utilities.column_names_to_align_to(source_payer_sdf, ohdsi.PayerPlanPeriodObject())
 
-    ohdsi_payer_plan_period_sdf, payer_plan_period_path = mapping_utilities.write_parquet_file_and_reload(spark, ohdsi_payer_plan_period_sdf, "payer_plan_period", output_path)
+    ohdsi_payer_plan_period_sdf, payer_plan_period_path = (
+        mapping_utilities.write_parquet_file_and_reload(spark, ohdsi_payer_plan_period_sdf, "payer_plan_period", output_path))
 
     ohdsi_sdf_dict["payer_plan_period"] = ohdsi_payer_plan_period_sdf, payer_plan_period_path
 
@@ -1199,7 +1200,72 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
     if evaluate_samples:
         generate_local_samples(ohdsi_observation_sdf, local_path, "observation")
 
+    # Notes
+    ["s_id", "s_person_id", "s_encounter_id", "s_note_datetime", "s_note_text", "s_note_title",
+     "s_note_class", "s_note_class_code", "s_note_class_code_type", "s_note_class_code_type_oid",
+     "k_provider", "s_note_type", "s_note_type_code", "s_note_type_oid",
+     "s_language", "s_language_code", "s_language_code_type", "s_language_code_type_oid",
+     "s_encoding", "s_encoding_code", "s_encoding_code_type", "s_encoding_code_type_oid"]
+
+    logging.info("Started building note table")
+    note_build_start_time = time.time()
+    source_note_sdf = prepared_source_sdf_dict["source_note"]
+    source_note_sdf = filter_out_i_excluded(source_note_sdf)
+    source_note_sdf = align_to_visit(source_note_sdf, ohdsi_person_sdf, visit_source_link_sdf)
+
+    source_note_sdf = note_class_code_mapper(source_note_sdf, concept_sdf, oid_to_vocab_sdf)
+
+    source_note_sdf = code_and_oid_to_concept_id_mapper(source_note_sdf, concept_sdf, oid_to_vocab_sdf,
+                                                        "s_language_code", "s_language_code_type_oid",
+                                                        "g_language_concept_id")
+
+    source_note_sdf = code_and_oid_to_concept_id_mapper(source_note_sdf, concept_sdf, oid_to_vocab_sdf,
+                                                        "s_encoding_concept_code", "s_encoding_code_type_oid",
+                                                        "g_encoding_concept_id"
+                                                        )
+
+    source_note_sdf = code_and_oid_to_concept_id_mapper(source_note_sdf, concept_sdf, oid_to_vocab_sdf,
+                                                        "s_note_type_code", "s_note_type_code_type_oid",
+                                                        "g_note_type_concept_id"
+                                                        )
+
+    source_note_sdf = source_note_sdf.withColumn("g_note_date", F.to_date("s_note_datetime"))
+    source_note_sdf = note_class_code_mapper(source_note_sdf, concept_sdf, oid_to_vocab_sdf)
+    source_note_sdf = source_note_sdf.withColumn("g_source_table_name", F.lit("source_device"))
+
+    note_source_field_map = {
+        "g_id": "device_exposure_id",
+        "g_person_id": "person_id",
+        "g_visit_occurrence_id": "visit_occurrence_id",
+        "s_note_datetime": "note_datetime",
+        "g_note_date": "note_date",
+        "g_note_class_id": "note_class_id",
+        "g_encoding_concept_id": "encoding_concept_id",
+        "g_language_concept_id": "language_concept_id",
+        "g_note_type_concept_id": "note_type_concept_id",
+        "s_id": "s_id",
+        "g_source_table_name": "g_source_table_name",
+        "s_note_class": "note_source_value",
+        "s_note_title": "note_title",
+        "s_note_text": "note_text"
+    }
+
+    source_note_sdf = mapping_utilities.map_table_column_names(source_note_sdf, note_source_field_map)
+    ohdsi_note_sdf = mapping_utilities.column_names_to_align_to(source_note_sdf, ohdsi.NoteObject())
+
+    ohdsi_note_sdf, note_path = (
+        mapping_utilities.write_parquet_file_and_reload(spark, ohdsi_note_sdf, "note", output_path))
+
+    ohdsi_sdf_dict["note"] = ohdsi_note_sdf, note_path
+
+    note_build_end_time = time.time()
+    logging.info(
+        f"Finished processing source note (Total elapsed time: f{format_log_time(note_build_start_time, note_build_end_time)})")
+
+
+    # Metadata tables
     logging.info("Generating metadata")
+
     if write_cdm_source:
 
         cdm_release_date = datetime.datetime.utcnow()
@@ -1247,7 +1313,6 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
         else:
             source_release_date = cdm_release_date
 
-
         cdm_source_dict = {
             "cdm_source_name": cdm_source_name,
             "cdm_source_abbreviation": cdm_source_version,
@@ -1258,7 +1323,6 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
             "source_release_date": source_release_date,
             "cdm_release_date": cdm_release_date,
             "cdm_version": cdm_version,
-
         }
 
         if ohdsi_version == "5.4.1":
@@ -1283,7 +1347,6 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
 
         "specimen": ohdsi.SpecimenObject(),
 
-        "note": ohdsi.NoteObject(),
         "note_nlp": ohdsi.NoteNlpObject(),
 
         "cost": ohdsi.CostObject(),
@@ -1313,7 +1376,6 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
     elif ohdsi_version == "5.4.1":
         empty_tables_dict["episode"] = ohdsi.EpisodeObject()
         empty_tables_dict["episode_event"] = ohdsi.EpisodeEventObject()
-
 
     # Add empty tables
     logging.info(f"Processing empty tables")
@@ -1699,6 +1761,12 @@ def device_type_code_mapper(source_device_sdf, concept_sdf, oid_vocab_sdf):
     return standard_code_mapper(source_device_sdf, concept_sdf, oid_vocab_sdf,
                                 "m_device_type_code", "m_device_type_code_type_oid",
                                 "g_device_type_concept_id")
+
+
+def note_class_code_mapper(source_note_sdf, concept_sdf, oid_vocab_sdf):
+    return standard_code_mapper(source_note_sdf, concept_sdf, oid_vocab_sdf,
+                                "m_note_class_code", "m_note_class_code_type_oid",
+                                "g_note_class_concept_id")
 
 
 def result_source_code_mapper(source_result_sdf, concept_sdf, oid_vocab_sdf):
