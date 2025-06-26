@@ -487,7 +487,6 @@ def extract_vitals_source_result_ccda(xml_doc, source_person_id, source_cda_file
     return result_list
 
 
-
 def extract_source_result_apple_cda(xml_doc, source_person_id, source_cda_file_name, snomed_code="46680005"):
     # Vitals (Apple CDA)
     # /ClinicalDocument/entry/organizer/code[@code="46680005"][@codeSystem="2.16.840.1.113883.6.96"]/../component/observation
@@ -575,8 +574,6 @@ def extract_source_note_ccda(xml_doc, source_person_id, source_cda_file_name):
         source_note_dict["s_note_type"] = "EHR"
         source_note_dict["s_note_type_code_type_oid"] = "ohdsi.type_concept"
         source_note_dict["s_note_type_code"] = "OMOP4976890"
-
-        source_note_dict["s"]
 
         for child in element:
 
