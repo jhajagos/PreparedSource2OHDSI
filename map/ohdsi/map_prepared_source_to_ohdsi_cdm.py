@@ -1220,7 +1220,7 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
                                                         "g_language_concept_id")
 
     source_note_sdf = code_and_oid_to_concept_id_mapper(source_note_sdf, concept_sdf, oid_to_vocab_sdf,
-                                                        "s_encoding_concept_code", "s_encoding_code_type_oid",
+                                                        "s_encoding_code", "s_encoding_code_type_oid",
                                                         "g_encoding_concept_id"
                                                         )
 
