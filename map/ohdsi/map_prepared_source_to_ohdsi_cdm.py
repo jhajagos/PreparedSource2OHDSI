@@ -1215,22 +1215,22 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
 
     source_note_sdf = note_class_code_mapper(source_note_sdf, concept_sdf, oid_to_vocab_sdf)
 
-    source_note_sdf = code_and_oid_to_concept_id_mapper(source_note_sdf, concept_sdf, oid_to_vocab_sdf,
-                                                        "s_language_code", "s_language_code_type_oid", 1,
+    source_note_sdf = standard_code_mapper(source_note_sdf, concept_sdf, oid_to_vocab_sdf,
+                                                        "s_language_code", "s_language_code_type_oid",
                                                         "g_language_concept_id")
 
-    source_note_sdf = code_and_oid_to_concept_id_mapper(source_note_sdf, concept_sdf, oid_to_vocab_sdf,
-                                                        "s_encoding_code", "s_encoding_code_type_oid", 1,
+    source_note_sdf = standard_code_mapper(source_note_sdf, concept_sdf, oid_to_vocab_sdf,
+                                                        "s_encoding_code", "s_encoding_code_type_oid",
                                                         "g_encoding_concept_id"
                                                         )
 
-    source_note_sdf = code_and_oid_to_concept_id_mapper(source_note_sdf, concept_sdf, oid_to_vocab_sdf,
-                                                        "s_note_type_code", "s_note_type_code_type_oid", 1,
+    source_note_sdf = standard_code_mapper(source_note_sdf, concept_sdf, oid_to_vocab_sdf,
+                                                        "s_note_type_code", "s_note_type_code_type_oid",
                                                         "g_note_type_concept_id"
                                                         )
 
     source_note_sdf = source_note_sdf.withColumn("g_note_date", F.to_date("s_note_datetime"))
-    source_note_sdf = note_class_code_mapper(source_note_sdf, concept_sdf, oid_to_vocab_sdf)
+
     source_note_sdf = source_note_sdf.withColumn("g_source_table_name", F.lit("source_device"))
 
     note_source_field_map = {
