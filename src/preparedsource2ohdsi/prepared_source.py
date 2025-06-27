@@ -589,7 +589,7 @@ class SourceNoteObject(PreparedSourceObject):
                 "m_note_class", "m_note_class_code", "m_note_class_code_type", "m_note_class_code_type_oid",
                 "k_provider", "s_note_type", "s_note_type_code", "s_note_type_code_oid",
                 "s_language", "s_language_code", "s_language_code_type", "s_language_code_type_oid",
-                "s_encoding", "s_encoding_code", "s_encoding_code_type", "s_encoding_code_type_oid"]
+                "s_encoding", "s_encoding_code", "s_encoding_code_type", "s_encoding_code_type_oid", "i_exclude"]
 
     def _meta_data(self):
         return {
