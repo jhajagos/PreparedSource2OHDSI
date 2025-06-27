@@ -589,8 +589,8 @@ def extract_source_note_ccda(xml_doc, source_person_id, source_cda_file_name):
                         source_note_dict["s_note_class_code_type_oid"] = code_dict["s_code_type_oid"]
                         source_note_dict["s_note_class_code_type"] = code_dict["s_code_type"]
 
-                        source_note_dict["m_note_class_code"] = code_dict["s_note_class_code"]
-                        source_note_dict["m_note_class_code_type_oid"] = code_dict["s_note_class_code_type_oid"]
+                        source_note_dict["m_note_class_code"] = source_note_dict["s_note_class_code"]
+                        source_note_dict["m_note_class_code_type_oid"] = source_note_dict["s_note_class_code_type_oid"]
 
             elif child.tag == ext("effectiveTime"):
                 if "value" in child.attrib:
