@@ -1,7 +1,7 @@
 [project]
 name = "preparedsource2ohdsi"
 description = "Library for supporting mapping and staging data to OHDSI"
-version = "0.1.4"
+version = "0.1.5"
 authors = [{name = "Janos Hajagos", email = "janos.hajagos@stonybrook.edu"}]
 
 dependencies = ["pyspark", "pandas"]
