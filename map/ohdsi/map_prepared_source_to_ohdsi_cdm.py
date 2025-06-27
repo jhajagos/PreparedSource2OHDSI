@@ -1239,7 +1239,7 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
         "g_visit_occurrence_id": "visit_occurrence_id",
         "s_note_datetime": "note_datetime",
         "g_note_date": "note_date",
-        "g_note_class_id": "note_class_id",
+        "g_note_class_concept_id": "note_class_concept_id",
         "g_encoding_concept_id": "encoding_concept_id",
         "g_language_concept_id": "language_concept_id",
         "g_note_type_concept_id": "note_type_concept_id",
