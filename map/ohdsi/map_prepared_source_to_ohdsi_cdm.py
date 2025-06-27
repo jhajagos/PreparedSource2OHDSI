@@ -1231,10 +1231,10 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
 
     source_note_sdf = source_note_sdf.withColumn("g_note_date", F.to_date("s_note_datetime"))
 
-    source_note_sdf = source_note_sdf.withColumn("g_source_table_name", F.lit("source_device"))
+    source_note_sdf = source_note_sdf.withColumn("g_source_table_name", F.lit("source_note"))
 
     note_source_field_map = {
-        "g_id": "device_exposure_id",
+        "g_id": "note_id",
         "g_person_id": "person_id",
         "g_visit_occurrence_id": "visit_occurrence_id",
         "s_note_datetime": "note_datetime",
