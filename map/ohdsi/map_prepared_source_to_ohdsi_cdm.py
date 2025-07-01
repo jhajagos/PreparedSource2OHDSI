@@ -1063,7 +1063,8 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
         "g_route_concept_id": "route_concept_id",
         "s_id": "s_id",
         "g_provider_id": "provider_id",
-        "g_source_table_name": "g_source_table_name"
+        "g_source_table_name": "g_source_table_name",
+        "s_g_id": "s_g_id"
     }
 
     drug_source_path = root_source_path + "drug/"
