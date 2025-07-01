@@ -514,6 +514,8 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
     source_condition_sdf = prepared_source_sdf_dict["source_condition"]
     source_condition_sdf = filter_out_i_excluded(source_condition_sdf)
 
+    source_condition_sdf = source_condition_sdf.withColumn("s_g_id", "g_id")
+
     # Add visit_occurrence_id and person_id
     source_condition_sdf = align_to_visit(source_condition_sdf, ohdsi_person_sdf, visit_source_link_sdf)
 
@@ -566,6 +568,7 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
         "g_condition_status_concept_id": "condition_status_concept_id",
         "s_id": "s_id",
         "g_source_table_name": "g_source_table_name",
+        "s_g_id": "s_g_id",
         "g_provider_id": "provider_id"
     }
 
@@ -615,7 +618,8 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
             "s_condition_code": "procedure_source_value",
             "g_condition_type_concept_id": "procedure_type_concept_id",
             "s_id": "s_id",
-            "g_source_table_name": "g_source_table_name"
+            "g_source_table_name": "g_source_table_name",
+            "s_g_id": "s_g_id"
         }
     elif ohdsi_version == "5.4.1":
         procedure_domain_condition_source_field_map = {
@@ -631,7 +635,8 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
             "s_condition_code": "procedure_source_value",
             "g_condition_type_concept_id": "procedure_type_concept_id",
             "s_id": "s_id",
-            "g_source_table_name": "g_source_table_name"
+            "g_source_table_name": "g_source_table_name",
+            "s_g_id": "s_g_id"
         }
 
     procedure_domain_condition_source_sdf = build_mapped_domain_df(spark, source_condition_matched_sdf,
@@ -657,7 +662,8 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
         "s_condition_code": "observation_source_value",
         "g_condition_type_concept_id": "observation_type_concept_id",
         "s_id": "s_id",
-        "g_source_table_name": "g_source_table_name"
+        "g_source_table_name": "g_source_table_name",
+        "s_g_id": "s_g_id"
     }
 
     observation_domain_condition_source_sdf = build_mapped_domain_df(spark, source_condition_matched_sdf,
@@ -683,7 +689,8 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
         "s_condition_code": "measurement_source_value",
         "g_condition_type_concept_id": "measurement_type_concept_id",
         "s_id": "s_id",
-        "g_source_table_name": "g_source_table_name"
+        "g_source_table_name": "g_source_table_name",
+        "s_g_id": "s_g_id"
     }
 
     measurement_domain_condition_source_sdf = build_mapped_domain_df(spark, source_condition_matched_sdf,
@@ -705,7 +712,8 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
     logging.info("Started processing source_procedure")
     source_procedure_process_start_time = time.time()
     source_procedure_sdf = prepared_source_sdf_dict["source_procedure"]
-    source_procedure_sdf = filter_out_i_excluded(source_procedure_sdf)
+    source_procedure_sdf = filter_out_i_excluded(source_procedure_sdf),
+    source_procedure_sdf = source_procedure_sdf.withColumn("s_g_id", F.col("g_id"))
     source_procedure_sdf = align_to_visit(source_procedure_sdf, ohdsi_person_sdf, visit_source_link_sdf)
 
     source_procedure_sdf = source_procedure_sdf.withColumn("g_start_procedure_date", F.to_date("s_start_procedure_datetime"))
@@ -746,6 +754,7 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
             "g_procedure_type_concept_id": "procedure_type_concept_id",
             "s_id": "s_id",
             "g_source_table_name": "g_source_table_name",
+            "s_g_id": "s_g_id",
             "g_provider_id": "provider_id"
         }
     elif ohdsi_version == "5.4.1":
@@ -763,6 +772,7 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
             "g_procedure_type_concept_id": "procedure_type_concept_id",
             "s_id": "s_id",
             "g_source_table_name": "g_source_table_name",
+            "s_g_id": "s_g_id",
             "g_provider_id": "provider_id"
         }
 
@@ -794,7 +804,8 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
             "s_procedure_code": "drug_source_value",
             "g_procedure_type_concept_id": "drug_type_concept_id",
             "s_id": "s_id",
-            "g_source_table_name": "g_source_table_name"
+            "g_source_table_name": "g_source_table_name",
+            "s_g_id": "s_g_id"
         }
     elif ohdsi_version == "5.4.1":
         drug_domain_procedure_source_field_map = {
@@ -810,7 +821,8 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
             "s_procedure_code": "drug_source_value",
             "g_procedure_type_concept_id": "drug_type_concept_id",
             "s_id": "s_id",
-            "g_source_table_name": "g_source_table_name"
+            "g_source_table_name": "g_source_table_name",
+            "s_g_id": "s_g_id"
         }
 
     drug_domain_procedure_source_sdf = build_mapped_domain_df(spark, source_procedure_matched_sdf,
@@ -836,7 +848,8 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
         "s_procedure_code": "measurement_source_value",
         "g_procedure_type_concept_id": "measurement_type_concept_id",
         "s_id": "s_id",
-        "g_source_table_name": "g_source_table_name"
+        "g_source_table_name": "g_source_table_name",
+        "s_g_id": "s_g_id"
     }
 
     measurement_domain_procedure_source_sdf = build_mapped_domain_df(spark, source_procedure_matched_sdf,
@@ -862,7 +875,8 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
         "s_procedure_code": "observation_source_value",
         "g_procedure_type_concept_id": "observation_type_concept_id",
         "s_id": "s_id",
-        "g_source_table_name": "g_source_table_name"
+        "g_source_table_name": "g_source_table_name",
+        "s_g_id": "s_g_id"
     }
 
     observation_domain_procedure_source_sdf = build_mapped_domain_df(spark, source_procedure_matched_sdf,
@@ -889,7 +903,8 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
             "s_procedure_code": "device_source_value",
             "g_procedure_type_concept_id": "device_type_concept_id",
             "s_id": "s_id",
-            "g_source_table_name": "g_source_table_name"
+            "g_source_table_name": "g_source_table_name",
+            "s_g_id": "s_g_id"
         }
     elif ohdsi_version == "5.4.1":
         device_domain_procedure_source_field_map = {
@@ -905,7 +920,8 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
             "s_procedure_code": "device_source_value",
             "g_procedure_type_concept_id": "device_type_concept_id",
             "s_id": "s_id",
-            "g_source_table_name": "g_source_table_name"
+            "g_source_table_name": "g_source_table_name",
+            "s_g_id": "s_g_id"
         }
 
     device_domain_procedure_source_sdf = build_mapped_domain_df(spark, source_procedure_matched_sdf,
@@ -927,6 +943,9 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
     source_device_process_start_time = time.time()
     source_device_sdf = prepared_source_sdf_dict["source_device"]
     source_device_sdf = filter_out_i_excluded(source_device_sdf)
+
+    source_device_sdf = source_device_sdf.withColumn("s_g_id", F.col("g_id"))
+
     source_device_sdf = align_to_visit(source_device_sdf, ohdsi_person_sdf, visit_source_link_sdf)
 
     source_device_sdf = source_device_sdf.withColumn("g_start_device_date", F.to_date("s_start_device_datetime"))
@@ -965,6 +984,7 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
         "g_device_type_concept_id": "device_type_concept_id",
         "s_id": "s_id",
         "g_source_table_name": "g_source_table_name",
+        "s_g_id": "s_g_id",
         "s_unique_device_identifier": "unique_device_id"
     }
 
@@ -987,6 +1007,9 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
     drug_exposure_build_start_time = time.time()
     source_med_sdf = prepared_source_sdf_dict["source_medication"]
     source_med_sdf = filter_out_i_excluded(source_med_sdf)
+
+    source_med_sdf = source_med_sdf.withColumn("s_g_id", F.col("g_id"))
+
     source_med_sdf = align_to_visit(source_med_sdf, ohdsi_person_sdf, visit_source_link_sdf)
 
     source_med_sdf = source_med_sdf.withColumn("g_start_medication_date", F.to_date(F.col("s_start_medication_datetime")))
@@ -1079,6 +1102,8 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
 
     source_result_sdf = operator_code_mapper(source_result_sdf, concept_sdf, oid_to_vocab_sdf)
 
+    source_result_sdf = source_result_sdf.withColumn("s_g_id", F.col("g_id"))
+
     source_result_sdf = source_result_sdf.withColumn("g_obtained_date", F.to_date(F.col("s_obtained_datetime")))
 
     source_result_sdf = source_result_sdf.withColumn("g_code", F.expr("coalesce(m_code, s_code)"))
@@ -1128,7 +1153,8 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
         "g_result_numeric_upper": "range_high",
         "g_operator_concept_id": "operator_concept_id",
         "s_id": "s_id",
-        "g_source_table_name": "g_source_table_name"
+        "g_source_table_name": "g_source_table_name",
+        "s_g_id": "s_g_id"
     }
 
     result_source_path = root_source_path + "result/"
@@ -1162,7 +1188,8 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
             "g_unit_concept_id": "unit_concept_id",
             "s_result_unit": "unit_source_value",
             "s_id": "s_id",
-            "g_source_table_name": "g_source_table_name"
+            "g_source_table_name": "g_source_table_name",
+            "s_g_id": "s_g_id"
         }
     elif ohdsi_version == "5.4.1":
 
@@ -1182,7 +1209,8 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
             "g_unit_concept_id": "unit_concept_id",
             "s_result_unit": "unit_source_value",
             "s_id": "s_id",
-            "g_source_table_name": "g_source_table_name"
+            "g_source_table_name": "g_source_table_name",
+            "s_g_id": "s_g_id"
         }
 
     ohdsi_observation_sdf = build_mapped_domain_df(spark, source_result_matched_sdf,
@@ -1201,16 +1229,14 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
         generate_local_samples(ohdsi_observation_sdf, local_path, "observation")
 
     # Notes
-    ["s_id", "s_person_id", "s_encounter_id", "s_note_datetime", "s_note_text", "s_note_title",
-     "s_note_class", "s_note_class_code", "s_note_class_code_type", "s_note_class_code_type_oid",
-     "k_provider", "s_note_type", "s_note_type_code", "s_note_type_oid",
-     "s_language", "s_language_code", "s_language_code_type", "s_language_code_type_oid",
-     "s_encoding", "s_encoding_code", "s_encoding_code_type", "s_encoding_code_type_oid"]
 
     logging.info("Started building note table")
     note_build_start_time = time.time()
     source_note_sdf = prepared_source_sdf_dict["source_note"]
     source_note_sdf = filter_out_i_excluded(source_note_sdf)
+
+    source_note_sdf.withColumn("s_g_id", F.col("g_id"))
+
     source_note_sdf = align_to_visit(source_note_sdf, ohdsi_person_sdf, visit_source_link_sdf)
 
     source_note_sdf = note_class_code_mapper(source_note_sdf, concept_sdf, oid_to_vocab_sdf)
@@ -1245,6 +1271,7 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
         "g_note_type_concept_id": "note_type_concept_id",
         "s_id": "s_id",
         "g_source_table_name": "g_source_table_name",
+        "s_g_id": "s_g_id",
         "s_note_class": "note_source_value",
         "s_note_title": "note_title",
         "s_note_text": "note_text"
