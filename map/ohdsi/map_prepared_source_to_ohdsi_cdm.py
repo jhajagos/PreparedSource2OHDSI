@@ -516,8 +516,6 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
 
     source_condition_sdf = source_condition_sdf.withColumn("s_g_id", F.col("g_id"))
 
-    source_condition_sdf.limit(1).show()
-
     # Add visit_occurrence_id and person_id
     source_condition_sdf = align_to_visit(source_condition_sdf, ohdsi_person_sdf, visit_source_link_sdf)
 
@@ -530,7 +528,6 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
                                                         "p.provider_source_value"), how="left_outer"). \
         select("c.*", F.col("p.provider_id").alias("g_provider_id"))
 
-    source_condition_sdf.limit(1).show()
     if CHECK_POINTING == "LOCAL":
         source_condition_sdf = source_condition_sdf.localCheckpoint()
     elif CHECK_POINTING == "REMOTE":

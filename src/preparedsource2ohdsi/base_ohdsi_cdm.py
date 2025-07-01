@@ -17,7 +17,7 @@ class OHDSIOutputClass(OutputClass):
         field_name = self._fields()
         self.include_source_id_fields = True
         if self.include_source_id_fields:
-            field_name += ["s_id", "g_source_table_name"]
+            field_name += ["s_id", "g_source_table_name", "s_g_id"]
 
         return field_name
 
