@@ -516,6 +516,8 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
 
     source_condition_sdf = source_condition_sdf.withColumn("s_g_id", F.col("g_id"))
 
+    source_condition_sdf.limit(1).show()
+
     # Add visit_occurrence_id and person_id
     source_condition_sdf = align_to_visit(source_condition_sdf, ohdsi_person_sdf, visit_source_link_sdf)
 
@@ -528,7 +530,7 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
                                                         "p.provider_source_value"), how="left_outer"). \
         select("c.*", F.col("p.provider_id").alias("g_provider_id"))
 
-
+    source_condition_sdf.limit(1).show()
     if CHECK_POINTING == "LOCAL":
         source_condition_sdf = source_condition_sdf.localCheckpoint()
     elif CHECK_POINTING == "REMOTE":
@@ -944,8 +946,6 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
     source_device_sdf = prepared_source_sdf_dict["source_device"]
     source_device_sdf = filter_out_i_excluded(source_device_sdf)
 
-    source_device_sdf = source_device_sdf.withColumn("s_g_id", F.col("g_id"))
-
     source_device_sdf = align_to_visit(source_device_sdf, ohdsi_person_sdf, visit_source_link_sdf)
 
     source_device_sdf = source_device_sdf.withColumn("g_start_device_date", F.to_date("s_start_device_datetime"))
@@ -968,6 +968,8 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
 
     source_device_matched_sdf = source_device_matched_sdf.withColumn("domain_id",
                                                                      F.col("g_device_concept_id_domain_id"))
+
+    source_device_matched_sdf = source_device_matched_sdf.withColumn("s_g_id", F.col("g_id"))
 
 
     device_exposure_source_field_map = {
@@ -1092,6 +1094,9 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
 
     source_result_sdf = prepared_source_sdf_dict["source_result"]
     source_result_sdf = filter_out_i_excluded(source_result_sdf)
+
+    source_result_sdf = source_result_sdf.withColumn("s_g_id", F.col("g_id"))
+
     source_result_sdf = align_to_visit(source_result_sdf, ohdsi_person_sdf, visit_source_link_sdf)
 
     source_result_sdf = result_source_code_mapper(source_result_sdf, concept_sdf, oid_to_vocab_sdf)
@@ -1102,7 +1107,6 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
 
     source_result_sdf = operator_code_mapper(source_result_sdf, concept_sdf, oid_to_vocab_sdf)
 
-    source_result_sdf = source_result_sdf.withColumn("s_g_id", F.col("g_id"))
 
     source_result_sdf = source_result_sdf.withColumn("g_obtained_date", F.to_date(F.col("s_obtained_datetime")))
 
