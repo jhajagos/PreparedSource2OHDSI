@@ -514,7 +514,7 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
     source_condition_sdf = prepared_source_sdf_dict["source_condition"]
     source_condition_sdf = filter_out_i_excluded(source_condition_sdf)
 
-    source_condition_sdf = source_condition_sdf.withColumn("s_g_id", "g_id")
+    source_condition_sdf = source_condition_sdf.withColumn("s_g_id", F.col("g_id"))
 
     # Add visit_occurrence_id and person_id
     source_condition_sdf = align_to_visit(source_condition_sdf, ohdsi_person_sdf, visit_source_link_sdf)
