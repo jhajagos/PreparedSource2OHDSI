@@ -1235,7 +1235,7 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
     source_note_sdf = prepared_source_sdf_dict["source_note"]
     source_note_sdf = filter_out_i_excluded(source_note_sdf)
 
-    source_note_sdf.withColumn("s_g_id", F.col("g_id"))
+    source_note_sdf = source_note_sdf.withColumn("s_g_id", F.col("g_id"))
 
     source_note_sdf = align_to_visit(source_note_sdf, ohdsi_person_sdf, visit_source_link_sdf)
 
