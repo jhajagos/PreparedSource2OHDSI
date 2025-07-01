@@ -712,7 +712,7 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
     logging.info("Started processing source_procedure")
     source_procedure_process_start_time = time.time()
     source_procedure_sdf = prepared_source_sdf_dict["source_procedure"]
-    source_procedure_sdf = filter_out_i_excluded(source_procedure_sdf),
+    source_procedure_sdf = filter_out_i_excluded(source_procedure_sdf)
     source_procedure_sdf = source_procedure_sdf.withColumn("s_g_id", F.col("g_id"))
     source_procedure_sdf = align_to_visit(source_procedure_sdf, ohdsi_person_sdf, visit_source_link_sdf)
 
