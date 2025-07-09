@@ -48,6 +48,30 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
     if "local_csv_output_path" in config: # For sample output
         local_path = config["local_csv_output_path"]
 
+    if "stable_hash_identifiers" in config: # Generate stable identifiers
+        config["stable_hash_identifiers"]
+
+        shi_config = config["stable_hash_identifiers"]
+
+        salt = shi_config["salt"]
+
+        if "s_id_fields" in shi_config:
+            s_id_fields = shi_config["s_id_fields"]
+
+            if "s_person_id" in s_id_fields:
+                stable_hash_s_person_id = True
+            else:
+                stable_hash__s_person_id = False
+
+            if "s_encounter_id" in s_id_fields:
+                stable_hash_s_encounter_id = True
+            else:
+                stable_hash_s_encounter_id = False
+
+    else:
+        stable_hash_identifiers = False
+
+
     # Get Concept Tables Needed for mapping
     concept_map_load_start_time = time.time()
     concept_map_sdf_dict = mapping_utilities.load_parquet_from_table_names(spark, ["concept", "concept_map", "vocabulary"], config["export_concept_mapping_table_path"], cache=True)
@@ -155,7 +179,7 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
         generate_local_samples(ohdsi_location_sdf, local_path, "location")
 
     # Build provider
-    # TODO: Build out more provider fields, e.g., specialty
+    # TODO: Build out more provider fields, e.g., specialty, care_site
     logging.info("Building provider table")
     provider_build_start_time = time.time()
 
