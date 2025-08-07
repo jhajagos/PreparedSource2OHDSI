@@ -53,7 +53,7 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
 
         shi_config = config["stable_hash_identifiers"]
 
-        salt = shi_config["salt"]
+        shi_salt = shi_config["salt"]
 
         if "s_id_fields" in shi_config:
             s_id_fields = shi_config["s_id_fields"]
@@ -1852,6 +1852,8 @@ def drug_type_code_mapper(source_med_sdf, concept_sdf, oid_vocab_sdf):
     return standard_code_mapper(source_med_sdf, concept_sdf, oid_vocab_sdf,
                                 "m_drug_type_code", "m_drug_type_code_type_oid",
                                 "g_drug_type_concept_id")
+
+
 
 
 def route_code_mapper(source_med_sdf, concept_sdf, oid_vocab_sdf, concept_map_sdf):
