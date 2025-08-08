@@ -435,7 +435,7 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
                                                                           output_path)
 
     observation_period_build_end_time = time.time()
-    logging.info(f"Finished building observation_period (Total elapsed time: f{format_log_time(observation_period_build_start_time, observation_period_build_end_time)})")
+    logging.info(f"Finished building observation_period (Total elapsed time: {format_log_time(observation_period_build_start_time, observation_period_build_end_time)})")
 
     ohdsi_sdf_dict["observation_period"] = ohdsi_observation_period_sdf, observation_path
     if evaluate_samples:
@@ -470,7 +470,7 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
     ohdsi_sdf_dict["payer_plan_period"] = ohdsi_payer_plan_period_sdf, payer_plan_period_path
 
     payer_plan_period_build_end_time = time.time()
-    logging.info(f"Finished building payer_plan_period (Total elapsed time: f{format_log_time(payer_plan_period_build_start_time, payer_plan_period_build_end_time)})")
+    logging.info(f"Finished building payer_plan_period (Total elapsed time: {format_log_time(payer_plan_period_build_start_time, payer_plan_period_build_end_time)})")
 
     # Visit_Detail
     logging.info("Building visit_detail")
@@ -1985,7 +1985,7 @@ if __name__ == "__main__":
     for key in default_spark_conf_dict:
         sconf.set(key, default_spark_conf_dict[key])
 
-    spark = SparkSession.builder.config(conf=sconf).appName("MapPreparedSourceToOHDSI").getOrCreate()
+        spark = SparkSession.builder.config(conf=sconf).appName("MapPreparedSourceToOHDSI").getOrCreate()
 
     export_parquet_json_name = arg_obj.config_json + ".generated.parquet.json"
 
