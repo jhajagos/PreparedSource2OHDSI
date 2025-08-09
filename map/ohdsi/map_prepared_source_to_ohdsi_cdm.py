@@ -48,11 +48,13 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
     if "local_csv_output_path" in config: # For sample output
         local_path = config["local_csv_output_path"]
 
+    shi_salt = ""
+    stable_hash_s_person_id = False
+    stable_hash_s_encounter_id = False
+
     if "stable_hash_identifiers" in config: # Generate stable identifiers
-        config["stable_hash_identifiers"]
 
         shi_config = config["stable_hash_identifiers"]
-
         shi_salt = shi_config["salt"]
 
         if "s_id_fields" in shi_config:
@@ -60,17 +62,11 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
 
             if "s_person_id" in s_id_fields:
                 stable_hash_s_person_id = True
-            else:
-                stable_hash__s_person_id = False
 
             if "s_encounter_id" in s_id_fields:
                 stable_hash_s_encounter_id = True
-            else:
-                stable_hash_s_encounter_id = False
 
-    else:
-        stable_hash_identifiers = False
-
+            print(stable_hash_s_person_id, stable_hash_s_encounter_id)
 
     # Get Concept Tables Needed for Mapping
     concept_map_load_start_time = time.time()
@@ -221,8 +217,9 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
                                                                 "l.location_source_value"), how="left_outer"). \
         select("p.*", F.col("l.location_id").alias("g_location_id"))
 
+    source_person_sdf = source_person_sdf.withColumn("g_s_person_id", F.xxhash64(F.concat(F.lit(shi_salt), F.col("s_person_id"))))
 
-    # Todo: and g_source_table_name
+
     # Todo: pyspark.sql.functions.xxhash64 for hashing s_person_id
     patient_field_map = {
         "g_id": "person_id",
@@ -246,6 +243,11 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
         "s_g_id": "s_g_id"
     }
 
+    # TODO: Add check if g_s_person_id fails
+    if stable_hash_s_person_id:
+        patient_field_map["g_s_person_id"] = "person_id"
+        patient_field_map.pop("g_id")
+
     ohdsi_person_sdf = mapping_utilities.map_table_column_names(source_person_sdf, patient_field_map)
     ohdsi_person_sdf = mapping_utilities.column_names_to_align_to(ohdsi_person_sdf, ohdsi.PersonObject())
 
@@ -258,6 +260,9 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
 
     if evaluate_samples:
         generate_local_samples(ohdsi_person_sdf, local_path,  "person")
+
+
+    #TODO: Check if person_table contains duplicates {Strategies: "remediate", "fail", "ignore"}
 
     # Death table
     logging.info(f"Building death table")
@@ -351,6 +356,9 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
     source_encounter_sdf = source_encounter_sdf.withColumn("g_source_table_name", F.lit("source_encounter"))
     source_encounter_sdf = source_encounter_sdf.withColumn("s_g_id", F.col("g_id"))
 
+    source_encounter_sdf = source_encounter_sdf.withColumn("g_s_encounter_id",
+                                                     F.xxhash64(F.concat(F.lit(shi_salt), F.col("s_encounter_id"))))
+
     # Map fields for visit_occurrence_id
     if ohdsi_version == "5.3.1":
         visit_field_map = {
@@ -398,6 +406,10 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
             "g_source_table_name": "g_source_table_name",
             "s_g_id": "s_g_id"
         }
+
+    if stable_hash_s_encounter_id:
+        visit_field_map ["g_s_encounter_id"] = "visit_occurrence_id"
+        visit_field_map.pop("g_id")
 
     ohdsi_visit_sdf = mapping_utilities.map_table_column_names(source_encounter_sdf, visit_field_map)
 
