@@ -1043,7 +1043,10 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
 
     source_med_sdf = source_med_sdf.withColumn("g_drug_code_with_name", F.expr("gg_drug_code || '|' || gg_drug_code_text"))
 
-    source_med_sdf = drug_type_code_mapper(source_med_sdf, concept_sdf, oid_to_vocab_sdf)
+    source_med_sdf = drug_type_m_code_mapper(source_med_sdf, concept_sdf, oid_to_vocab_sdf)
+    source_med_sdf = drug_type_s_code_mapper(source_med_sdf, concept_sdf, oid_to_vocab_sdf)
+    source_med_sdf = source_med_sdf.withColumn("g_drug_type_concept_id", F.expr("case when g_drug_type_m_concept_id > 0 then g_drug_type_m_concept_id else g_drug_type_s_concept_id end"))
+
     source_med_sdf = route_code_mapper(source_med_sdf, concept_sdf, oid_to_vocab_sdf, concept_map_sdf)
 
     # Add the prescriber
@@ -1848,12 +1851,16 @@ def operator_code_mapper(source_result_sdf, concept_sdf, oid_vocab_sdf):
                                 "g_operator_concept_id")
 
 
-def drug_type_code_mapper(source_med_sdf, concept_sdf, oid_vocab_sdf):
+def drug_type_m_code_mapper(source_med_sdf, concept_sdf, oid_vocab_sdf):
     return standard_code_mapper(source_med_sdf, concept_sdf, oid_vocab_sdf,
                                 "m_drug_type_code", "m_drug_type_code_type_oid",
-                                "g_drug_type_concept_id")
+                                "g_drug_type_m_concept_id")
 
 
+def drug_type_s_code_mapper(source_med_sdf, concept_sdf, oid_vocab_sdf):
+    return standard_code_mapper(source_med_sdf, concept_sdf, oid_vocab_sdf,
+                                "s_drug_type_code", "s_drug_type_code_type_oid",
+                                "g_drug_type_s_concept_id")
 
 
 def route_code_mapper(source_med_sdf, concept_sdf, oid_vocab_sdf, concept_map_sdf):

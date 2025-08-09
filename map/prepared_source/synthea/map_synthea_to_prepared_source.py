@@ -3,7 +3,8 @@ import pyspark.sql.functions as F
 import argparse
 import json
 import logging
-
+import os
+from pathlib import Path
 
 from preparedsource2ohdsi.mapping_utilities import (load_csv_to_sparc_df_dict, write_parquet_file_and_reload,
                                                     load_local_csv_file, column_names_to_align_to,
@@ -74,9 +75,11 @@ from patients p
     prepared_source_dict["source_location"], _ = write_parquet_file_and_reload(spark, source_location_sdf, "source_location",
                                                                              config["prepared_source_output_location"])
 
-    race_mapping_sdf = load_local_csv_file(spark, "./mappings/race.csv", table_name="race_mapping")
-    ethnicity_mapping_sdf = load_local_csv_file(spark, "./mappings/ethnicity.csv", table_name="ethnicity_mapping")
-    gender_mapping_sdf = load_local_csv_file(spark, "./mappings/gender.csv", table_name="gender_mapping")
+    mappings_p = Path(os.path.dirname(__file__))
+
+    race_mapping_sdf = load_local_csv_file(spark, mappings_p / "mappings/race.csv", table_name="race_mapping")
+    ethnicity_mapping_sdf = load_local_csv_file(spark, mappings_p / "mappings/ethnicity.csv", table_name="ethnicity_mapping")
+    gender_mapping_sdf = load_local_csv_file(spark, mappings_p / "mappings/gender.csv", table_name="gender_mapping")
 
     sql_source_person = """
     select
@@ -148,7 +151,7 @@ from providers
                                                                                 config[
                                                                                     "prepared_source_output_location"])
 
-    visit_type_mapping_sdf = load_local_csv_file(spark, "./mappings/visit_type.csv", table_name="visit_type_mapping")
+    visit_type_mapping_sdf = load_local_csv_file(spark, mappings_p / "mappings/visit_type.csv", table_name="visit_type_mapping")
 
     source_encounter_sql = """
     select
@@ -222,7 +225,7 @@ left outer join visit_type_mapping vtm on vtm.s_visit_type = e.`ENCOUNTERCLASS`
                                                                                "source_observation_period",
                                                                                config["prepared_source_output_location"])
 
-    payer_map_sdf = load_local_csv_file(spark, "./mappings/payer.csv", "payer_map")
+    payer_map_sdf = load_local_csv_file(spark, mappings_p / "mappings/payer.csv", "payer_map")
 
     source_payer_sql = """
     select
@@ -513,7 +516,7 @@ from medications
                                                                                 config[
                                                                                     "prepared_source_output_location"])
 
-    result_code_mapping_sdf = load_local_csv_file(spark, "./mappings/result_code.csv", table_name="result_code_mapping")
+    result_code_mapping_sdf = load_local_csv_file(spark, mappings_p / "mappings/result_code.csv", table_name="result_code_mapping")
 
     source_result_sql = """
     select
