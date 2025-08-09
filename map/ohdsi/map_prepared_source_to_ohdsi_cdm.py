@@ -72,7 +72,7 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
         stable_hash_identifiers = False
 
 
-    # Get Concept Tables Needed for mapping
+    # Get Concept Tables Needed for Mapping
     concept_map_load_start_time = time.time()
     concept_map_sdf_dict = mapping_utilities.load_parquet_from_table_names(spark, ["concept", "concept_map", "vocabulary"], config["export_concept_mapping_table_path"], cache=True)
     concept_map_load_end_time = time.time()
@@ -213,10 +213,14 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
         withColumn("g_birth_month", F.expr("extract(month from cast(s_birth_datetime as date))")). \
         withColumn("g_birth_day", F.expr("extract(day from cast(s_birth_datetime as date))"))
 
+    source_person_sdf = source_person_sdf.withColumn("g_source_table_name", F.lit("source_person"))
+    source_person_sdf = source_person_sdf.withColumn("s_g_id", F.col("g_id"))
+
     source_person_sdf = source_person_sdf.alias("p").join(ohdsi_location_sdf.alias("l"),
                                                                 F.col("p.k_location") == F.col(
                                                                 "l.location_source_value"), how="left_outer"). \
         select("p.*", F.col("l.location_id").alias("g_location_id"))
+
 
     # Todo: and g_source_table_name
     # Todo: pyspark.sql.functions.xxhash64 for hashing s_person_id
@@ -237,7 +241,9 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
         "g_ethnicity_source_concept_id": "ethnicity_source_concept_id",
         "g_ethnicity_concept_id": "ethnicity_concept_id",
         "g_location_id": "location_id",
-        "s_id": "s_id"
+        "s_id": "s_id",
+        "g_source_table_name": "g_source_table_name",
+        "s_g_id": "s_g_id"
     }
 
     ohdsi_person_sdf = mapping_utilities.map_table_column_names(source_person_sdf, patient_field_map)
@@ -253,7 +259,7 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
     if evaluate_samples:
         generate_local_samples(ohdsi_person_sdf, local_path,  "person")
 
-    # Add death
+    # Death table
     logging.info(f"Building death table")
     death_build_start_time = time.time()
     source_death_sdf = source_person_sdf.filter(F.col("s_death_datetime").isNotNull())
@@ -342,7 +348,9 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
                                                               "p.provider_source_value"), how="left_outer"). \
         select("e.*", F.col("p.provider_id").alias("g_provider_id"))
 
-    # Todo: and g_source_table_name
+    source_encounter_sdf = source_encounter_sdf.withColumn("g_source_table_name", F.lit("source_encounter"))
+    source_encounter_sdf = source_encounter_sdf.withColumn("s_g_id", F.col("g_id"))
+
     # Map fields for visit_occurrence_id
     if ohdsi_version == "5.3.1":
         visit_field_map = {
@@ -386,7 +394,9 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
             "s_person_id": "s_person_id",
             "g_care_site_id": "care_site_id",
             "g_provider_id": "provider_id",
-            "s_id": "s_id"
+            "s_id": "s_id",
+            "g_source_table_name": "g_source_table_name",
+            "s_g_id": "s_g_id"
         }
 
     ohdsi_visit_sdf = mapping_utilities.map_table_column_names(source_encounter_sdf, visit_field_map)
@@ -501,6 +511,10 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
     # Map type of encounter detail
     source_encounter_detail_sdf = visit_detail_source_code_mapper(source_encounter_detail_sdf, concept_sdf, oid_to_vocab_sdf)
 
+    source_encounter_detail_sdf = source_encounter_detail_sdf.withColumn("g_source_table_name", F.lit("source_encounter_detail"))
+    source_encounter_detail_sdf = source_encounter_detail_sdf.withColumn("s_g_id", F.col("g_id"))
+
+
     # Map fields to encounter
     visit_detail_field_map = {
         "g_id": "visit_detail_id",
@@ -515,7 +529,10 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
         "g_visit_detail_end_date": "visit_detail_end_date",
         "s_visit_detail_type": "visit_detail_source_value",
         "s_person_id": "s_person_id",
-        "g_care_site_id": "care_site_id"
+        "g_care_site_id": "care_site_id",
+        "s_id": "s_id",
+        "g_source_table_name": "g_source_table_name",
+        "s_g_id": "s_g_id"
     }
     ohdsi_visit_detail_sdf = mapping_utilities.map_table_column_names(source_encounter_detail_sdf, visit_detail_field_map)
     ohdsi_visit_detail_sdf = mapping_utilities.column_names_to_align_to(ohdsi_visit_detail_sdf,
