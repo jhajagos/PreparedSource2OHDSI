@@ -116,7 +116,7 @@ from patients p
    ,em.m_ethnicity_code_type_oid --Use 'ohdsi.ethnicity' for standard OHDSI ethnicity codes
    ,sha1(coalesce(`ADDRESS`, '') || coalesce(`CITY`,'') || coalesce(`STATE`,'') || coalesce(`ZIP`, '')) as k_location --Key value to location in source_location table
    ,cast(NULL as STRING) as i_exclude --Value of 1 instructs the mapper to skip the row
-   ,cast(NULL as STRING) as s_id --Row source identifier
+   ,p.`Id` as s_id --Row source identifier
    ,'synthea' as s_source_system --Source system row was extracted from
    ,cast(NULL as STRING) as m_source_system --Mapped source system the row was extracted from
 from patients p
