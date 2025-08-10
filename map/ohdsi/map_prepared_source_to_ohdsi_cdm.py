@@ -243,7 +243,7 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
         "s_g_id": "s_g_id"
     }
 
-    # TODO: Add check if g_s_person_id fails
+    # TODO: Add check if g_s_person_id fails if there are duplicates
     if stable_hash_s_person_id:
         patient_field_map["g_s_person_id"] = "person_id"
         patient_field_map.pop("g_id")
@@ -413,6 +413,8 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
 
     ohdsi_visit_sdf = mapping_utilities.map_table_column_names(source_encounter_sdf, visit_field_map)
 
+    # TODO: Check if visit table contains duplicates
+
     # Build a support table for linking
     visit_source_link_sdf = ohdsi_visit_sdf.select("visit_occurrence_id", "s_encounter_id", "person_id", "s_person_id")
     visit_source_link_sdf, _ = mapping_utilities.write_parquet_file_and_reload(spark, visit_source_link_sdf, "visit_source_link",
@@ -525,7 +527,6 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
 
     source_encounter_detail_sdf = source_encounter_detail_sdf.withColumn("g_source_table_name", F.lit("source_encounter_detail"))
     source_encounter_detail_sdf = source_encounter_detail_sdf.withColumn("s_g_id", F.col("g_id"))
-
 
     # Map fields to encounter
     visit_detail_field_map = {
@@ -2021,7 +2022,10 @@ if __name__ == "__main__":
     for key in default_spark_conf_dict:
         sconf.set(key, default_spark_conf_dict[key])
 
-        spark = SparkSession.builder.config(conf=sconf).appName("MapPreparedSourceToOHDSI").getOrCreate()
+    if arg_obj.run_local:
+        sconf.setMaster("local[*]")
+
+    spark = SparkSession.builder.config(conf=sconf).appName("MapPreparedSourceToOHDSI").getOrCreate()
 
     export_parquet_json_name = arg_obj.config_json + ".generated.parquet.json"
 
