@@ -60,6 +60,9 @@ RUN cd /root/scripts/ && ln -s /root/github/PreparedSource2OHDSI/map/ohdsi/utili
 COPY generate_synthetic_covid19.sh /root/scripts/
 RUN chmod u+x /root/scripts/generate_synthetic_covid19.sh
 
+COPY generate_synthea_all_data.sh /root/scripts/
+RUN chmod u+x /root/scripts/generate_synthea_all_data.sh
+
 COPY map_synthea_csv_to_prepared_source.sh /root/scripts/
 RUN chmod u+x /root/scripts/map_synthea_csv_to_prepared_source.sh
 

@@ -14,8 +14,6 @@ import preparedsource2ohdsi.mapping_utilities as mapping_utilities
 logging.basicConfig(level=logging.INFO)
 
 
-# TODO: Stable patient_id(s) and visit_occurrence_id(s)
-
 # TODO: Handle DX codes that map to measurement domain but have abnormal results:
 
 # For example, ICD10 CONCEPT_ID 45548980 ‘Abnormal level of unspecified serum enzyme’ indicates a Measurement and the result (abnormal).
@@ -66,7 +64,8 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
             if "s_encounter_id" in s_id_fields:
                 stable_hash_s_encounter_id = True
 
-            print(stable_hash_s_person_id, stable_hash_s_encounter_id)
+    logging.info(f"Generating stable person_id: {stable_hash_s_person_id}")
+    logging.info(f"Generating stable visit_occurrence_id: {stable_hash_s_encounter_id}")
 
     # Get Concept Tables Needed for Mapping
     concept_map_load_start_time = time.time()
@@ -132,7 +131,13 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
     # Build Location table
     location_build_start_time = time.time()
     logging.info("Building location table")
+
+
+    # Location table
     source_location_sdf = prepared_source_sdf_dict["source_location"]
+
+    source_location_sdf = source_location_sdf.withColumn("g_source_table_name", F.lit("source_location"))
+    source_location_sdf = source_location_sdf.withColumn("s_g_id", F.col("g_id"))
 
     if ohdsi_version == "5.3.1":
         location_field_map = {
@@ -143,7 +148,9 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
             "s_state": "state",
             "s_zip": "zip",
             "s_county": "county",
-            "k_location": "location_source_value"
+            "k_location": "location_source_value",
+            "s_g_id": "s_g_id",
+            "g_source_table_name": "g_source_table_name"
         }
     elif ohdsi_version == "5.4.1":
         location_field_map = {
@@ -157,8 +164,11 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
             "s_country": "country_source_value",
             "s_latitude": "latitude",
             "s_longitude": "longitude",
-            "k_location": "location_source_value"
+            "k_location": "location_source_value",
+            "s_g_id": "s_g_id",
+            "g_source_table_name": "g_source_table_name"
         }
+
 
     ohdsi_location_sdf = mapping_utilities.map_table_column_names(source_location_sdf, location_field_map)
     ohdsi_location_sdf = mapping_utilities.column_names_to_align_to(ohdsi_location_sdf,
@@ -180,12 +190,16 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
     provider_build_start_time = time.time()
 
     source_provider_sdf = prepared_source_sdf_dict["source_provider"]
+    source_provider_sdf = source_provider_sdf.withColumn("g_source_table_name", F.lit("source_provider"))
+    source_provider_sdf = source_provider_sdf.withColumn("s_g_id", F.col("g_id"))
 
     provider_field_map = {
         "g_id": "provider_id",
         "s_provider_name": "provider_name",
         "k_provider": "provider_source_value",
-        "s_npi": "npi"
+        "s_npi": "npi",
+        "s_g_id": "s_g_id",
+        "g_source_table_name": "g_source_table_name"
     }
 
     ohdsi_provider_sdf = mapping_utilities.map_table_column_names(source_provider_sdf, provider_field_map)
@@ -219,8 +233,6 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
 
     source_person_sdf = source_person_sdf.withColumn("g_s_person_id", F.xxhash64(F.concat(F.lit(shi_salt), F.col("s_person_id"))))
 
-
-    # Todo: pyspark.sql.functions.xxhash64 for hashing s_person_id
     patient_field_map = {
         "g_id": "person_id",
         "s_person_id": "person_source_value",
@@ -272,12 +284,25 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
     source_death_sdf = death_source_code_mapper(source_death_sdf, concept_sdf, oid_to_vocab_sdf)
     source_death_sdf = source_death_sdf.withColumn("g_death_date", F.to_date(F.col("s_death_datetime")))
 
+    source_death_sdf = source_death_sdf.withColumn("g_source_table_name", F.lit("source_person"))
+    source_death_sdf = source_death_sdf.withColumn("s_g_id", F.col("g_id"))
+
+    source_death_sdf = source_death_sdf.withColumn("g_s_person_id",
+                                                     F.xxhash64(F.concat(F.lit(shi_salt), F.col("s_person_id"))))
+
     death_field_map = {
         "g_id": "person_id",
         "s_death_datetime": "death_datetime",
         "g_death_date": "death_date",
-        "g_death_type_concept_id": "death_type_concept_id"
+        "g_death_type_concept_id": "death_type_concept_id",
+        "s_id": "s_id",
+        "g_source_table_name": "g_source_table_name",
+        "s_g_id": "s_g_id"
     }
+
+    if stable_hash_s_person_id:
+        death_field_map["g_s_person_id"] = "person_id"
+        death_field_map.pop("g_id")
 
     source_death_sdf = mapping_utilities.map_table_column_names(source_death_sdf, death_field_map)
     ohdsi_death_sdf = mapping_utilities.column_names_to_align_to(source_death_sdf, ohdsi.DeathObject())
@@ -297,9 +322,15 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
     care_site_build_start_time = time.time()
     source_care_site_sdf = prepared_source_sdf_dict["source_care_site"]
 
+    source_care_site_sdf = source_care_site_sdf.withColumn("g_source_table_name", F.lit("source_care_site"))
+    source_care_site_sdf = source_care_site_sdf.withColumn("s_g_id", F.col("g_id"))
+
     care_site_field_map = {"g_id": "care_site_id",
-    "s_care_site_name": "care_site_name",
-    "k_care_site": "care_site_source_value"}
+                           "s_care_site_name": "care_site_name",
+                           "k_care_site": "care_site_source_value",
+                           "g_source_table_name": "g_source_table_name",
+                           "s_g_id": "s_g_id"
+    }
 
     ohdsi_care_site_sdf = mapping_utilities.map_table_column_names(source_care_site_sdf, care_site_field_map)
     ohdsi_care_site_sdf = mapping_utilities.column_names_to_align_to(ohdsi_care_site_sdf, ohdsi.CareSiteObject())
@@ -380,7 +411,9 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
             "s_person_id": "s_person_id",
             "g_care_site_id": "care_site_id",
             "g_provider_id": "provider_id",
-            "s_id": "s_id"
+            "s_id": "s_id",
+            "g_source_table_name": "g_source_table_name",
+            "s_g_id": "s_g_id"
         }
     elif ohdsi_version == "5.4.1":
         visit_field_map = {
@@ -444,12 +477,18 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
                                                                              F.to_date(F.col("s_start_observation_datetime"))).\
         withColumn("g_observation_period_end_date", F.to_date(F.col("s_end_observation_datetime")))
 
+    source_observation_period_sdf = source_observation_period_sdf.withColumn("g_source_table_name", F.lit("source_observation_period"))
+    source_observation_period_sdf = source_observation_period_sdf.withColumn("s_g_id", F.col("g_id"))
+
+
     observation_period_fields = {
         "g_id": "observation_period_id",
         "g_person_id": "person_id",
         "g_observation_period_start_date": "observation_period_start_date",
         "g_observation_period_end_date": "observation_period_end_date",
-        "g_period_type_concept_id": "period_type_concept_id"
+        "g_period_type_concept_id": "period_type_concept_id",
+        "g_source_table_name": "g_source_table_name",
+        "s_g_id": "s_g_id"
     }
 
     source_observation_period_sdf = mapping_utilities.map_table_column_names(source_observation_period_sdf, observation_period_fields)
@@ -475,6 +514,9 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
     source_payer_sdf = source_payer_sdf.withColumn("g_payer_start_date", F.to_date(F.col("s_payer_start_datetime")))
     source_payer_sdf = source_payer_sdf.withColumn("g_payer_end_date", F.to_date(F.col("s_payer_end_datetime")))
 
+    source_payer_sdf = source_payer_sdf.withColumn("g_source_table_name", F.lit("source_payer"))
+    source_payer_sdf = source_payer_sdf.withColumn("s_g_id", F.col("g_id"))
+
     payer_plan_build_map = {
         "g_id": "payer_plan_period_id",
         "g_person_id": "person_id",
@@ -482,7 +524,9 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
         "g_payer_end_date": "payer_plan_period_end_date",
         "s_payer": "payer_source_value",
         "g_payer_concept_id": "payer_concept_id",
-        "g_payer_source_concept_id": "payer_source_concept_id"
+        "g_payer_source_concept_id": "payer_source_concept_id",
+        "s_g_id": "s_g_id",
+        "g_source_table_name": "g_source_table_name"
     }
 
     source_payer_sdf = mapping_utilities.map_table_column_names(source_payer_sdf, payer_plan_build_map)
@@ -2022,7 +2066,7 @@ if __name__ == "__main__":
     for key in default_spark_conf_dict:
         sconf.set(key, default_spark_conf_dict[key])
 
-    if arg_obj.run_local:
+    if RUN_LOCAL:
         sconf.setMaster("local[*]")
 
     spark = SparkSession.builder.config(conf=sconf).appName("MapPreparedSourceToOHDSI").getOrCreate()

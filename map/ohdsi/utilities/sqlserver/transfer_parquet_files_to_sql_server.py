@@ -95,6 +95,9 @@ if __name__ == "__main__":
     for key in default_spark_conf_dict:
         sconf.set(key, default_spark_conf_dict[key])
 
+    if RUN_LOCAL:
+        sconf.setMaster("local[*]")
+
     spark = SparkSession.builder.config(conf=sconf).appName("StageStreamlinedPreparedSource").getOrCreate()
 
     with open(arg_obj.json_generated_tables, "r") as f:

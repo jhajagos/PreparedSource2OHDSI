@@ -18,6 +18,9 @@ RUN /root/miniconda3/bin/conda init && bash ~/.bashrc && . ~/.bashrc
 ENV conda /root/miniconda3/bin/conda
 ENV bashrc /root/.bashrc
 
+RUN $conda tos accept --override-channels --channel  https://repo.anaconda.com/pkgs/main
+RUN $conda tos accept --override-channels --channel  https://repo.anaconda.com/pkgs/r
+
 RUN $conda init && . $bashrc && conda activate PySpark && pip install pyspark==3.5.5
 
 
@@ -95,7 +98,6 @@ RUN chmod u+x /root/scripts/mssql/stage_tables_excluding_concepts_into_rdbms.sh
 
 COPY ./mssql/stage_tables_into_rdbms.sh /root/scripts/mssql/
 RUN chmod u+x /root/scripts/mssql/stage_tables_into_rdbms.sh
-
 
 COPY ./psql/stage_tables_excluding_concepts_into_rdbms.sh /root/scripts/psql/
 RUN chmod u+x /root/scripts/mssql/stage_tables_excluding_concepts_into_rdbms.sh
