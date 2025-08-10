@@ -607,7 +607,7 @@ from observations o left outer join result_code_mapping rcm on o.`VALUE` = rcm.s
 
 if __name__ == "__main__":
 
-    arg_parse_obj = argparse.ArgumentParser(description="Convert Synthea CSV files to Prepared Source Format (PSF)")
+    arg_parse_obj = argparse.ArgumentParser(description="Convert Synthea CSV files to Prepared Source Format (PSF) in Parquet Format")
     arg_parse_obj.add_argument("-c", "--config-json", dest="config_json", default="./config.json",
                                help="JSON configuration file")
 

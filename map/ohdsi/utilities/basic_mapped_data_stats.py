@@ -1,35 +1,38 @@
 from pyspark.sql import SparkSession
+from pyspark import SparkConf
 import preparedsource2ohdsi.mapping_utilities as mu
-import pyspark
 import json
 import argparse
 import pprint
-from pyspark import SparkConf
+import pandas as pd
 
+pd.set_option('display.max_columns', None)
+pd.set_option('display.expand_frame_repr', False)
+pd.set_option('max_colwidth', None)
 
 def main(spark, tbs):
 
     catalog = mu.attach_catalog_dict(spark, tbs)
 
     statistics_queries = {"count_people": "select count(distinct person_id) as n, count(*) as n_r from person",
-                          "count_visits": "select count(distinct person_id) as n, count(*) as n_r from visit_occurrence",
+                          "count_visits": "select count(distinct person_id) as n, count(*) as n_r, count(distinct visit_occurrence_id) as n_visit_occurrence_id from visit_occurrence",
                           "count_deaths": "select count(distinct person_id) as n, count(*) as n_r from death",
-                          "count_observation_periods": "select count(distinct person_id) as n, count(*) as n_r from observation_period",
+                          "count_observation_periods": "select count(distinct person_id) as n, count(*) as n_r, count(distinct observation_period_id) as n_observation_period_id from observation_period",
 
                           "count_gender": "select count(distinct person_id) as n, count(*) as n_r, concept_name as gender_concept_name from person p join concept c on p.gender_concept_id = c.concept_id group by gender_concept_id, concept_name order by count(*) desc",
                           "count_race": "select count(distinct person_id) as n, count(*) as n_r, concept_name as race_concept_name from person p join concept c on  p.race_concept_id = c.concept_id group by race_concept_id, concept_name order by count(*) desc",
                           "count_ethnicity": "select count(distinct person_id) as n, count(*) as n_r, concept_name as ethnicity_concept_name from person p join concept c on  p.ethnicity_concept_id = c.concept_id group by ethnicity_concept_id, concept_name order by count(*) desc",
 
-                          "count_conditions": "select count(distinct person_id) as n, count(*) as n_r from condition_occurrence",
-                          "count_procedures": "select count(distinct person_id) as n, count(*) as n_r from procedure_occurrence",
+                          "count_conditions": "select count(distinct person_id) as n, count(distinct visit_occurrence_id) as n_visits, count(*) as n_r,  count(distinct condition_occurrence_id) as n_condition_occurrence_id from condition_occurrence",
+                          "count_procedures": "select count(distinct person_id) as n,  count(distinct visit_occurrence_id) as n_visits, count(*) as n_r, count(distinct procedure_occurrence_id) as n_procedure_occurrence_id  from procedure_occurrence",
 
-                          "count_measurements": "select count(distinct person_id) as n, count(*) as n_r from measurement",
-                          "count_observations": "select count(distinct person_id) as n, count(*) as n_r from observation",
+                          "count_measurements": "select count(distinct person_id) as n, count(distinct visit_occurrence_id) as n_visits, count(*) as n_r, count(distinct measurement_id) as n_measurement_id from measurement",
+                          "count_observations": "select count(distinct person_id) as n, count(distinct visit_occurrence_id) as n_visits, count(*) as n_r, count(distinct observation_id) as n_observation_id from observation",
 
-                          "count_drugs": "select count(distinct person_id) as n, count(*) as n_r from drug_exposure",
-                          "count_devices": "select count(distinct person_id) as n, count(*) as n_r from device_exposure",
+                          "count_drugs": "select count(distinct person_id) as n, count(distinct visit_occurrence_id) as n_visits, count(*) as n_r, count(distinct drug_exposure_id) as n_drug_expousure_id from drug_exposure",
+                          "count_devices": "select count(distinct person_id) as n, count(distinct visit_occurrence_id) as n_visits, count(*) as n_r, count(distinct device_exposure_id) as d_device_exposure_id from device_exposure",
 
-                          "count_payers": "select count(distinct person_id) as n, count(*) as n_r from payer_plan_period",
+                          "count_payers": "select count(distinct person_id) as n, count(*) as n_r, count(distinct payer_plan_period_id)  as n_payer_plan_period_id from payer_plan_period",
 
                           "count_visit_concepts_count": "select count(distinct person_id) as n, count(*) as n_r, visit_concept_id, c.concept_name as visit_concept_name from visit_occurrence vo join concept c on vo.visit_concept_id = c.concept_id group by visit_concept_id, c.concept_name order by count(*) desc",
 
@@ -52,11 +55,15 @@ def main(spark, tbs):
 
                           "payer_concepts_count": "select count(distinct person_id) as n, count(*) as n_r, payer_concept_id, c.concept_name from payer_plan_period pp join concept c on c.concept_id = pp.payer_concept_id group by payer_concept_id, c.concept_name order by count(*) desc",
 
-                          "locations_count": "select count(*) as n_r from location",
+                          "locations_count": "select count(*) as n_r, count(distinct location_id)  as n_location_id from location",
 
-                          "provider_count": "select count(*) as n_r from provider",
+                          "provider_count": "select count(*) as n_r, count(distinct provider_id) as n_provider_id from provider",
 
-                          "top_locations": "select count(*) as n_r, state, county, city  from location group by state, county, city order by count(*) desc"
+                          "top_locations": "select count(*) as n_r, state, county, city  from location group by state, county, city order by count(*) desc",
+
+                          "care_site_count": "select count(*) as n_r, count(distinct care_site_id) as n_care_site_id from care_site",
+
+                          "cdm_source": "select * from cdm_source"
 
                           }
 
