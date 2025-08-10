@@ -185,6 +185,9 @@ if __name__ == '__main__':
     for key in default_spark_conf_dict:
         sconf.set(key, default_spark_conf_dict[key])
 
+    if arg_obj.run_local:
+        sconf.setMaster("local[*]")
+
     spark = SparkSession.builder.config(conf=sconf).appName("BuildConceptTablesForMapping").getOrCreate()
 
     with open(arg_obj.config_json_file_name, mode="r") as f:
