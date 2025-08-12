@@ -1390,7 +1390,7 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
 
     note_build_end_time = time.time()
     logging.info(
-        f"Finished processing source note (Total elapsed time: f{format_log_time(note_build_start_time, note_build_end_time)})")
+        f"Finished processing source note (Total elapsed time: {format_log_time(note_build_start_time, note_build_end_time)})")
 
 
     # Metadata tables
