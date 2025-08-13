@@ -6,6 +6,10 @@
   "ohdsi_output_location": "/data/ohdsi/output/",
   "check_pointing": "NONE",
   "ohdsi_version": "5.4.1",
+  "stable_hash_identifiers": {
+    "s_id_fields": ["s_person_id", "s_encounter_id"],
+    "salt": "Synthea data hash"
+  },
   "jdbc": {
     "connection_string": "",
     "properties": {"username":  "", "password":  ""}
