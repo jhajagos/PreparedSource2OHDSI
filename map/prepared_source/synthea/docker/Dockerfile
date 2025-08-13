@@ -134,4 +134,6 @@ COPY .setup_environment /root/scripts
 RUN chmod u+x /root/scripts/.setup_environment
 
 RUN mdkir /root/sql/
-COPY ./create_schema_stub.sql /root/sql/
+COPY ./psql/create_schema_stub.sql /root/sql/
+COPY ./psql/drop_schema_stub.sql /root/sql/
+
