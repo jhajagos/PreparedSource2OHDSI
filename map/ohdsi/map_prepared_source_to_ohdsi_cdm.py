@@ -13,9 +13,7 @@ import preparedsource2ohdsi.mapping_utilities as mapping_utilities
 
 logging.basicConfig(level=logging.INFO)
 
-
 # TODO: Handle DX codes that map to measurement domain but have abnormal results:
-
 # For example, ICD10 CONCEPT_ID 45548980 ‘Abnormal level of unspecified serum enzyme’ indicates a Measurement and the result (abnormal).
 # In those situations, the CONCEPT_RELATIONSHIP table in addition to the ‘Maps to’ record contains a second record with
 # the relationship_id set to ‘Maps to value’. In this example, the ‘Maps to’ relationship directs to 4046263 ‘Enzyme measurement’
@@ -23,28 +21,23 @@ logging.basicConfig(level=logging.INFO)
 
 # TODO: Add provider links to other tables than visit_occurrence
 
-# TODO: Allow prepared source tables to be processed and defined
-
-CHECK_POINTING = 'LOCAL' #  BY default checkpointing is 'LOCAL' other option are ('REMOTE', 'NONE') this can be overwritten in the configuration file
-
-
-def main(config, compute_data_checks=False, evaluate_samples=True, export_json_file_name=None, ohdsi_version=None,
-         write_cdm_source=True):
+#CHECK_POINTING = 'LOCAL' #  BY default checkpointing is 'LOCAL' other option are ('REMOTE', 'NONE') this can be overwritten in the configuration file
+def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_source=True):
 
     output_path = config["ohdsi_output_location"]
 
-    logging.info(f"Check pointing mode: {CHECK_POINTING}")
+    #logging.info(f"Check pointing mode: {CHECK_POINTING}")
 
     starting_time = time.time()
 
-    if CHECK_POINTING == "REMOTE":
-        check_point_path = output_path + "checkpoint/"
-
-        logging.info(f"Check pointing directory: {check_point_path}")
-        spark.sparkContext.setCheckpointDir(check_point_path)
-
-    if "local_csv_output_path" in config: # For sample output
-        local_path = config["local_csv_output_path"]
+    # if CHECK_POINTING == "REMOTE":
+    #     check_point_path = output_path + "checkpoint/"
+    #
+    #     logging.info(f"Check pointing directory: {check_point_path}")
+    #     spark.sparkContext.setCheckpointDir(check_point_path)
+    #
+    # if "local_csv_output_path" in config: # For sample output
+    #     local_path = config["local_csv_output_path"]
 
     shi_salt = ""
     stable_hash_s_person_id = False
@@ -132,7 +125,6 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
     location_build_start_time = time.time()
     logging.info("Building location table")
 
-
     # Location table
     source_location_sdf = prepared_source_sdf_dict["source_location"]
 
@@ -181,8 +173,8 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
     ohdsi_sdf_dict["location"] = ohdsi_location_sdf, location_path
     location_build_end_time = time.time()
     logging.info(f"Finished building location table (total elapsed time: {location_build_end_time - location_build_start_time} seconds)")
-    if evaluate_samples:
-        generate_local_samples(ohdsi_location_sdf, local_path, "location")
+    # if evaluate_samples:
+    #     generate_local_samples(ohdsi_location_sdf, local_path, "location")
 
     # Build provider
     # TODO: Build out more provider fields, e.g., specialty, care_site
@@ -270,12 +262,10 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
     person_build_end_time = time.time()
     logging.info(f"Finished building person table (Total elapsed time: {format_log_time(person_build_start_time, person_build_end_time)})")
 
-    if evaluate_samples:
-        generate_local_samples(ohdsi_person_sdf, local_path,  "person")
-
+    # if evaluate_samples:
+    #     generate_local_samples(ohdsi_person_sdf, local_path,  "person")
 
     #TODO: Check if person_table contains duplicates {Strategies: "remediate", "fail", "ignore"}
-
     # Death table
     logging.info(f"Building death table")
     death_build_start_time = time.time()
@@ -314,8 +304,8 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
     logging.info(f"Finished building death table (Total elapsed time: {format_log_time(death_build_start_time, death_build_end_time)})")
 
     ohdsi_sdf_dict["death"] = ohdsi_death_sdf, death_path
-    if evaluate_samples:
-        generate_local_samples(ohdsi_death_sdf,  local_path, "death")
+    # if evaluate_samples:
+    #     generate_local_samples(ohdsi_death_sdf,  local_path, "death")
 
     # Generate care_site
     logging.info(f"Building care_site table")
@@ -342,8 +332,8 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
     logging.info(f"Finished building care_site table (Total elapsed time: {format_log_time(care_site_build_start_time, care_site_build_end_time)})")
 
     ohdsi_sdf_dict["care_site"] = ohdsi_care_site_sdf, care_site_path
-    if evaluate_samples:
-        generate_local_samples(ohdsi_care_site_sdf, local_path, "care_site")
+    # if evaluate_samples:
+    #     generate_local_samples(ohdsi_care_site_sdf, local_path, "care_site")
 
     # Generate visit_occurrence
     logging.info(f"Building visit_occurrence")
@@ -441,7 +431,7 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
         }
 
     if stable_hash_s_encounter_id:
-        visit_field_map ["g_s_encounter_id"] = "visit_occurrence_id"
+        visit_field_map["g_s_encounter_id"] = "visit_occurrence_id"
         visit_field_map.pop("g_id")
 
     ohdsi_visit_sdf = mapping_utilities.map_table_column_names(source_encounter_sdf, visit_field_map)
@@ -463,8 +453,8 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
 
     ohdsi_sdf_dict["visit_occurrence"] = ohdsi_visit_sdf, visit_path
 
-    if evaluate_samples:
-        generate_local_samples(ohdsi_visit_sdf, local_path, "visit_occurrence")
+    # if evaluate_samples:
+    #     generate_local_samples(ohdsi_visit_sdf, local_path, "visit_occurrence")
 
     # Observation period
     logging.info("Building observation_period")
@@ -479,7 +469,6 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
 
     source_observation_period_sdf = source_observation_period_sdf.withColumn("g_source_table_name", F.lit("source_observation_period"))
     source_observation_period_sdf = source_observation_period_sdf.withColumn("s_g_id", F.col("g_id"))
-
 
     observation_period_fields = {
         "g_id": "observation_period_id",
@@ -501,8 +490,8 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
     logging.info(f"Finished building observation_period (Total elapsed time: {format_log_time(observation_period_build_start_time, observation_period_build_end_time)})")
 
     ohdsi_sdf_dict["observation_period"] = ohdsi_observation_period_sdf, observation_path
-    if evaluate_samples:
-        generate_local_samples(ohdsi_observation_period_sdf, local_path, "observation_period")
+    # if evaluate_samples:
+    #     generate_local_samples(ohdsi_observation_period_sdf, local_path, "observation_period")
 
     # Payer Plan Period
     logging.info("Building payer_plan_period")
@@ -603,8 +592,8 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
     logging.info(f"Finished building visit_detail (Total elapsed time: {format_log_time(visit_detail_build_start_time, visit_detail_build_end_time)})")
 
     ohdsi_sdf_dict["visit_detail"] = ohdsi_visit_detail_sdf, visit_detail_path
-    if evaluate_samples:
-        generate_local_samples(ohdsi_observation_period_sdf, local_path, "visit_detail")
+    # if evaluate_samples:
+    #     generate_local_samples(ohdsi_observation_period_sdf, local_path, "visit_detail")
 
     # Procedure source_condition (generating domain source tables)
     logging.info("Started processing source_condition data (build domain mapped tables)")
@@ -626,12 +615,12 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
                                                         "p.provider_source_value"), how="left_outer"). \
         select("c.*", F.col("p.provider_id").alias("g_provider_id"))
 
-    if CHECK_POINTING == "LOCAL":
-        source_condition_sdf = source_condition_sdf.localCheckpoint()
-    elif CHECK_POINTING == "REMOTE":
-        source_condition_sdf = source_condition_sdf.checkpoint()
-    else:
-        pass
+    # if CHECK_POINTING == "LOCAL":
+    #     source_condition_sdf = source_condition_sdf.localCheckpoint()
+    # elif CHECK_POINTING == "REMOTE":
+    #     source_condition_sdf = source_condition_sdf.checkpoint()
+    # else:
+    #     pass
 
     # Determine the domain based on mapped concept_id's domain
     source_condition_matched_sdf = map_codes_to_domain(source_condition_sdf, concept_sdf, oid_to_vocab_sdf, concept_map_sdf,
@@ -678,7 +667,6 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
                                                                    domain="Condition",
                                                                    table_name="condition_occurrence",
                                                                    source_path=condition_source_path)
-
     # Holds a lists of data frames
     ohdsi_sdf_dict["condition_occurrence"] = []
     ohdsi_sdf_dict["procedure_occurrence"] = []
@@ -698,8 +686,8 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
 
     ohdsi_sdf_dict["condition_occurrence"] += [condition_domain_sdf]
 
-    if evaluate_samples:
-        generate_local_samples(condition_domain_sdf, local_path, "condition_occurrence")
+    # if evaluate_samples:
+    #     generate_local_samples(condition_domain_sdf, local_path, "condition_occurrence")
 
     if ohdsi_version == "5.3.1":
         procedure_domain_condition_source_field_map = {
@@ -745,8 +733,8 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
 
     ohdsi_sdf_dict["procedure_occurrence"] += [procedure_domain_condition_source_sdf]
 
-    if evaluate_samples:
-        generate_local_samples(procedure_domain_condition_source_sdf, local_path, "procedure_occurrence_source_condition")
+    # if evaluate_samples:
+    #     generate_local_samples(procedure_domain_condition_source_sdf, local_path, "procedure_occurrence_source_condition")
 
     observation_domain_condition_source_field_map = {
         "g_condition_occurrence_id": "observation_id",
@@ -772,8 +760,8 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
 
     ohdsi_sdf_dict["observation"] += [observation_domain_condition_source_sdf]
 
-    if evaluate_samples:
-        generate_local_samples(observation_domain_condition_source_sdf, local_path, "observation_source_condition")
+    # if evaluate_samples:
+    #     generate_local_samples(observation_domain_condition_source_sdf, local_path, "observation_source_condition")
 
     measurement_domain_condition_source_field_map = {
         "g_condition_occurrence_id": "measurement_id",
@@ -802,8 +790,8 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
     source_condition_process_end_time = time.time()
     logging.info(f"Finished processing source_condition (Total elapsed time: {format_log_time(source_condition_process_start_time, source_condition_process_end_time)})")
 
-    if evaluate_samples:
-        generate_local_samples(measurement_domain_condition_source_sdf, local_path, "measurement_source_condition.csv")
+    # if evaluate_samples:
+    #     generate_local_samples(measurement_domain_condition_source_sdf, local_path, "measurement_source_condition.csv")
 
     # Process source_procedure
     logging.info("Started processing source_procedure")
@@ -884,8 +872,8 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
 
     ohdsi_sdf_dict["procedure_occurrence"] += [procedure_source_sdf]
 
-    if evaluate_samples:
-        generate_local_samples(procedure_source_sdf, local_path, "procedure_occurrence")
+    # if evaluate_samples:
+    #     generate_local_samples(procedure_source_sdf, local_path, "procedure_occurrence")
 
     # Source Procedure -> domain/mapped_domain Drug
     # TODO:  drug_exposure_end_date cannot be null
@@ -929,8 +917,8 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
                                                                      table_name="drug_exposure",
                                                                      source_path=procedure_source_path)
 
-    if evaluate_samples:
-        generate_local_samples(drug_domain_procedure_source_sdf, local_path, "drug_exposure_source_procedure")
+    # if evaluate_samples:
+    #     generate_local_samples(drug_domain_procedure_source_sdf, local_path, "drug_exposure_source_procedure")
 
     ohdsi_sdf_dict["drug_exposure"] += [drug_domain_procedure_source_sdf]
 
@@ -958,8 +946,8 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
 
     ohdsi_sdf_dict["measurement"] += [measurement_domain_procedure_source_sdf]
 
-    if evaluate_samples:
-        generate_local_samples(measurement_domain_procedure_source_sdf, local_path, "measurement_source_procedure")
+    # if evaluate_samples:
+    #     generate_local_samples(measurement_domain_procedure_source_sdf, local_path, "measurement_source_procedure")
 
     observation_domain_procedure_source_field_map = {
         "g_procedure_occurrence_id": "observation_id",
@@ -985,8 +973,8 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
 
     ohdsi_sdf_dict["observation"] += [observation_domain_procedure_source_sdf]
 
-    if evaluate_samples:
-        generate_local_samples(observation_domain_procedure_source_sdf, local_path, "observation_source_procedure")
+    # if evaluate_samples:
+    #     generate_local_samples(observation_domain_procedure_source_sdf, local_path, "observation_source_procedure")
 
     if ohdsi_version == "5.3.1":
         device_domain_procedure_source_field_map = {
@@ -1032,8 +1020,8 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
     source_procedure_process_end_time = time.time()
     logging.info(f"Finished processing source_procedure (Total elapsed time: {format_log_time(source_procedure_process_start_time, source_procedure_process_end_time)})")
 
-    if evaluate_samples:
-        generate_local_samples(device_domain_procedure_source_sdf, local_path, "device_exposure_source_procedure")
+    # if evaluate_samples:
+    #     generate_local_samples(device_domain_procedure_source_sdf, local_path, "device_exposure_source_procedure")
 
     # Device_Exposure
     logging.info("Started building main device_exposure table")
@@ -1178,14 +1166,13 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
                                                                      drug_source_path)
 
     # TODO: Mapped domain device
-
     drug_exposure_build_end_time = time.time()
     logging.info(f"Finished building main drug_exposure table ({format_log_time(drug_exposure_build_start_time, drug_exposure_build_end_time)})")
 
     ohdsi_sdf_dict["drug_exposure"] += [ohdsi_drug_sdf]
 
-    if evaluate_samples:
-        generate_local_samples(ohdsi_drug_sdf, local_path, "drug_exposure")
+    # if evaluate_samples:
+    #     generate_local_samples(ohdsi_drug_sdf, local_path, "drug_exposure")
 
     # Measurement (labs and clinical events)
     logging.info("Started processing source_result")
@@ -1205,7 +1192,6 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
     source_result_sdf = result_code_mapper(source_result_sdf, concept_sdf, oid_to_vocab_sdf, concept_map_sdf)
 
     source_result_sdf = operator_code_mapper(source_result_sdf, concept_sdf, oid_to_vocab_sdf)
-
 
     source_result_sdf = source_result_sdf.withColumn("g_obtained_date", F.to_date(F.col("s_obtained_datetime")))
 
@@ -1271,8 +1257,8 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
 
     ohdsi_sdf_dict["measurement"] += [ohdsi_measurement_sdf]
 
-    if evaluate_samples:
-        generate_local_samples(ohdsi_measurement_sdf, local_path, "measurement")
+    # if evaluate_samples:
+    #     generate_local_samples(ohdsi_measurement_sdf, local_path, "measurement")
 
     if ohdsi_version == "5.3.1":
         observation_field_map = {
@@ -1295,7 +1281,6 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
             "s_g_id": "s_g_id"
         }
     elif ohdsi_version == "5.4.1":
-
         observation_field_map = {
             "g_id": "observation_id",
             "g_person_id": "person_id",
@@ -1328,11 +1313,10 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
     source_result_process_end_time = time.time()
     logging.info(f"Finished processing source_result (Total elapsed time: {format_log_time(source_result_process_start_time, source_result_process_end_time)})")
 
-    if evaluate_samples:
-        generate_local_samples(ohdsi_observation_sdf, local_path, "observation")
+    # if evaluate_samples:
+    #     generate_local_samples(ohdsi_observation_sdf, local_path, "observation")
 
     # Notes
-
     logging.info("Started building note table")
     note_build_start_time = time.time()
     source_note_sdf = prepared_source_sdf_dict["source_note"]
@@ -1391,7 +1375,6 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
     note_build_end_time = time.time()
     logging.info(
         f"Finished processing source note (Total elapsed time: {format_log_time(note_build_start_time, note_build_end_time)})")
-
 
     # Metadata tables
     logging.info("Generating metadata")
@@ -1544,23 +1527,6 @@ def main(config, compute_data_checks=False, evaluate_samples=True, export_json_f
 
     with open(export_json_file_name, "w") as fw:
         json.dump(exported_table_dict, fw, sort_keys=True, indent=4, separators=(',', ': '))
-
-    # Generate table counts
-    if compute_data_checks:
-        logging.info("Row counts for concept tables")
-        for key_name in concept_map_sdf_dict:
-            logging.info({key_name: concept_map_sdf_dict[key_name].count()})
-
-        logging.info("Row counts for prepared_source tables")
-        for key_name in prepared_source_sdf_dict:
-            logging.info({key_name: prepared_source_sdf_dict[key_name].count()})
-
-        logging.info("Row counts for OHDSI CDM tables")
-        for key_name in ohdsi_sdf_dict:
-            if type(ohdsi_sdf_dict[key_name]) == list:
-                logging.info({key_name: [sdf.count() for sdf in ohdsi_sdf_dict[key_name]]})
-            else:
-                logging.info({key_name: ohdsi_sdf_dict[key_name][0].count()})
 
     ending_time = time.time()
     logging.info(f"Finished mapping Prepared Source Tables to OHDSI CDM (Total script time: {format_log_time(starting_time, ending_time)}))")
@@ -1744,12 +1710,12 @@ def three_level_standard_code_mapper(source_sdf, concept_sdf, oid_vocab_sdf, con
 
     source_sdf = source_sdf.distinct()
 
-    if CHECK_POINTING == "LOCAL":
-        source_sdf = source_sdf.localCheckpoint()  # Local checkpoint otherwise DAG (query plan) explode
-    elif CHECK_POINTING == "REMOTE":
-        source_sdf = source_sdf.checkpoint()
-    else:
-        pass
+    # if CHECK_POINTING == "LOCAL":
+    #     source_sdf = source_sdf.localCheckpoint()  # Local checkpoint otherwise DAG (query plan) explode
+    # elif CHECK_POINTING == "REMOTE":
+    #     source_sdf = source_sdf.checkpoint()
+    # else:
+    #     pass
 
     return source_sdf
 
@@ -1777,12 +1743,12 @@ def standard_code_mapper(source_sdf, concept_sdf, oid_vocab_sdf, code, code_oid,
     source_sdf = source_sdf.withColumn(concept_id_field_name,
                                        F.expr(
                                            f"case when {concept_id_field_name} is null then 0 else {concept_id_field_name} end"))
-    if CHECK_POINTING == "LOCAL":
-        source_sdf = source_sdf.localCheckpoint()  # Local checkpoint otherwise DAG (query plan) explodes
-    elif CHECK_POINTING == "REMOTE":
-        source_sdf = source_sdf.checkpoint()
-    else:
-        pass
+    # if CHECK_POINTING == "LOCAL":
+    #     source_sdf = source_sdf.localCheckpoint()  # Local checkpoint otherwise DAG (query plan) explodes
+    # elif CHECK_POINTING == "REMOTE":
+    #     source_sdf = source_sdf.checkpoint()
+    # else:
+    #     pass
 
     return source_sdf
 
@@ -1992,15 +1958,15 @@ def build_mapped_domain_df(spark_ptr, source_matched_sdf, field_map, output_obj,
 
     domain_source_sdf = mapping_utilities.map_table_column_names(domain_source_sdf, field_map)  # Map column names
 
-    domain_source_sdf = mapping_utilities.column_names_to_align_to(domain_source_sdf, output_obj) # Only include include columns that are in the table
+    domain_source_sdf = mapping_utilities.column_names_to_align_to(domain_source_sdf, output_obj) # Only include columns that are in the table
 
     domain_source_sdf, _ = mapping_utilities.write_parquet_file_and_reload(spark_ptr, domain_source_sdf, table_name, source_path) # Write results out
 
     return domain_source_sdf
 
-
-def generate_local_samples(mapped_sdf, local_path, table_name, fraction=0.05, limit_n=10000):
-    mapped_sdf.sample(fraction).limit(limit_n).toPandas().to_csv(local_path + table_name + ".csv", index=False)
+#
+# def generate_local_samples(mapped_sdf, local_path, table_name, fraction=0.05, limit_n=10000):
+#     mapped_sdf.sample(fraction).limit(limit_n).toPandas().to_csv(local_path + table_name + ".csv", index=False)
 
 
 def format_log_time(start_time, end_time):
@@ -2018,10 +1984,6 @@ if __name__ == "__main__":
     arg_parser_obj.add_argument("-c", "--config-json", dest="config_json", default="./config_54.json",
                                help="JSON configuration file")
 
-    arg_parser_obj.add_argument("-s", "--evaluate-samples", dest="evaluate_samples", action="store_true",
-                               help="Generates local samples in CSV", default=False)
-
-    arg_parser_obj.add_argument("-e", "--compute-checks", dest="compute_checks", action="store_true", default=False)
     arg_parser_obj.add_argument("-l", "--run-local", dest="run_local", default=False, action="store_true")
     arg_parser_obj.add_argument("--spark-config", dest="spark_config_file_name", default=None)
 
@@ -2031,11 +1993,10 @@ if __name__ == "__main__":
     with open(arg_obj.config_json, mode="r") as f:
         config_dict = json.load(f)
 
+    extra_spark_configs = {}
     if arg_obj.spark_config_file_name is not None:
         with open(arg_obj.spark_config_file_name, "r") as f:
             extra_spark_configs = json.load(f)
-    else:
-        extra_spark_configs = {}
 
     sconf = SparkConf()
     default_spark_conf_dict = {
@@ -2076,8 +2037,8 @@ if __name__ == "__main__":
     print("Mapping Configuration:")
     pprint.pprint(config_dict)
 
-    if "check_pointing" in config_dict:
-        CHECK_POINTING = config_dict["check_pointing"]
+    # if "check_pointing" in config_dict:
+    #     CHECK_POINTING = config_dict["check_pointing"]
 
     if "ohdsi_version" in config_dict and config_dict["ohdsi_version"] == "5.4.1":
         ohdsi_version = "5.4.1"
@@ -2089,5 +2050,4 @@ if __name__ == "__main__":
     if ohdsi_version not in ("5.3.1", "5.4.1"):
         raise RuntimeError("Only OHDSI versions 5.3.1 and 5.4 supported")
 
-    main(config_dict, compute_data_checks=arg_obj.compute_checks, evaluate_samples=arg_obj.evaluate_samples,
-         export_json_file_name=export_parquet_json_name, ohdsi_version=ohdsi_version)
+    main(config_dict, export_json_file_name=export_parquet_json_name, ohdsi_version=ohdsi_version)
