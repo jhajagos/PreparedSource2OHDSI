@@ -178,8 +178,7 @@ Configure the JDBC driver and the connection string:
 ```bash
 python ./db_configure.py -j 'jdbc:sqlserver://sql1:1433;encrypt=false;database=synthea_ohdsi' -u sa -p zzZZZZZ
 ```
-The JDBC driver can be [downloaded](https://learn.microsoft.com/en-us/sql/connect/jdbc/download-microsoft-jdbc-driver-for-sql-server?view=sql-server-ver16.) directly from
-Microsoft.
+The JDBC driver can be [downloaded](https://learn.microsoft.com/en-us/sql/connect/jdbc/download-microsoft-jdbc-driver-for-sql-server?view=sql-server-ver16.) directly from Microsoft.
  
 You may need to modify the script `load_staged_tables_into_ohdsi_rdbms_cdm.sh` if you use a different version of the JDBC driver 
 than: `mssql-jdbc-12.6.2.jre11.jar` 
