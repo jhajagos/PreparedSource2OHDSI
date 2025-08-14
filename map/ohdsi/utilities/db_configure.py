@@ -26,20 +26,19 @@ def main(jdbc_connection_string, username, password):
         json.dump(config, fw)
 
 
-def copy_jar_files():
+def copy_jar_files(python_version="python3.10"):
 
     jar_files = glob.glob("/root/jdbc/*.jar")
 
     for jar_file in jar_files: #TODO: Remove hard coding of the destination
-        destination = "/root/miniconda3/envs/PySpark/lib/python3.10/site-packages/pyspark/jars/"
+        destination = f"/root/miniconda3/envs/PySpark/lib/{python_version}/site-packages/pyspark/jars/"
         print(f"Copying '{jar_file}' to '{destination}'")
         shutil.copy(jar_file, destination)
 
 
 if __name__ == "__main__":
 
-    arg_parser_obj = argparse.ArgumentParser(description="Adds JDBC connection information")
-
+    arg_parser_obj = argparse.ArgumentParser(description="Adds JDBC connection to configuration and copies JAR files")
     arg_parser_obj.add_argument("-j", "--jdbc-connection-string", dest="jdbc_connection_string")
     arg_parser_obj.add_argument("-u", "--username", dest="username")
     arg_parser_obj.add_argument("-p", "--password", dest="password")
@@ -47,4 +46,3 @@ if __name__ == "__main__":
     arg_parse = arg_parser_obj.parse_args()
 
     main(arg_parse.jdbc_connection_string, arg_parse.username, arg_parse.password)
-
