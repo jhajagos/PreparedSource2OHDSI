@@ -133,7 +133,9 @@ RUN chmod u+x /root/scripts/switch_rdbms_to_load_to.sh
 COPY .setup_environment /root/scripts
 RUN chmod u+x /root/scripts/.setup_environment
 
-RUN mdkir /root/sql/
-COPY ./psql/create_schema_stub.sql /root/sql/
-COPY ./psql/drop_schema_stub.sql /root/sql/
+RUN mkdir /root/sql/
+RUN mkdir /root/sql/psql/
+
+COPY ./psql/create_schema_stub.sql /root/sql/psql/
+COPY ./psql/drop_schema_stub.sql /root/sql/psql/
 

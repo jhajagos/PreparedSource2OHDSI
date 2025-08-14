@@ -30,8 +30,8 @@ def copy_jar_files():
 
     jar_files = glob.glob("/root/jdbc/*.jar")
 
-    for jar_file in jar_files:
-        destination = "/root/miniconda3/envs/PySpark/lib/python3.9/site-packages/pyspark/jars/"
+    for jar_file in jar_files: #TODO: Remove hard coding of the destination
+        destination = "/root/miniconda3/envs/PySpark/lib/python3.10/site-packages/pyspark/jars/"
         print(f"Copying '{jar_file}' to '{destination}'")
         shutil.copy(jar_file, destination)
 
