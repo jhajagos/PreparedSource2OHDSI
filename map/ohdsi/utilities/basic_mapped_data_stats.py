@@ -34,6 +34,8 @@ def main(spark, tbs):
 
                           "count_payers": "select count(distinct person_id) as n, count(*) as n_r, count(distinct payer_plan_period_id)  as n_payer_plan_period_id from payer_plan_period",
 
+                          "count_notes": "select count(distinct person_id) as n, count(distinct visit_occurrence_id) as n_visits, count(*) as n_r, count(distinct note_class_concept_id)  as n_note_class_concept_id from note",
+
                           "count_visit_concepts_count": "select count(distinct person_id) as n, count(*) as n_r, visit_concept_id, c.concept_name as visit_concept_name from visit_occurrence vo join concept c on vo.visit_concept_id = c.concept_id group by visit_concept_id, c.concept_name order by count(*) desc",
 
                           "condition_concepts_count": "select count(distinct person_id) as n, count(*) as n_r, condition_concept_id, c.concept_name as condition_concept_name from condition_occurrence co join concept c on c.concept_id = co.condition_concept_id group by condition_concept_id, c.concept_name order by count(*) desc",
@@ -54,6 +56,8 @@ def main(spark, tbs):
                           "device_concepts_count": "select count(distinct person_id) as n, count(*) as n_r, device_concept_id, c.concept_name from device_exposure de join concept c on c.concept_id = de.device_concept_id group by device_concept_id, c.concept_name order by count(*) desc",
 
                           "payer_concepts_count": "select count(distinct person_id) as n, count(*) as n_r, payer_concept_id, c.concept_name from payer_plan_period pp join concept c on c.concept_id = pp.payer_concept_id group by payer_concept_id, c.concept_name order by count(*) desc",
+
+                          "note_concepts_count": "select count(*) as n_r, count(distinct person_id) as n, note_class_concept_id, c1.concept_name from note n join concept c1 on n.note_class_concept_id = c1.concept_id group by note_class_concept_id, c1.concept_name order by count(*) desc",
 
                           "locations_count": "select count(*) as n_r, count(distinct location_id)  as n_location_id from location",
 
