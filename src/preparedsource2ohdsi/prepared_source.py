@@ -612,3 +612,23 @@ class SourceNoteObject(PreparedSourceObject):
                 "s_encoding_code_type": "",
                 "s_encoding_code_type_oid": ""
                 }
+
+
+class SourceRelationshipObject(PreparedSourceObject):
+    """Support for populating the fact_relationship table in OHDSI"""
+    def _fields(self):
+        return ["s_id", "s_relationship",  "s_relationship_code", "s_relationship_code_type", "s_relationship_code_type_oid",
+                "s_target_from_table_name", "s_target_from_table_field", "s_target_from_value",
+                "s_target_to_table_name", "s_target_to_table_field", "s_target_to_value"
+                ]
+
+    def _meta_data(self):
+        return {
+            "s_relationship": "The relationship type",
+            "s_relationship_code": "The code of the relationship",
+            "s_relationship_code_type": "The code type of the relationship",
+            "s_relationship_code_type_oid": "The code type OID",
+            "s_target_from_table_name": "The source table name to target",
+            "s_target_from_table_field": "The table field of the source table name to target",
+            "s_target_from_value": "The field value in the source table to target"
+        }
