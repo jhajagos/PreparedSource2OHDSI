@@ -229,7 +229,8 @@ left outer join visit_type_mapping vtm on vtm.s_visit_type = e.`ENCOUNTERCLASS`
 
     source_payer_sql = """
     select
-    `PATIENT` as s_person_id --Source identifier for patient or person
+    `Id` as s_id
+    ,`PATIENT` as s_person_id --Source identifier for patient or person
    ,cast(`START_DATE` as timestamp) as s_payer_start_datetime --The date the plan's coverage started
    ,cast(`END_DATE` as timestamp) as s_payer_end_datetime --The date the plan's contribution ended
    ,`NAME` as s_payer --The name of the payer
@@ -260,6 +261,32 @@ from payer_transitions pt
                                                                                 "source_payer",
                                                                                 config[
                                                                                     "prepared_source_output_location"])
+
+    source_payer_sdf.createOrReplaceTempView("source_payer")
+
+    # Added for testing the generation of fact_relationship to source_relationship table
+    source_payer_encounter_relationship_sql = """
+    select
+    s_encounter_id || '||' || se.s_id  as s_id --Row source identifier
+   ,'payer' as s_relationship --The relationship type
+   ,'4001000175104' as s_relationship_code --The code of the relationship
+   ,'SNOMED' as s_relationship_code_type --The code type of the relationship
+   ,'2.16.840.1.113883.6.96' as s_relationship_code_type_oid --The code type OID
+   ,'source_payer' as s_target_from_table_name --The source table name to target
+   ,'s_id' as s_target_from_table_field --The table field of the source table name to target
+   ,cast(NULL as STRING) as s_target_from_value --The field value in the source table to target
+   ,'source_encounter' as s_target_to_table_name
+   ,'s_encounter_id' as s_target_to_table_field
+   ,s_encounter_id as s_target_to_value
+from source_payer sp join source_encounter se on sp.s_person_id = se.s_person_id
+        and coalesce(se.s_visit_end_datetime, se.s_visit_start_datetime) between s_payer_start_datetime and s_payer_end_datetime 
+    """
+
+    source_payer_encounter_relationship_sdf = distinct_and_add_row_id(spark.sql(source_payer_encounter_relationship_sql))
+
+    prepared_source_dict["source_relationship"], _ = write_parquet_file_and_reload(spark, source_payer_encounter_relationship_sdf,
+                                                                            "source_relationship",
+                                                                            config["prepared_source_output_location"])
 
     source_condition_sql_1 = """
     select

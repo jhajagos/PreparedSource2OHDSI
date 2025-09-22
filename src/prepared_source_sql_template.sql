@@ -221,25 +221,31 @@ select
     NULL as s_id --Row source identifier
    ,NULL as s_person_id --Source identifier for patient or person
    ,NULL as s_encounter_id --Source identifier for encounter or visit
-   ,NULL as s_note_datetime
-   ,NULL as s_note_text
+   ,NULL as s_note_datetime --The date the note was written or saved
+   ,NULL as s_note_text --Plain text representation of the note
    ,NULL as s_note_title
-   ,NULL as s_note_class
-   ,NULL as s_note_class_code
-   ,NULL as s_note_class_code_type
-   ,NULL as s_note_class_code_type_oid
+   ,NULL as s_note_class --The class that a note belongs to e.g., radiology note, physician note
+   ,NULL as s_note_class_code --The LOINC code to classify the note
+   ,NULL as s_note_class_code_type --Should be LOINC code
+   ,NULL as s_note_class_code_type_oid --Should be LOINC code type OID
+   ,NULL as m_note_class
+   ,NULL as m_note_class_code
+   ,NULL as m_note_class_code_type
+   ,NULL as m_note_class_code_type_oid
    ,NULL as k_provider --Foreign key to the provider
-   ,NULL as s_note_type
-   ,NULL as s_note_type_code
-   ,NULL as s_note_type_oid
-   ,NULL as s_language
-   ,NULL as s_language_code
-   ,NULL as s_language_code_type
-   ,NULL as s_language_code_type_oid
-   ,NULL as s_encoding
-   ,NULL as s_encoding_code
-   ,NULL as s_encoding_code_type
-   ,NULL as s_encoding_code_type_oid
+   ,NULL as s_note_type --The source of the note most likely EHR
+   ,NULL as s_note_type_code --
+   ,NULL as s_note_type_code_type --
+   ,NULL as s_note_type_code_type_oid --
+   ,NULL as s_language --The language of the note
+   ,NULL as s_language_code --
+   ,NULL as s_language_code_type --
+   ,NULL as s_language_code_type_oid --
+   ,NULL as s_encoding --The text encoding of the note (UTF8)
+   ,NULL as s_encoding_code --
+   ,NULL as s_encoding_code_type --
+   ,NULL as s_encoding_code_type_oid --
+   ,NULL as i_exclude --Value of 1 instructs the mapper to skip the row
 from SourceNoteObject;
 
 select
@@ -361,6 +367,20 @@ select
    ,NULL as m_source_system --Mapped source system the row was extracted from
    ,NULL as i_exclude --Value of 1 instructs the mapper to skip the row
 from SourceProviderObject;
+
+select
+    NULL as s_id --Row source identifier
+   ,NULL as s_relationship --The relationship type
+   ,NULL as s_relationship_code --The code of the relationship
+   ,NULL as s_relationship_code_type --The code type of the relationship
+   ,NULL as s_relationship_code_type_oid --The code type OID
+   ,NULL as s_target_from_table_name --The source table name to target
+   ,NULL as s_target_from_table_field --The table field of the source table name to target
+   ,NULL as s_target_from_value --The field value in the source table to target
+   ,NULL as s_target_to_table_name
+   ,NULL as s_target_to_table_field
+   ,NULL as s_target_to_value
+from SourceRelationshipObject;
 
 select
     NULL as s_person_id --Source identifier for patient or person
