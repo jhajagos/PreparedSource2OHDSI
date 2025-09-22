@@ -369,6 +369,20 @@ select
 from SourceProviderObject;
 
 select
+    NULL as s_id --Row source identifier
+   ,NULL as s_relationship --The relationship type
+   ,NULL as s_relationship_code --The code of the relationship
+   ,NULL as s_relationship_code_type --The code type of the relationship
+   ,NULL as s_relationship_code_type_oid --The code type OID
+   ,NULL as s_target_from_table_name --The source table name to target
+   ,NULL as s_target_from_table_field --The table field of the source table name to target
+   ,NULL as s_target_from_value --The field value in the source table to target
+   ,NULL as s_target_to_table_name
+   ,NULL as s_target_to_table_field
+   ,NULL as s_target_to_value
+from SourceRelationshipObject;
+
+select
     NULL as s_person_id --Source identifier for patient or person
    ,NULL as s_encounter_id --Source identifier for encounter or visit
    ,NULL as s_obtained_datetime
