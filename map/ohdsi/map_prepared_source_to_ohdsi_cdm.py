@@ -634,9 +634,9 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
         F.col("s_end_condition_datetime")))
 
     # Write a parquet file partitioned by domain
-    source_condition_matched_sdf = write_source_to_parquet_partitioned_by_domain(source_condition_matched_sdf,
-                                                                                 output_path,
-                                                                               "source_condition_matched")
+
+    source_condition_matched_sdf = build_matched_tables_in_stages(source_condition_sdf, source_condition_matched_sdf,
+                                                               "source_condition", config, output_path)
 
     condition_domain_field_map = {
         "g_condition_occurrence_id": "condition_occurrence_id",
@@ -823,9 +823,8 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
                                                        join_type="left_outer")
 
     # Write a parquet file partitioned by domain
-    source_procedure_matched_sdf = write_source_to_parquet_partitioned_by_domain(source_procedure_matched_sdf,
-                                                                                 output_path,
-                                                                                  "source_procedure_matched")
+    source_procedure_matched_sdf = build_matched_tables_in_stages(source_procedure_sdf, source_procedure_matched_sdf, "source_procedure", config, output_path)
+
     if ohdsi_version == "5.3.1":
         procedure_field_map = {
             "g_procedure_occurrence_id": "procedure_occurrence_id",
@@ -1127,8 +1126,8 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
 
     source_matched_med_sdf = source_matched_med_sdf.withColumn("g_source_table_name", F.lit("source_medication"))
 
-    source_matched_med_sdf = write_source_to_parquet_partitioned_by_domain(source_matched_med_sdf, output_path,
-                                                                               "source_med_matched")
+    source_matched_med_sdf = build_matched_tables_in_stages(source_med_sdf, source_matched_med_sdf,
+                                                               "source_medication", config, output_path)
 
     source_drug_domain_sdf = source_matched_med_sdf.filter((F.col("mapped_domain_id") == F.lit("Drug")) | (F.col("mapped_domain_id").isNull()))
 
@@ -1219,40 +1218,7 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
 
     source_result_matched_sdf = source_result_matched_sdf.withColumn("g_source_table_name", F.lit("source_result"))
 
-    # Logic for handling large source_results tables
-    build_table_by_stages = False
-    column_to_split_on = None
-    if "build_by_stages" in config:
-        if "source_result" in config["build_by_stages"]:
-            column_to_split_on  = config["build_by_stages"]["source_result"]
-            build_table_by_stages = True
-
-    if build_table_by_stages:
-        logging.info(f"Build table in stages by splitting on: {column_to_split_on}")
-        stages_df = source_result_sdf.select(F.col(column_to_split_on).alias("column_values_to_split_on")).distinct().toPandas()
-        splits = stages_df["column_values_to_split_on"].values.tolist()
-        logging.info(f"Total splits ({len(splits)}): {splits}")
-
-        splits_sdf_dict = {}
-        table_base_name = "source_result_matched"
-        for i in range(len(splits)):
-            sdf_i = source_result_matched_sdf.where(F.col(column_to_split_on) == F.lit(splits[i]))
-            splits_sdf_dict[i] = write_source_to_parquet_partitioned_by_domain(sdf_i, output_path, table_base_name + f"_{i}")
-
-        union_sdf = None
-        for i in range(len(splits)):
-            if i == 0:
-                union_sdf = splits_sdf_dict[i]
-            else:
-                union_sdf = union_sdf.union(splits_sdf_dict[i])
-
-        source_result_matched_sdf = write_source_to_parquet_partitioned_by_domain(union_sdf,
-                                                                                  output_path,
-                                                                                  "source_result_matched")
-    else:
-        source_result_matched_sdf = write_source_to_parquet_partitioned_by_domain(source_result_matched_sdf,
-                                                                              output_path,
-                                                                              "source_result_matched")
+    source_result_matched_sdf = build_matched_tables_in_stages(source_result_sdf, source_result_matched_sdf, "source_result", config, output_path)
 
     result_field_map = {
         "g_id": "measurement_id",
@@ -2006,6 +1972,48 @@ def format_log_time(start_time, end_time):
 
 def generate_parquet_path(path, table_name):
     return path + table_name + ".parquet"
+
+
+def build_matched_tables_in_stages(source_sdf, source_matched_sdf, source_table_name, config, output_path):
+    """Builds tables in stages for large tables"""
+
+    build_table_by_stages = False
+    column_to_split_on = None
+    if "build_by_stages" in config:
+        if source_table_name in config["build_by_stages"]:
+            column_to_split_on = config["build_by_stages"][source_table_name]
+            build_table_by_stages = True
+
+    if build_table_by_stages:
+        logging.info(f"Build table in stages by splitting on: {column_to_split_on}")
+        stages_df = source_sdf.select(
+            F.col(column_to_split_on).alias("column_values_to_split_on")).distinct().toPandas()
+        splits = sorted(stages_df["column_values_to_split_on"].values.tolist())
+        logging.info(f"Total splits ({len(splits)}): {splits}")
+
+        splits_sdf_dict = {}
+        table_base_name = source_table_name + "_matched"
+        for i in range(len(splits)):
+            sdf_i = source_matched_sdf.where(F.col(column_to_split_on) == F.lit(splits[i]))
+            splits_sdf_dict[i] = write_source_to_parquet_partitioned_by_domain(sdf_i, output_path,
+                                                                               table_base_name + f"_{i}")
+
+        union_sdf = None
+        for i in range(len(splits)):
+            if i == 0:
+                union_sdf = splits_sdf_dict[i]
+            else:
+                union_sdf = union_sdf.union(splits_sdf_dict[i])
+
+        source_matched_sdf = write_source_to_parquet_partitioned_by_domain(union_sdf,
+                                                                                  output_path,
+                                                                                  source_table_name + "_matched")
+    else:
+        source_matched_sdf = write_source_to_parquet_partitioned_by_domain(source_matched_sdf,
+                                                                                  output_path,
+                                                                                  source_table_name + "_matched")
+
+    return source_matched_sdf
 
 
 if __name__ == "__main__":
