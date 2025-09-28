@@ -1225,6 +1225,7 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
     if "build_by_stages" in config:
         if "source_result" in config["build_by_stages"]:
             column_to_split_on  = config["build_by_stages"]["source_result"]
+            build_table_by_stages = True
 
     if build_table_by_stages:
         logging.info(f"Build table in stages by splitting on: {column_to_split_on}")
