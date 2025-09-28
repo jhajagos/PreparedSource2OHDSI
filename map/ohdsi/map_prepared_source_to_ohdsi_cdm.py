@@ -113,8 +113,8 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
     source_person_sdf = filter_out_i_excluded(source_person_sdf)
 
     # Define variables for concept tables
-    concept_sdf = concept_map_sdf_dict["concept"]
-    concept_map_sdf = concept_map_sdf_dict["concept_map"]  # Generated with 'build_concept_tables_for_mapping.py'
+    concept_sdf = concept_map_sdf_dict["concept"].cache()
+    concept_map_sdf = concept_map_sdf_dict["concept_map"].cache()  # Generated with 'build_concept_tables_for_mapping.py'
 
     # Get mappings from OID to OHDSI Vocabulary IDs
     oid_to_vocab_id_path = os.path.join(os.path.dirname(__file__), "./mappings/oid_to_vocabulary_id.json")
@@ -1205,6 +1205,13 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
 
     source_result_sdf = source_result_sdf.withColumn("g_result_numeric_upper",
                                                      F.col("s_result_numeric_upper").cast("double"))
+
+    source_result_partition_by = None
+    if "build_by_stages" in config:
+        if "source_result" in config["build_by_stages"]:
+            source_result_partition_by = config["build_by_stages"]["source_result"]
+
+    source_result_sdf = mapping_utilities.write_parquet_file_and_reload(source_result_sdf, "source_result_joined", output_path + "support/", partition_by=source_result_partition_by)
 
     source_result_matched_sdf = mapped_and_source_standard_code_mapper(source_result_sdf, concept_sdf, oid_to_vocab_sdf, concept_map_sdf,
                                            "m_code", "m_code_type_oid", "s_code", "s_code_type_oid",

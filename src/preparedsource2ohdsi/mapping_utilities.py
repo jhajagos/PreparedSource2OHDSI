@@ -152,11 +152,15 @@ def json_dict_to_dataframe(spark_ptr, json_file_name, column_pair):
     return dict_to_dataframe(spark_ptr, dictionary, column_pair)
 
 
-def write_parquet_file_and_reload(spark_ptr, sdf, table_name, output_location):
+def write_parquet_file_and_reload(spark_ptr, sdf, table_name, output_location, partition_by=None):
     """Write Spark Dataframe to a Parquet and then reload it"""
 
     parquet_path = output_location + table_name + ".parquet"
-    sdf.write.mode("overwrite").parquet(parquet_path)
+
+    if partition_by is None:
+        sdf.write.mode("overwrite").parquet(parquet_path)
+    else:
+        sdf.write.partitionBy(partition_by).mode('overwrite').parquet(parquet_path)
 
     logging.info(f"Writing '{parquet_path}'")
 
