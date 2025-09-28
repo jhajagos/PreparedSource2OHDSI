@@ -1219,7 +1219,37 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
 
     source_result_matched_sdf = source_result_matched_sdf.withColumn("g_source_table_name", F.lit("source_result"))
 
-    source_result_matched_sdf = write_source_to_parquet_partitioned_by_domain(source_result_matched_sdf,
+    # Logic for handling large source_results tables
+    build_table_by_stages = False
+    column_to_split_on = None
+    if "build_by_stages" in config:
+        if "source_result" in config["build_by_stages"]:
+            column_to_split_on  = config["build_by_stages"]["source_result"]
+
+    if build_table_by_stages:
+        logging.info(f"Build table in stages by splitting on: {column_to_split_on}")
+        stages_df = source_result_sdf.select(F.col(column_to_split_on).alias("column_values_to_split_on")).distinct().toPandas()
+        splits = stages_df["column_values_to_split_on"].values.tolist()
+        logging.info(f"Total splits ({len(splits)}): {splits}")
+
+        splits_sdf_dict = {}
+        table_base_name = "source_result_matched"
+        for i in range(len(splits)):
+            sdf_i = source_result_matched_sdf.where(F.col(column_to_split_on) == F.lit(splits[i]))
+            splits_sdf_dict[i] = write_source_to_parquet_partitioned_by_domain(sdf_i, output_path, table_base_name + f"_{i}")
+
+        union_sdf = None
+        for i in range(len(splits)):
+            if i == 0:
+                union_sdf = splits_sdf_dict[i]
+            else:
+                union_sdf = union_sdf.union(splits_sdf_dict[i])
+
+        source_result_matched_sdf = write_source_to_parquet_partitioned_by_domain(union_sdf,
+                                                                                  output_path,
+                                                                                  "source_result_matched")
+    else:
+        source_result_matched_sdf = write_source_to_parquet_partitioned_by_domain(source_result_matched_sdf,
                                                                               output_path,
                                                                               "source_result_matched")
 
