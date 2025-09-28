@@ -1211,7 +1211,7 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
         if "source_result" in config["build_by_stages"]:
             source_result_partition_by = config["build_by_stages"]["source_result"]
 
-    source_result_sdf = mapping_utilities.write_parquet_file_and_reload(spark, source_result_sdf, "source_result_joined", output_path + "support/", partition_by=source_result_partition_by)
+    source_result_sdf, _ = mapping_utilities.write_parquet_file_and_reload(spark, source_result_sdf, "source_result_joined", output_path + "support/", partition_by=source_result_partition_by)
 
     source_result_matched_sdf = mapped_and_source_standard_code_mapper(source_result_sdf, concept_sdf, oid_to_vocab_sdf, concept_map_sdf,
                                            "m_code", "m_code_type_oid", "s_code", "s_code_type_oid",
