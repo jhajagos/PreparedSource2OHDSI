@@ -156,13 +156,11 @@ def write_parquet_file_and_reload(spark_ptr, sdf, table_name, output_location, p
     """Write Spark Dataframe to a Parquet and then reload it"""
 
     parquet_path = output_location + table_name + ".parquet"
-
+    logging.info(f"Writing '{parquet_path}'")
     if partition_by is None:
         sdf.write.mode("overwrite").parquet(parquet_path)
     else:
         sdf.write.partitionBy(partition_by).mode('overwrite').parquet(parquet_path)
-
-    logging.info(f"Writing '{parquet_path}'")
 
     sdf = spark_ptr.read.parquet(parquet_path)
 
