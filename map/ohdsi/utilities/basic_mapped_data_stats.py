@@ -15,26 +15,26 @@ def main(spark, tbs, extended_queries):
     catalog = mu.attach_catalog_dict(spark, tbs)
 
     statistics_queries = {"count_people": "select count(distinct person_id) as n, count(*) as n_r from person",
-                          "count_visits": "select count(distinct person_id) as n, count(*) as n_r, count(distinct visit_occurrence_id) as n_visit_occurrence_id from visit_occurrence",
-                          "count_deaths": "select count(distinct person_id) as n, count(*) as n_r from death",
-                          "count_observation_periods": "select count(distinct person_id) as n, count(*) as n_r, count(distinct observation_period_id) as n_observation_period_id from observation_period",
+                          "count_visits": "with pc as (select count(distinct person_id) as p_n from person) select t.*, pc.* from  pc cross join (select count(distinct person_id) as n, count(*) as n_r, count(distinct visit_occurrence_id) as n_visit_occurrence_id from visit_occurrence) t",
+                          "count_deaths": "with pc as (select count(distinct person_id) as p_n from person) select t.*, pc.* from pc cross join (select count(distinct person_id) as n, count(*) as n_r from death) t",
+                          "count_observation_periods": "with pc as (select count(distinct person_id) as p_n from person) select t.*, pc.* from pc cross join  (select count(distinct person_id) as n, count(*) as n_r, count(distinct observation_period_id) as n_observation_period_id from observation_period) t",
 
                           "count_gender": "with pc as (select count(distinct person_id) as p_n from person) select t.*, pc.* from  pc cross join (select count(distinct person_id) as n, count(*) as n_r, concept_name as gender_concept_name from person p join concept c on p.gender_concept_id = c.concept_id group by gender_concept_id, concept_name) t order by n_r desc",
-                          "count_race": "select count(distinct person_id) as n, count(*) as n_r, concept_name as race_concept_name from person p join concept c on  p.race_concept_id = c.concept_id group by race_concept_id, concept_name order by count(*) desc",
-                          "count_ethnicity": "select count(distinct person_id) as n, count(*) as n_r, concept_name as ethnicity_concept_name from person p join concept c on  p.ethnicity_concept_id = c.concept_id group by ethnicity_concept_id, concept_name order by count(*) desc",
+                          "count_race": "with pc as (select count(distinct person_id) as p_n from person) select t.*, pc.* from pc cross join (select count(distinct person_id) as n, count(*) as n_r, concept_name as race_concept_name from person p join concept c on  p.race_concept_id = c.concept_id group by race_concept_id, concept_name) t order by n_r desc",
+                          "count_ethnicity": "with pc as (select count(distinct person_id) as p_n from person) select t.*, pc.* from pc cross join (select count(distinct person_id) as n, count(*) as n_r, concept_name as ethnicity_concept_name from person p join concept c on  p.ethnicity_concept_id = c.concept_id group by ethnicity_concept_id, concept_name) t order by n_r desc",
 
-                          "count_conditions": "select count(distinct person_id) as n, count(distinct visit_occurrence_id) as n_visits, count(*) as n_r,  count(distinct condition_occurrence_id) as n_condition_occurrence_id from condition_occurrence",
-                          "count_procedures": "select count(distinct person_id) as n,  count(distinct visit_occurrence_id) as n_visits, count(*) as n_r, count(distinct procedure_occurrence_id) as n_procedure_occurrence_id  from procedure_occurrence",
+                          "count_conditions": "with pc as (select count(distinct person_id) as p_n from person) select t.*, pc.* from  pc cross join (select count(distinct person_id) as n, count(distinct visit_occurrence_id) as n_visits, count(*) as n_r,  count(distinct condition_occurrence_id) as n_condition_occurrence_id from condition_occurrence) t",
+                          "count_procedures": "with pc as (select count(distinct person_id) as p_n from person) select t.*, pc.* from  pc cross join (select count(distinct person_id) as n,  count(distinct visit_occurrence_id) as n_visits, count(*) as n_r, count(distinct procedure_occurrence_id) as n_procedure_occurrence_id  from procedure_occurrence) t",
 
-                          "count_measurements": "select count(distinct person_id) as n, count(distinct visit_occurrence_id) as n_visits, count(*) as n_r, count(distinct measurement_id) as n_measurement_id from measurement",
-                          "count_observations": "select count(distinct person_id) as n, count(distinct visit_occurrence_id) as n_visits, count(*) as n_r, count(distinct observation_id) as n_observation_id from observation",
+                          "count_measurements": "with pc as (select count(distinct person_id) as p_n from person) select t.*, pc.* from  pc cross join (select count(distinct person_id) as n, count(distinct visit_occurrence_id) as n_visits, count(*) as n_r, count(distinct measurement_id) as n_measurement_id from measurement) t",
+                          "count_observations": "with pc as (select count(distinct person_id) as p_n from person) select t.*, pc.* from  pc cross join (select count(distinct person_id) as n, count(distinct visit_occurrence_id) as n_visits, count(*) as n_r, count(distinct observation_id) as n_observation_id from observation) t",
 
-                          "count_drugs": "select count(distinct person_id) as n, count(distinct visit_occurrence_id) as n_visits, count(*) as n_r, count(distinct drug_exposure_id) as n_drug_expousure_id from drug_exposure",
-                          "count_devices": "select count(distinct person_id) as n, count(distinct visit_occurrence_id) as n_visits, count(*) as n_r, count(distinct device_exposure_id) as d_device_exposure_id from device_exposure",
+                          "count_drugs": "with pc as (select count(distinct person_id) as p_n from person) select t.*, pc.* from  pc cross join (select count(distinct person_id) as n, count(distinct visit_occurrence_id) as n_visits, count(*) as n_r, count(distinct drug_exposure_id) as n_drug_expousure_id from drug_exposure) t",
+                          "count_devices": "with pc as (select count(distinct person_id) as p_n from person) select t.*, pc.* from  pc cross join (select count(distinct person_id) as n, count(distinct visit_occurrence_id) as n_visits, count(*) as n_r, count(distinct device_exposure_id) as d_device_exposure_id from device_exposure) t",
 
-                          "count_payers": "select count(distinct person_id) as n, count(*) as n_r, count(distinct payer_plan_period_id)  as n_payer_plan_period_id from payer_plan_period",
+                          "count_payers": "with pc as (select count(distinct person_id) as p_n from person) select t.*, pc.* from  pc cross join (select count(distinct person_id) as n, count(*) as n_r, count(distinct payer_plan_period_id)  as n_payer_plan_period_id from payer_plan_period) t",
 
-                          "count_notes": "select count(distinct person_id) as n, count(distinct visit_occurrence_id) as n_visits, count(*) as n_r, count(distinct note_class_concept_id)  as n_note_class_concept_id from note",
+                          "count_notes": "with pc as (select count(distinct person_id) as p_n from person) select t.*, pc.* from  pc cross join (select count(distinct person_id) as n, count(distinct visit_occurrence_id) as n_visits, count(*) as n_r, count(distinct note_class_concept_id)  as n_note_class_concept_id from note) t",
 
                           "count_visit_concepts_count": "select count(distinct person_id) as n, count(*) as n_r, visit_concept_id, c.concept_name as visit_concept_name from visit_occurrence vo join concept c on vo.visit_concept_id = c.concept_id group by visit_concept_id, c.concept_name order by count(*) desc",
 
@@ -83,11 +83,8 @@ def main(spark, tbs, extended_queries):
         "yearly_device_counts": "select count(distinct person_id) as n, count(distinct visit_occurrence_id) as n_visits, count(1) as n_r, device_year from (select  person_id, visit_occurrence_id, extract(year from device_exposure_start_date) as device_year from device_exposure) t group by device_year order by device_year desc"
     }
 
-
-    if extended_queries:
-        #queries_to_run.update(extended_queries)
+    if extended_queries is True:
         extended_queries.update(statistics_queries)
-
         queries_to_run = extended_queries
     else:
         queries_to_run = statistics_queries
