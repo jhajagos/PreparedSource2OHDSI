@@ -68,7 +68,6 @@ def main(spark, tbs, extended_queries):
                           "care_site_count": "select count(*) as n_r, count(distinct care_site_id) as n_care_site_id from care_site",
 
                           "cdm_source": "select * from cdm_source"
-
                           }
 
     # More detailed queries
