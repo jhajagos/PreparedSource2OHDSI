@@ -71,8 +71,7 @@ def main(spark, tbs, extended_queries):
                           }
 
     # More detailed queries
-
-    extended_queries = {
+    extended_queries_to_run = {
         "yearly_visit_counts": "select count(distinct person_id) as n, count(distinct visit_occurrence_id) as n_visits, visit_year from (select  person_id, visit_occurrence_id, extract(year from visit_start_date) as visit_year from visit_occurrence) t group by visit_year order by visit_year desc",
         "yearly_condition_counts": "select count(distinct person_id) as n, count(distinct visit_occurrence_id) as n_visits, count(1) as n_r, condition_year from (select  person_id, visit_occurrence_id, extract(year from condition_start_date) as condition_year from condition_occurrence) t group by condition_year order by condition_year desc",
         "yearly_procedure_counts": "select count(distinct person_id) as n, count(distinct visit_occurrence_id) as n_visits, count(1) as n_r, procedure_year from (select  person_id, visit_occurrence_id, extract(year from procedure_date) as procedure_year from procedure_occurrence) t group by procedure_year order by procedure_year desc",
@@ -83,13 +82,12 @@ def main(spark, tbs, extended_queries):
     }
 
     if extended_queries is True:
-        extended_queries.update(statistics_queries)
-        queries_to_run = extended_queries
+        extended_queries_to_run.update(statistics_queries)
+        queries_to_run = extended_queries_to_run
     else:
         queries_to_run = statistics_queries
 
     for tag in queries_to_run:
-
         print(f"{tag}:")
         query = queries_to_run[tag]
         print(query)

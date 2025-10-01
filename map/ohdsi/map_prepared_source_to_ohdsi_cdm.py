@@ -1102,7 +1102,7 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
     source_med_sdf = source_med_sdf.withColumn("gg_drug_code", F.expr("coalesce(s_drug_code, m_drug_code, g_drug_code)"))
     source_med_sdf = source_med_sdf.withColumn("gg_drug_code_text", F.expr("coalesce(s_drug_text, s_drug_alternative_text, m_drug_text, g_drug_text)"))
 
-    source_med_sdf = source_med_sdf.withColumn("g_drug_code_with_name", F.expr("gg_drug_code || '|' || gg_drug_code_text"))
+    source_med_sdf = source_med_sdf.withColumn("g_drug_code_with_name", F.expr("coalesce(gg_drug_code, '') || '|' || coalesce(gg_drug_code_text, '')"))
 
     source_med_sdf = drug_type_m_code_mapper(source_med_sdf, concept_sdf, oid_to_vocab_sdf)
     source_med_sdf = drug_type_s_code_mapper(source_med_sdf, concept_sdf, oid_to_vocab_sdf)
