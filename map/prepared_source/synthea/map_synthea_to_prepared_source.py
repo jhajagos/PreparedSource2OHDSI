@@ -228,8 +228,8 @@ left outer join visit_type_mapping vtm on vtm.s_visit_type = e.`ENCOUNTERCLASS`
     payer_map_sdf = load_local_csv_file(spark, mappings_p / "mappings/payer.csv", "payer_map")
 
     source_payer_sql = """
-    select
-    `Id` as s_id
+    select uuid()
+     as s_id
     ,`PATIENT` as s_person_id --Source identifier for patient or person
    ,cast(`START_DATE` as timestamp) as s_payer_start_datetime --The date the plan's coverage started
    ,cast(`END_DATE` as timestamp) as s_payer_end_datetime --The date the plan's contribution ended

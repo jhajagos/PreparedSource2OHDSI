@@ -1377,8 +1377,7 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
     ohdsi_sdf_dict["note"] = ohdsi_note_sdf, note_path
 
     note_build_end_time = time.time()
-    logging.info(
-        f"Finished processing source note (Total elapsed time: {format_log_time(note_build_start_time, note_build_end_time)})")
+    logging.info(f"Finished processing source note (Total elapsed time: {format_log_time(note_build_start_time, note_build_end_time)})")
 
     # Metadata tables
     logging.info("Generating metadata")
@@ -1469,11 +1468,12 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
         "cost": ohdsi.CostObject(),
         "cohort_definition": ohdsi.CohortDefinitionObject(),
 
-        "fact_relationship": ohdsi.FactRelationshipObject(),
-
         "metadata": ohdsi.MetadataObject(),
         "cdm_source": ohdsi.CdmSourceObject(),
     }
+
+    if "fact_relationship" in config_dict:
+        empty_tables_dict["fact_relationship"] = ohdsi.FactRelationshipObject()
 
     exported_table_dict["ohdsi"] = {}
     if write_cdm_source:
@@ -1509,6 +1509,7 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
                          "device_exposure"]
 
     logging.info("Combining tables")
+    logging.info("Combining main OHDSI tables")
     combined_tables_dict = {}
     for table_name in tables_to_combine:
         logging.info(f"Building {table_name}")
@@ -1528,6 +1529,134 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
             pass
         else:
             exported_table_dict["ohdsi"][table_name] = sdf_key[1]
+
+    source_relationship_sdf_dict = {}
+    fact_relationship_sdf_dict = {}
+
+    if "fact_relationship" in config_dict:
+        logging.info("Building 'fact_relationship' table")
+
+        fact_relationship_build_start_time = time.time()
+
+        table_domain_dict = {
+            "person": "Person",
+            "provider": "Provider",
+            "visit_occurrence": "Visit",
+            "payer_plan_period": "Payer - institution administering healthcare transactions",
+            "condition_occurrence": "Condition",
+            "procedure_occurrence": "Procedure",
+            "drug_exposure": "Drug",
+            "measurement": "Measurement",
+            "observation": "Observation",
+            "device_exposure": "Device",
+            "note": "Note",
+            "care_site": "Care site"
+        }
+
+        with open(oid_to_vocab_id_path) as f:
+            oid_to_vocab_dict = json.load(f)
+
+        i = 0
+        for table_dict in config_dict["fact_relationship"]:
+
+            table = table_dict["source_table_name"]
+            source_relationship_path = generate_parquet_path(config_dict["prepared_source_table_path"], table)
+
+            logging.info(f"Reading '{source_relationship_path}'")
+            source_relationship_sdf_dict[table] = spark.read.parquet(source_relationship_path)
+
+            logging.info(f"Processing: '{table}'")
+            for relationship in table_dict["relationships_to_generate"]:
+                logging.info(f"Building relationship: {relationship['s_relationship']}")
+
+                ohdsi_from_table_name = relationship["ohdsi_domain_from"]
+                ohdsi_to_table_name = relationship["ohdsi_domain_to"]
+
+                if ohdsi_from_table_name in combined_tables_dict:
+                    ohdsi_from_sdf = combined_tables_dict[ohdsi_from_table_name][0]
+                else:
+                    ohdsi_from_sdf, _ = ohdsi_sdf_dict[ohdsi_from_table_name]
+
+                if ohdsi_to_table_name in combined_tables_dict:
+                    ohdsi_to_sdf = combined_tables_dict[ohdsi_to_table_name][0]
+                else:
+                    ohdsi_to_sdf, _ = ohdsi_sdf_dict[ohdsi_to_table_name]
+
+                sr_sdf = source_relationship_sdf_dict[table].where(
+                    F.col("s_relationship") == F.lit(relationship["s_relationship"]))
+                s_mapping_info = \
+                    sr_sdf.select("s_target_to_table_name", "s_target_from_table_name", "s_target_from_table_field",
+                                  "s_target_to_table_field", "s_relationship_code",
+                                  "s_relationship_code_type_oid").distinct().toPandas().to_dict("records")[0]
+
+                relationship_vocabulary = oid_to_vocab_dict[s_mapping_info["s_relationship_code_type_oid"]]
+
+                relationship_info = concept_sdf.where(
+                    (F.col("concept_code") == F.lit(s_mapping_info["s_relationship_code"])) & (F.col("vocabulary_id") == F.lit(
+                        relationship_vocabulary))).toPandas().to_dict("records")[0]
+
+                s_target_from_sdf = prepared_source_sdf_dict[s_mapping_info["s_target_from_table_name"]]
+                s_target_to_sdf = prepared_source_sdf_dict[s_mapping_info["s_target_to_table_name"]]
+
+                s_target_from_field_name = s_mapping_info["s_target_from_table_field"]
+                s_target_to_field_name = s_mapping_info["s_target_to_table_field"]
+
+                part_1_sdf = sr_sdf.alias("sr").join(s_target_from_sdf.alias("f"),
+                                                     F.col("f." + s_target_from_field_name) == F.col(
+                                                         "sr.s_target_from_value"))
+
+                part_2_sdf = part_1_sdf.join(s_target_to_sdf.alias("t"),
+                                             F.col("t." + s_target_to_field_name) == F.col("sr.s_target_to_value"))
+
+                part_3_sdf = part_2_sdf.join(ohdsi_from_sdf.alias("of"),
+                                             (F.col("of.s_g_id") == F.col("f.g_id"))  & (F.col(
+                                                 "of.g_source_table_name") == F.lit(
+                                                 s_mapping_info["s_target_from_table_name"])))
+
+                part_4_sdf = part_3_sdf.join(ohdsi_to_sdf.alias("ot"), (F.col("ot.s_g_id") == F.col("t.g_id")) & (F.col(
+                    "ot.g_source_table_name") == F.lit(s_mapping_info["s_target_to_table_name"])))
+
+                from_domain_name = table_domain_dict[ohdsi_from_table_name]
+                to_domain_name = table_domain_dict[ohdsi_to_table_name]
+
+                from_concept_id = concept_sdf.where(
+                    (F.col("domain_id") == F.lit("Metadata"))  & (F.col("vocabulary_id") == F.lit("Domain")) & (F.col(
+                        "concept_name") == F.lit(from_domain_name))).toPandas().to_dict("records")[0]["concept_id"]
+
+                to_concept_id = concept_sdf.where(
+                    (F.col("domain_id") == F.lit("Metadata")) & (F.col("vocabulary_id") == F.lit("Domain")) & (F.col(
+                        "concept_name") == F.lit(to_domain_name))).toPandas().to_dict("records")[0]["concept_id"]
+
+                fact_relationship_sdf = part_4_sdf.select(F.lit(from_concept_id).alias("domain_concept_id_1"),
+                                                          F.col(ohdsi_from_table_name + "_id").alias("fact_id_1"),
+                                                          F.lit(to_concept_id).alias("domain_concept_id_2"),
+                                                          F.col(ohdsi_to_table_name + "_id").alias("fact_id_2"),
+                                                          F.lit(relationship_info["concept_id"]).alias(
+                                                              "relationship_concept_id"))
+
+                fact_relationship_table_name = "fact_relationship_" + str(i)
+                fact_relationship_sdf, _ = mapping_utilities.write_parquet_file_and_reload(spark, fact_relationship_sdf,
+                                                                                           fact_relationship_table_name,
+                                                                                           output_path + "support/")
+
+                fact_relationship_sdf_dict[fact_relationship_table_name] = fact_relationship_sdf
+                i += 1
+
+    if len(fact_relationship_sdf_dict):
+        logging.info("Combining fact_relationship tables")
+
+        union_table_sdf = None
+        i = 0
+        for table_name in fact_relationship_sdf_dict:
+            if i == 0:
+                union_table_sdf = fact_relationship_sdf_dict[table_name]
+            else:
+                union_table_sdf = union_table_sdf.union(fact_relationship_sdf_dict[table_name])
+
+            i += 1
+
+        _, fact_relationship_path = mapping_utilities.write_parquet_file_and_reload(spark, union_table_sdf, "fact_relationship", output_path)
+        exported_table_dict["ohdsi"]["fact_relationship"] = fact_relationship_path
 
     with open(export_json_file_name, "w") as fw:
         json.dump(exported_table_dict, fw, sort_keys=True, indent=4, separators=(',', ': '))
