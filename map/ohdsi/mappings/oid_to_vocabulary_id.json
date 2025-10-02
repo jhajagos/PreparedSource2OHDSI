@@ -22,5 +22,6 @@
   "ohdsi.visit": "Visit",
   "ohdsi.type_concept": "Type Concept",
   "ohdsi.condition_status": "Condition Status",
-  "nahdo.sopt": "SOPT"
+  "nahdo.sopt": "SOPT",
+  "ohdsi.relationship": "Relationship"
 }
