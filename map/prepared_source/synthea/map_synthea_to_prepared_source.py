@@ -111,7 +111,7 @@ from patients p
    ,cast(NULL as STRING) as s_ethnicity_code_type --Source gender code type (human readable & OPTIONAL)
    ,cast(NULL as STRING) as s_ethnicity_code_type_oid --Source ethnicity code type specified by OID (used in OHDSI mapping)
    ,em.m_ethnicity
-   ,em.m_ethnicity_code --See: https://athena.ohdsi.org/search-terms/terms?domain=Ethnicity&standardConcept=Standard&page=1&pageSize=15&query=
+   ,em.m_ethnicity_code --See: https/athena.ohdsi.org/search-terms/terms?domain=Ethnicity&standardConcept=Standard&page=1&pageSize=15&query=
    ,em.m_ethnicity_code_type
    ,em.m_ethnicity_code_type_oid --Use 'ohdsi.ethnicity' for standard OHDSI ethnicity codes
    ,sha1(coalesce(`ADDRESS`, '') || coalesce(`CITY`,'') || coalesce(`STATE`,'') || coalesce(`ZIP`, '')) as k_location --Key value to location in source_location table
@@ -228,8 +228,8 @@ left outer join visit_type_mapping vtm on vtm.s_visit_type = e.`ENCOUNTERCLASS`
     payer_map_sdf = load_local_csv_file(spark, mappings_p / "mappings/payer.csv", "payer_map")
 
     source_payer_sql = """
-    select
-    `Id` as s_id
+    select uuid()
+     as s_id
     ,`PATIENT` as s_person_id --Source identifier for patient or person
    ,cast(`START_DATE` as timestamp) as s_payer_start_datetime --The date the plan's coverage started
    ,cast(`END_DATE` as timestamp) as s_payer_end_datetime --The date the plan's contribution ended
@@ -274,7 +274,7 @@ from payer_transitions pt
    ,'2.16.840.1.113883.6.96' as s_relationship_code_type_oid --The code type OID
    ,'source_payer' as s_target_from_table_name --The source table name to target
    ,'s_id' as s_target_from_table_field --The table field of the source table name to target
-   ,cast(NULL as STRING) as s_target_from_value --The field value in the source table to target
+   ,sp.s_id as s_target_from_value --The field value in the source table to target
    ,'source_encounter' as s_target_to_table_name
    ,'s_encounter_id' as s_target_to_table_field
    ,s_encounter_id as s_target_to_value

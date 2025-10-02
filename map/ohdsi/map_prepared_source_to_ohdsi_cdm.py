@@ -113,8 +113,8 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
     source_person_sdf = filter_out_i_excluded(source_person_sdf)
 
     # Define variables for concept tables
-    concept_sdf = concept_map_sdf_dict["concept"]
-    concept_map_sdf = concept_map_sdf_dict["concept_map"]  # Generated with 'build_concept_tables_for_mapping.py'
+    concept_sdf = concept_map_sdf_dict["concept"].cache()
+    concept_map_sdf = concept_map_sdf_dict["concept_map"].cache()  # Generated with 'build_concept_tables_for_mapping.py'
 
     # Get mappings from OID to OHDSI Vocabulary IDs
     oid_to_vocab_id_path = os.path.join(os.path.dirname(__file__), "./mappings/oid_to_vocabulary_id.json")
@@ -634,9 +634,9 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
         F.col("s_end_condition_datetime")))
 
     # Write a parquet file partitioned by domain
-    source_condition_matched_sdf = write_source_to_parquet_partitioned_by_domain(source_condition_matched_sdf,
-                                                                                 output_path,
-                                                                               "source_condition_matched")
+
+    source_condition_matched_sdf = build_matched_tables_in_stages(source_condition_sdf, source_condition_matched_sdf,
+                                                               "source_condition", config, output_path)
 
     condition_domain_field_map = {
         "g_condition_occurrence_id": "condition_occurrence_id",
@@ -823,9 +823,8 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
                                                        join_type="left_outer")
 
     # Write a parquet file partitioned by domain
-    source_procedure_matched_sdf = write_source_to_parquet_partitioned_by_domain(source_procedure_matched_sdf,
-                                                                                 output_path,
-                                                                                  "source_procedure_matched")
+    source_procedure_matched_sdf = build_matched_tables_in_stages(source_procedure_sdf, source_procedure_matched_sdf, "source_procedure", config, output_path)
+
     if ohdsi_version == "5.3.1":
         procedure_field_map = {
             "g_procedure_occurrence_id": "procedure_occurrence_id",
@@ -1103,7 +1102,7 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
     source_med_sdf = source_med_sdf.withColumn("gg_drug_code", F.expr("coalesce(s_drug_code, m_drug_code, g_drug_code)"))
     source_med_sdf = source_med_sdf.withColumn("gg_drug_code_text", F.expr("coalesce(s_drug_text, s_drug_alternative_text, m_drug_text, g_drug_text)"))
 
-    source_med_sdf = source_med_sdf.withColumn("g_drug_code_with_name", F.expr("gg_drug_code || '|' || gg_drug_code_text"))
+    source_med_sdf = source_med_sdf.withColumn("g_drug_code_with_name", F.expr("coalesce(gg_drug_code, '') || '|' || coalesce(gg_drug_code_text, '')"))
 
     source_med_sdf = drug_type_m_code_mapper(source_med_sdf, concept_sdf, oid_to_vocab_sdf)
     source_med_sdf = drug_type_s_code_mapper(source_med_sdf, concept_sdf, oid_to_vocab_sdf)
@@ -1127,8 +1126,8 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
 
     source_matched_med_sdf = source_matched_med_sdf.withColumn("g_source_table_name", F.lit("source_medication"))
 
-    source_matched_med_sdf = write_source_to_parquet_partitioned_by_domain(source_matched_med_sdf, output_path,
-                                                                               "source_med_matched")
+    source_matched_med_sdf = build_matched_tables_in_stages(source_med_sdf, source_matched_med_sdf,
+                                                               "source_medication", config, output_path)
 
     source_drug_domain_sdf = source_matched_med_sdf.filter((F.col("mapped_domain_id") == F.lit("Drug")) | (F.col("mapped_domain_id").isNull()))
 
@@ -1207,6 +1206,13 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
     source_result_sdf = source_result_sdf.withColumn("g_result_numeric_upper",
                                                      F.col("s_result_numeric_upper").cast("double"))
 
+    source_result_partition_by = None
+    if "build_by_stages" in config:
+        if "source_result" in config["build_by_stages"]:
+            source_result_partition_by = config["build_by_stages"]["source_result"]
+
+    source_result_sdf, _ = mapping_utilities.write_parquet_file_and_reload(spark, source_result_sdf, "source_result_joined", output_path + "support/", partition_by=source_result_partition_by)
+
     source_result_matched_sdf = mapped_and_source_standard_code_mapper(source_result_sdf, concept_sdf, oid_to_vocab_sdf, concept_map_sdf,
                                            "m_code", "m_code_type_oid", "s_code", "s_code_type_oid",
                                            "g_measurement_source_concept_id", "g_measurement_concept_id")
@@ -1219,9 +1225,7 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
 
     source_result_matched_sdf = source_result_matched_sdf.withColumn("g_source_table_name", F.lit("source_result"))
 
-    source_result_matched_sdf = write_source_to_parquet_partitioned_by_domain(source_result_matched_sdf,
-                                                                              output_path,
-                                                                              "source_result_matched")
+    source_result_matched_sdf = build_matched_tables_in_stages(source_result_sdf, source_result_matched_sdf, "source_result", config, output_path)
 
     result_field_map = {
         "g_id": "measurement_id",
@@ -1373,8 +1377,7 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
     ohdsi_sdf_dict["note"] = ohdsi_note_sdf, note_path
 
     note_build_end_time = time.time()
-    logging.info(
-        f"Finished processing source note (Total elapsed time: {format_log_time(note_build_start_time, note_build_end_time)})")
+    logging.info(f"Finished processing source note (Total elapsed time: {format_log_time(note_build_start_time, note_build_end_time)})")
 
     # Metadata tables
     logging.info("Generating metadata")
@@ -1465,11 +1468,12 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
         "cost": ohdsi.CostObject(),
         "cohort_definition": ohdsi.CohortDefinitionObject(),
 
-        "fact_relationship": ohdsi.FactRelationshipObject(),
-
         "metadata": ohdsi.MetadataObject(),
         "cdm_source": ohdsi.CdmSourceObject(),
     }
+
+    if "fact_relationship" in config_dict:
+        empty_tables_dict["fact_relationship"] = ohdsi.FactRelationshipObject()
 
     exported_table_dict["ohdsi"] = {}
     if write_cdm_source:
@@ -1505,6 +1509,7 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
                          "device_exposure"]
 
     logging.info("Combining tables")
+    logging.info("Combining main OHDSI tables")
     combined_tables_dict = {}
     for table_name in tables_to_combine:
         logging.info(f"Building {table_name}")
@@ -1524,6 +1529,139 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
             pass
         else:
             exported_table_dict["ohdsi"][table_name] = sdf_key[1]
+
+    source_relationship_sdf_dict = {}
+    fact_relationship_sdf_dict = {}
+
+    if "fact_relationship" in config_dict:
+        logging.info("Building 'fact_relationship' table")
+
+        fact_relationship_build_start_time = time.time()
+
+        table_domain_dict = {
+            "person": "Person",
+            "provider": "Provider",
+            "visit_occurrence": "Visit",
+            "payer_plan_period": "Payer - institution administering healthcare transactions",
+            "condition_occurrence": "Condition",
+            "procedure_occurrence": "Procedure",
+            "drug_exposure": "Drug",
+            "measurement": "Measurement",
+            "observation": "Observation",
+            "device_exposure": "Device",
+            "note": "Note",
+            "care_site": "Care site"
+        }
+
+        with open(oid_to_vocab_id_path) as f:
+            oid_to_vocab_dict = json.load(f)
+
+        i = 0
+        for table_dict in config_dict["fact_relationship"]:
+
+            table = table_dict["source_table_name"]
+            source_relationship_path = generate_parquet_path(config_dict["prepared_source_table_path"], table)
+
+            logging.info(f"Reading '{source_relationship_path}'")
+            source_relationship_sdf_dict[table] = spark.read.parquet(source_relationship_path)
+
+            for relationship in table_dict["relationships_to_generate"]:
+                logging.info(f"   Building relationship: {relationship['s_relationship']}")
+
+                ohdsi_from_table_name = relationship["ohdsi_table_from"]
+                ohdsi_to_table_name = relationship["ohdsi_table_to"]
+
+                if ohdsi_from_table_name in combined_tables_dict:
+                    ohdsi_from_sdf = combined_tables_dict[ohdsi_from_table_name][0]
+                else:
+                    ohdsi_from_sdf, _ = ohdsi_sdf_dict[ohdsi_from_table_name]
+
+                if ohdsi_to_table_name in combined_tables_dict:
+                    ohdsi_to_sdf = combined_tables_dict[ohdsi_to_table_name][0]
+                else:
+                    ohdsi_to_sdf, _ = ohdsi_sdf_dict[ohdsi_to_table_name]
+
+                sr_sdf = source_relationship_sdf_dict[table].where(
+                    F.col("s_relationship") == F.lit(relationship["s_relationship"]))
+                s_mapping_info = \
+                    sr_sdf.select("s_target_to_table_name", "s_target_from_table_name", "s_target_from_table_field",
+                                  "s_target_to_table_field", "s_relationship_code",
+                                  "s_relationship_code_type_oid").distinct().toPandas().to_dict("records")[0]
+
+                relationship_vocabulary = oid_to_vocab_dict[s_mapping_info["s_relationship_code_type_oid"]]
+
+                relationship_info = concept_sdf.where(
+                    (F.col("concept_code") == F.lit(s_mapping_info["s_relationship_code"])) & (F.col("vocabulary_id") == F.lit(
+                        relationship_vocabulary))).toPandas().to_dict("records")[0]
+
+                s_target_from_sdf = prepared_source_sdf_dict[s_mapping_info["s_target_from_table_name"]]
+                s_target_to_sdf = prepared_source_sdf_dict[s_mapping_info["s_target_to_table_name"]]
+
+                s_target_from_field_name = s_mapping_info["s_target_from_table_field"]
+                s_target_to_field_name = s_mapping_info["s_target_to_table_field"]
+
+                part_1_sdf = sr_sdf.alias("sr").join(s_target_from_sdf.alias("f"),
+                                                     F.col("f." + s_target_from_field_name) == F.col(
+                                                         "sr.s_target_from_value"))
+
+                part_2_sdf = part_1_sdf.join(s_target_to_sdf.alias("t"),
+                                             F.col("t." + s_target_to_field_name) == F.col("sr.s_target_to_value"))
+
+                part_3_sdf = part_2_sdf.join(ohdsi_from_sdf.alias("of"),
+                                             (F.col("of.s_g_id") == F.col("f.g_id"))  & (F.col(
+                                                 "of.g_source_table_name") == F.lit(
+                                                 s_mapping_info["s_target_from_table_name"])))
+
+                part_4_sdf = part_3_sdf.join(ohdsi_to_sdf.alias("ot"), (F.col("ot.s_g_id") == F.col("t.g_id")) & (F.col(
+                    "ot.g_source_table_name") == F.lit(s_mapping_info["s_target_to_table_name"])))
+
+                from_domain_name = table_domain_dict[ohdsi_from_table_name]
+                to_domain_name = table_domain_dict[ohdsi_to_table_name]
+
+                from_concept_id = concept_sdf.where(
+                    (F.col("domain_id") == F.lit("Metadata"))  & (F.col("vocabulary_id") == F.lit("Domain")) & (F.col(
+                        "concept_name") == F.lit(from_domain_name))).toPandas().to_dict("records")[0]["concept_id"]
+
+                to_concept_id = concept_sdf.where(
+                    (F.col("domain_id") == F.lit("Metadata")) & (F.col("vocabulary_id") == F.lit("Domain")) & (F.col(
+                        "concept_name") == F.lit(to_domain_name))).toPandas().to_dict("records")[0]["concept_id"]
+
+                fact_relationship_sdf = part_4_sdf.select(F.lit(from_concept_id).alias("domain_concept_id_1"),
+                                                          F.col(ohdsi_from_table_name + "_id").alias("fact_id_1"),
+                                                          F.lit(to_concept_id).alias("domain_concept_id_2"),
+                                                          F.col(ohdsi_to_table_name + "_id").alias("fact_id_2"),
+                                                          F.lit(relationship_info["concept_id"]).alias(
+                                                              "relationship_concept_id"))
+
+                fact_relationship_table_name = "fact_relationship_" + str(i)
+                fact_relationship_sdf, _ = mapping_utilities.write_parquet_file_and_reload(spark, fact_relationship_sdf,
+                                                                                           fact_relationship_table_name,
+                                                                                           output_path + "support/")
+
+                fact_relationship_sdf_dict[fact_relationship_table_name] = fact_relationship_sdf
+                i += 1
+
+    if len(fact_relationship_sdf_dict):
+        logging.info("Combining fact_relationship tables")
+
+        union_table_sdf = None
+        i = 0
+        for table_name in fact_relationship_sdf_dict:
+            if i == 0:
+                union_table_sdf = fact_relationship_sdf_dict[table_name]
+            else:
+                union_table_sdf = union_table_sdf.union(fact_relationship_sdf_dict[table_name])
+
+            i += 1
+
+        _, fact_relationship_path = mapping_utilities.write_parquet_file_and_reload(spark, union_table_sdf, "fact_relationship", output_path,
+                                                                                    partition_by="relationship_concept_id")
+        exported_table_dict["ohdsi"]["fact_relationship"] = fact_relationship_path
+
+        fact_relationship_build_end_time = time.time()
+        logging.info(
+            f"Finished building 'fact_relationship' (Total time: {format_log_time(fact_relationship_build_start_time, fact_relationship_build_end_time)}))")
+
 
     with open(export_json_file_name, "w") as fw:
         json.dump(exported_table_dict, fw, sort_keys=True, indent=4, separators=(',', ': '))
@@ -1975,6 +2113,48 @@ def format_log_time(start_time, end_time):
 
 def generate_parquet_path(path, table_name):
     return path + table_name + ".parquet"
+
+
+def build_matched_tables_in_stages(source_sdf, source_matched_sdf, source_table_name, config, output_path):
+    """Builds tables in stages for large tables"""
+
+    build_table_by_stages = False
+    column_to_split_on = None
+    if "build_by_stages" in config:
+        if source_table_name in config["build_by_stages"]:
+            column_to_split_on = config["build_by_stages"][source_table_name]
+            build_table_by_stages = True
+
+    if build_table_by_stages:
+        logging.info(f"Build table in stages by splitting on: {column_to_split_on}")
+        stages_df = source_sdf.select(
+            F.col(column_to_split_on).alias("column_values_to_split_on")).distinct().toPandas()
+        splits = sorted(stages_df["column_values_to_split_on"].values.tolist())
+        logging.info(f"Total splits ({len(splits)}): {splits}")
+
+        splits_sdf_dict = {}
+        table_base_name = source_table_name + "_matched"
+        for i in range(len(splits)):
+            sdf_i = source_matched_sdf.where(F.col(column_to_split_on) == F.lit(splits[i]))
+            splits_sdf_dict[i] = write_source_to_parquet_partitioned_by_domain(sdf_i, output_path,
+                                                                               table_base_name + f"_{i}")
+
+        union_sdf = None
+        for i in range(len(splits)):
+            if i == 0:
+                union_sdf = splits_sdf_dict[i]
+            else:
+                union_sdf = union_sdf.union(splits_sdf_dict[i])
+
+        source_matched_sdf = write_source_to_parquet_partitioned_by_domain(union_sdf,
+                                                                                  output_path,
+                                                                                  source_table_name + "_matched")
+    else:
+        source_matched_sdf = write_source_to_parquet_partitioned_by_domain(source_matched_sdf,
+                                                                                  output_path,
+                                                                                  source_table_name + "_matched")
+
+    return source_matched_sdf
 
 
 if __name__ == "__main__":
