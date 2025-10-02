@@ -1565,12 +1565,11 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
             logging.info(f"Reading '{source_relationship_path}'")
             source_relationship_sdf_dict[table] = spark.read.parquet(source_relationship_path)
 
-            logging.info(f"Processing: '{table}'")
             for relationship in table_dict["relationships_to_generate"]:
-                logging.info(f"Building relationship: {relationship['s_relationship']}")
+                logging.info(f"   Building relationship: {relationship['s_relationship']}")
 
-                ohdsi_from_table_name = relationship["ohdsi_domain_from"]
-                ohdsi_to_table_name = relationship["ohdsi_domain_to"]
+                ohdsi_from_table_name = relationship["ohdsi_table_from"]
+                ohdsi_to_table_name = relationship["ohdsi_table_to"]
 
                 if ohdsi_from_table_name in combined_tables_dict:
                     ohdsi_from_sdf = combined_tables_dict[ohdsi_from_table_name][0]
@@ -1655,8 +1654,14 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
 
             i += 1
 
-        _, fact_relationship_path = mapping_utilities.write_parquet_file_and_reload(spark, union_table_sdf, "fact_relationship", output_path)
+        _, fact_relationship_path = mapping_utilities.write_parquet_file_and_reload(spark, union_table_sdf, "fact_relationship", output_path,
+                                                                                    partition_by="relationship_concept_id")
         exported_table_dict["ohdsi"]["fact_relationship"] = fact_relationship_path
+
+        fact_relationship_build_end_time = time.time()
+        logging.info(
+            f"Finished building 'fact_relationship' (Total time: {format_log_time(fact_relationship_build_start_time, fact_relationship_build_end_time)}))")
+
 
     with open(export_json_file_name, "w") as fw:
         json.dump(exported_table_dict, fw, sort_keys=True, indent=4, separators=(',', ': '))
