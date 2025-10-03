@@ -1627,9 +1627,9 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
                         "concept_name") == F.lit(to_domain_name))).toPandas().to_dict("records")[0]["concept_id"]
 
                 fact_relationship_sdf = part_4_sdf.select(F.lit(from_concept_id).alias("domain_concept_id_1"),
-                                                          F.col(ohdsi_from_table_name + "_id").alias("fact_id_1"),
+                                                          F.col("of." + ohdsi_from_table_name + "_id").alias("fact_id_1"),
                                                           F.lit(to_concept_id).alias("domain_concept_id_2"),
-                                                          F.col(ohdsi_to_table_name + "_id").alias("fact_id_2"),
+                                                          F.col("ot." + ohdsi_to_table_name + "_id").alias("fact_id_2"),
                                                           F.lit(relationship_info["concept_id"]).alias(
                                                               "relationship_concept_id"))
 
