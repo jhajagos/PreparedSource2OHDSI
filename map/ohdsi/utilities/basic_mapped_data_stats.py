@@ -67,6 +67,8 @@ def main(spark, tbs, extended_queries):
 
                           "care_site_count": "select count(*) as n_r, count(distinct care_site_id) as n_care_site_id from care_site",
 
+                          "fact_relationships_count": "select count(*) as n_r, domain_concept_id_1, c1.concept_name as domain_concept_name_1, domain_concept_id_2, c2.concept_name as domain_concept_name_2, relationship_concept_id, c3.concept_name as relationship_concept_name from fact_relationship fr join concept c1 on c1.concept_id = domain_concept_id_1 join concept c2 on c2.concept_id = domain_concept_id_2 join concept c3 on relationship_concept_id = c3.concept_id group by  domain_concept_id_1, c1.concept_name, domain_concept_id_2, c2.concept_name, relationship_concept_id, c3.concept_name order by count(*) desc",
+
                           "cdm_source": "select * from cdm_source"
                           }
 
