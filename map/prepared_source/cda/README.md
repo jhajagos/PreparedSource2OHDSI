@@ -21,7 +21,7 @@ and high frequency heart beat data recorded from the Apple Watch.
 
 Create a directory on your machine were you will store downloaded C-CDA XML
 documents. For this example we will assume the directory is 
-`/home/user/phr_data/jgh.record/`. I am using my initials here to indicate this 
+`/home/user/phr_data/fml_documents`. I am using my initials here to indicate this 
 is my personal record.
 
 ### EHRs C-CDAs
@@ -40,7 +40,7 @@ to download you will get an email and can download a zip file.
 Once downloaded you should decompress the file, navigate first to the 
 `./IHE_XDM/` folder to the subdirectory, a directory with your name, and here you
 should find several xml files which follow the format `DSC*.xml`. Copy the XML files
-to the directory `/home/user/phr_data/jgh.record/`.
+to the directory ``/home/user/phr_data/jgh_documents/`.
 
 ### For Apple HealthKit
 
@@ -50,17 +50,17 @@ of the screen click your initials and scroll to the bottom and select
 several minutes to generate. You can select deliver by email and send the record 
 to  a person email account. Download the zip file, decompress the zip file, and
 navigate to the directory `./apple_health_export/`. Copy the file `export_cda.xml`
-to the directory `/home/user/phr_data/jgh.record/`.
+to the directory `/home/user/phr_data/jgh_documents/`.
 
 ### Mapping to Prepared Source
 
-The directory should `/home/user/phr_data/jgh.record/` 
+The directory should `/home/user/phr_data/jgh_documents/` 
 
 Navigate in the checked out code to  `~/github/PreparedSource2OHDSI/map/prepared_source/cda/`
 in your system command terminal.
 
 ```bash
-python ./cda_to_prepared_source_fragments.py -d /home/user/phr_data/jgh.record/
+python ./cda_to_prepared_source_fragments.py -d /home/user/phr_data/jgh_documents/
 ```
 
 In the output directory the following directories will be generated
@@ -75,7 +75,7 @@ In the directory `./ps_frags` each XML files is converted to Prepared Source CSV
 combine these files into a single file.
 
 ```bash
-python ./cda_to_prepared_source_fragments.py -d /home/user/phr_data/jgh.record/
+python ./cda_to_prepared_source_fragments.py -d /home/user/phr_data/jgh_documents/
 ```
 
 ### Mapping to OHDSI using the Docker container
@@ -88,8 +88,8 @@ docker build -t csv2ohdi:latest ./
 ```bash
 docker run -it --name ps2ohdsi --hostname ps2ohdsi \
 -v /home/user/ohdsi/vocabulary/20240708:/data/ohdsi/vocabulary \
--v /home/user/phr_data/jgh.record/output/ohdsi:/data/ohdsi/output \
--v /home/user/phr_data/jgh.record/output/ps:/data/prepared_source/csv \
--v /home/user/phr_data/jgh.record/output/ps:/data/prepared_source \
+-v /home/user/phr_data/jgh_documents/output/ohdsi:/data/ohdsi/output \
+-v /home/user/phr_data/jgh_documents/output/ps:/data/prepared_source/csv \
+-v /home/user/phr_data/jgh_documents/output/ps:/data/prepared_source \
 csv2ohdsi:latest /bin/bash 
 ```
