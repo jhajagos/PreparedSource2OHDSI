@@ -427,6 +427,8 @@ def extract_immunization_source_medication_ccda(xml_doc):
 
     source_medication_obj = ps.SourceMedicationObject()
 
+    #TODO: Write this part
+
 
 def extract_vitals_source_result_ccda(xml_doc, source_person_id, source_cda_file_name):
     # Vitals
