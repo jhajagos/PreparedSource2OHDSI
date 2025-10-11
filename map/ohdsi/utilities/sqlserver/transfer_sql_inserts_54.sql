@@ -154,6 +154,7 @@ select [observation_period_id],[person_id],[observation_period_start_date],[obse
 alter table [dbo].[visit_occurrence] alter column [visit_occurrence_id] BIGINT;
 alter table [dbo].[visit_occurrence] alter column [person_id] BIGINT;
 alter table [dbo].[visit_occurrence] alter column [provider_id] BIGINT;
+alter table [dbo].[visit_occurrence] alter column [visit_source_value] VARCHAR(512);
 alter table [dbo].[visit_occurrence] alter column [admitted_from_source_value] VARCHAR(512);
 alter table [dbo].[visit_occurrence] alter column [discharged_to_source_value] VARCHAR(512);
 
@@ -181,6 +182,7 @@ alter table [dbo].[condition_occurrence] alter column [person_id] BIGINT;
 alter table [dbo].[condition_occurrence] alter column [provider_id] BIGINT;
 alter table [dbo].[condition_occurrence] alter column [visit_occurrence_id] BIGINT;
 alter table [dbo].[condition_occurrence] alter column [visit_detail_id] BIGINT;
+alter table [dbo].[condition_occurrence] alter column [stop_reason] VARCHAR(512);
 alter table [dbo].[condition_occurrence] alter column [condition_status_source_value] VARCHAR(512);
 
 insert into [dbo].[condition_occurrence] (condition_occurrence_id,person_id,condition_concept_id,condition_start_date,condition_start_datetime,condition_end_date,condition_end_datetime,condition_type_concept_id,condition_status_concept_id,stop_reason,provider_id,visit_occurrence_id,visit_detail_id,condition_source_value,condition_source_concept_id,condition_status_source_value)
@@ -232,6 +234,7 @@ alter table [dbo].[drug_exposure] alter column [person_id] BIGINT;
 alter table [dbo].[drug_exposure] alter column [provider_id] BIGINT;
 alter table [dbo].[drug_exposure] alter column [visit_occurrence_id] BIGINT;
 alter table [dbo].[drug_exposure] alter column [visit_detail_id] BIGINT;
+alter table [dbo].[drug_exposure] alter column [stop_reason] VARCHAR(512);
 alter table [dbo].[drug_exposure] alter column [drug_source_value] VARCHAR(512);
 
 insert into [dbo].[drug_exposure] (drug_exposure_id,person_id,drug_concept_id,drug_exposure_start_date,drug_exposure_start_datetime,drug_exposure_end_date,drug_exposure_end_datetime,verbatim_end_date,drug_type_concept_id,stop_reason,refills,quantity,days_supply,sig,route_concept_id,lot_number,provider_id,visit_occurrence_id,visit_detail_id,drug_source_value,drug_source_concept_id,route_source_value,dose_unit_source_value)
