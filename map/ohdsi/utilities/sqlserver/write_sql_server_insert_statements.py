@@ -185,7 +185,9 @@ if __name__ == "__main__":
         "provider_id",
         "payer_plan_period_id",
         "location_id",
-        "subject_id"
+        "subject_id",
+        "fact_id_1",
+        "fact_id_2"
     ]
 
     columns_to_expand = ["value_source_value", "zip", "state", "ethnicity_source_value", "race_source_value",
@@ -200,7 +202,7 @@ if __name__ == "__main__":
                    "care_site", "provider", "person", "death", "observation_period", "visit_occurrence", "visit_detail",
                    "condition_occurrence", "procedure_occurrence",
                    "measurement", "observation", "drug_exposure", "device_exposure",
-                   "payer_plan_period"
+                   "payer_plan_period", "fact_relationship"
                    ]
 
     concept_tables = [

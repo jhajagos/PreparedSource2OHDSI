@@ -2,6 +2,7 @@
 
 
 --Truncate tables
+truncate table "ohdsi"."fact_relationship";
 truncate table "ohdsi"."payer_plan_period";
 truncate table "ohdsi"."device_exposure";
 truncate table "ohdsi"."drug_exposure";
@@ -259,4 +260,13 @@ alter table "ohdsi"."payer_plan_period" alter column "payer_source_value" type V
 insert into "ohdsi"."payer_plan_period" (payer_plan_period_id,person_id,payer_plan_period_start_date,payer_plan_period_end_date,payer_concept_id,payer_source_value,payer_source_concept_id,plan_concept_id,plan_source_value,plan_source_concept_id,sponsor_concept_id,sponsor_source_value,sponsor_source_concept_id,family_source_value,stop_reason_concept_id,stop_reason_source_value,stop_reason_source_concept_id)
 select "payer_plan_period_id","person_id","payer_plan_period_start_date","payer_plan_period_end_date","payer_concept_id",left("payer_source_value",512),"payer_source_concept_id","plan_concept_id","plan_source_value","plan_source_concept_id","sponsor_concept_id","sponsor_source_value","sponsor_source_concept_id","family_source_value","stop_reason_concept_id","stop_reason_source_value","stop_reason_source_concept_id" 
     from "ohdsi"."transferpayer_plan_period";
+
+
+--Alter table fact_relationship
+alter table "ohdsi"."fact_relationship" alter column "fact_id_1" type BIGINT;
+alter table "ohdsi"."fact_relationship" alter column "fact_id_2" type BIGINT;
+
+insert into "ohdsi"."fact_relationship" (domain_concept_id_1,fact_id_1,domain_concept_id_2,fact_id_2,relationship_concept_id)
+select "domain_concept_id_1","fact_id_1","domain_concept_id_2","fact_id_2","relationship_concept_id" 
+    from "ohdsi"."transferfact_relationship";
 

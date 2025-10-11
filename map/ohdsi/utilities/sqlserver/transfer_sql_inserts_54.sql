@@ -2,6 +2,7 @@
 
 
 --Truncate tables
+truncate table [dbo].[fact_relationship];
 truncate table [dbo].[payer_plan_period];
 truncate table [dbo].[device_exposure];
 truncate table [dbo].[drug_exposure];
@@ -259,4 +260,13 @@ alter table [dbo].[payer_plan_period] alter column [payer_source_value] VARCHAR(
 insert into [dbo].[payer_plan_period] (payer_plan_period_id,person_id,payer_plan_period_start_date,payer_plan_period_end_date,payer_concept_id,payer_source_value,payer_source_concept_id,plan_concept_id,plan_source_value,plan_source_concept_id,sponsor_concept_id,sponsor_source_value,sponsor_source_concept_id,family_source_value,stop_reason_concept_id,stop_reason_source_value,stop_reason_source_concept_id)
 select [payer_plan_period_id],[person_id],[payer_plan_period_start_date],[payer_plan_period_end_date],[payer_concept_id],left([payer_source_value],512),[payer_source_concept_id],[plan_concept_id],[plan_source_value],[plan_source_concept_id],[sponsor_concept_id],[sponsor_source_value],[sponsor_source_concept_id],[family_source_value],[stop_reason_concept_id],[stop_reason_source_value],[stop_reason_source_concept_id] 
     from [dbo].[transferpayer_plan_period];
+
+
+--Alter table fact_relationship
+alter table [dbo].[fact_relationship] alter column [fact_id_1] BIGINT;
+alter table [dbo].[fact_relationship] alter column [fact_id_2] BIGINT;
+
+insert into [dbo].[fact_relationship] (domain_concept_id_1,fact_id_1,domain_concept_id_2,fact_id_2,relationship_concept_id)
+select [domain_concept_id_1],[fact_id_1],[domain_concept_id_2],[fact_id_2],[relationship_concept_id] 
+    from [dbo].[transferfact_relationship];
 
