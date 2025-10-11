@@ -501,7 +501,7 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
     source_payer_sdf = payer_source_code_code_mapper(source_payer_sdf, concept_sdf, oid_to_vocab_sdf, concept_map_sdf)
 
     source_payer_sdf = source_payer_sdf.withColumn("g_payer_start_date", F.to_date(F.col("s_payer_start_datetime")))
-    source_payer_sdf = source_payer_sdf.withColumn("g_payer_end_date", F.to_date(F.col("s_payer_end_datetime")))
+    source_payer_sdf = source_payer_sdf.withColumn("g_payer_end_date", F.to_date(F.coalesce(F.col("s_payer_end_datetime"), F.col("s_payer_start_datetime"))))
 
     source_payer_sdf = source_payer_sdf.withColumn("g_source_table_name", F.lit("source_payer"))
     source_payer_sdf = source_payer_sdf.withColumn("s_g_id", F.col("g_id"))
@@ -535,7 +535,7 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
     source_encounter_detail_sdf = prepared_source_sdf_dict["source_encounter_detail"]
     source_encounter_detail_sdf = filter_out_i_excluded(source_encounter_detail_sdf)
 
-    source_encounter_detail_sdf = align_to_visit(source_encounter_detail_sdf, ohdsi_person_sdf, visit_source_link_sdf)
+    source_encounter_detail_sdf = align_to_visit(source_encounter_detail_sdf, ohdsi_person_sdf, visit_source_link_sdf, visit_join_type="inner")
 
     source_encounter_detail_sdf = source_encounter_detail_sdf.withColumn("g_visit_detail_start_date",
                                                            F.to_date(F.col("s_start_datetime")))
@@ -1670,13 +1670,13 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
     logging.info(f"Finished mapping Prepared Source Tables to OHDSI CDM (Total script time: {format_log_time(starting_time, ending_time)}))")
 
 
-def align_to_visit(source_sdf, ohdsi_person_sdf, visit_source_link_sdf):
+def align_to_visit(source_sdf, ohdsi_person_sdf, visit_source_link_sdf, visit_join_type="left_outer"):
     source_sdf = filter_out_i_excluded(source_sdf)
     source_sdf = align_to_person_id(source_sdf, ohdsi_person_sdf)
 
     source_sdf = source_sdf.alias("c").join(visit_source_link_sdf.alias("v"),
                                             (F.col("c.s_encounter_id") == F.col("v.s_encounter_id")) &
-                                            (F.col("c.s_person_id") == F.col("v.s_person_id")), how="left_outer")
+                                            (F.col("c.s_person_id") == F.col("v.s_person_id")), how=visit_join_type)
 
     source_sdf = source_sdf.select("c.*", F.col("v.visit_occurrence_id").alias("g_visit_occurrence_id"))
 

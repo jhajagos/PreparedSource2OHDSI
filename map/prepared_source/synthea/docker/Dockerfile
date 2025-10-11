@@ -36,7 +36,7 @@ RUN cd ~/github/ && git clone  https://github.com/jhajagos/PreparedSource2OHDSI.
 RUN $conda init && . $bashrc && conda activate PySpark && pip install build
 RUN $conda init && . $bashrc && conda activate PySpark && cd ~/github/PreparedSource2OHDSI/ && python -m build --wheel
 RUN $conda init && . $bashrc && conda activate PySpark && cd ~/github/PreparedSource2OHDSI/dist/ \
-    && pip install preparedsource2ohdsi-0.1.7-py3-none-any.whl # Change for new version
+    && pip install preparedsource2ohdsi-0.1.9-py3-none-any.whl # Change for new version
 
 RUN $conda init && . $bashrc && conda activate PySpark && conda install ipython
 
@@ -55,7 +55,7 @@ RUN mkdir /root/scripts/
 RUN cd /root/scripts/ && ln -s /root/github/PreparedSource2OHDSI/map/ohdsi/utilities/basic_mapped_data_stats.py ./
 RUN cd /root/scripts/ && ln -s /root/github/PreparedSource2OHDSI/map/ohdsi/utilities/jdbc_sql_loader.py ./
 RUN cd /root/scripts/ && ln -s /root/github/PreparedSource2OHDSI/map/ohdsi/utilities/db_configure.py ./
-\
+
 COPY generate_synthetic_covid19.sh /root/scripts/
 RUN chmod u+x /root/scripts/generate_synthetic_covid19.sh
 

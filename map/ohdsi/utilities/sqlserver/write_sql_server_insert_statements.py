@@ -193,7 +193,8 @@ if __name__ == "__main__":
     columns_to_expand = ["value_source_value", "zip", "state", "ethnicity_source_value", "race_source_value",
                          "discharged_to_source_value", "admitted_from_source_value", "condition_status_source_value",
                          "drug_source_value", "payer_source_value", "address_1", "address_2", "country_source_value",
-                         "county", "admitted_from_source_value", "discharged_to_source_value", "visit_source_value"
+                         "county", "admitted_from_source_value", "discharged_to_source_value", "visit_source_value",
+                         "stop_reason"
                          ]
 
     table_order = ["domain", "concept_class", "concept", "vocabulary", "concept_ancestor",
