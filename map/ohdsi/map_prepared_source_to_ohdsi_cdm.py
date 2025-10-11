@@ -501,7 +501,7 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
     source_payer_sdf = payer_source_code_code_mapper(source_payer_sdf, concept_sdf, oid_to_vocab_sdf, concept_map_sdf)
 
     source_payer_sdf = source_payer_sdf.withColumn("g_payer_start_date", F.to_date(F.col("s_payer_start_datetime")))
-    source_payer_sdf = source_payer_sdf.withColumn("g_payer_end_date", F.to_date(F.col("s_payer_end_datetime")))
+    source_payer_sdf = source_payer_sdf.withColumn("g_payer_end_date", F.to_date(F.coalesce(F.col("s_payer_end_datetime"), F.col("s_payer_start_datetime"))))
 
     source_payer_sdf = source_payer_sdf.withColumn("g_source_table_name", F.lit("source_payer"))
     source_payer_sdf = source_payer_sdf.withColumn("s_g_id", F.col("g_id"))
