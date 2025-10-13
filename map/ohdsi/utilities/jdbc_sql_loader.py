@@ -38,7 +38,7 @@ if __name__ == "__main__":
     argparse_obj.add_argument("-c", "--class-path", dest="class_path", default="com.microsoft.sqlserver.jdbc.SQLServerDriver")
     argparse_obj.add_argument("-p", "--path-to-jdbc-jar", dest="jar_path", default="/root/jdbc/mssql-jdbc-12.6.2.jre11.jar")
     argparse_obj.add_argument("--config-json-filename", dest="config_json_filename", default="/root/config/prepared_source_to_ohdsi_config.json")
-    argparse_obj.add_argument("--substitution", dest="substitution", dafault=None, help="Substitute a string for example '@cdmDatabaseSchema|ohdsi'")
+    argparse_obj.add_argument("--substitution", dest="substitution", help="Substitute a string for example '@cdmDatabaseSchema|ohdsi'")
 
     arg_obj = argparse_obj.parse_args()
 

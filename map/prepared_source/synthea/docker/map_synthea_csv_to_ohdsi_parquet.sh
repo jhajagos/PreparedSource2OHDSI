@@ -10,4 +10,4 @@ source ./map_prepared_source_to_ohdsi.sh || exit
 
 conda activate PySpark
 
-python basic_mapped_data_stats.py || exit
+python basic_mapped_data_stats.py -l || exit
