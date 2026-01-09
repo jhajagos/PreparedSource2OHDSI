@@ -19,17 +19,17 @@ RUN apt-get install -y libpcre2-dev && \
     apt-get install -y  libfribidi-dev && \
     apt-get install -y  libfreetype6-dev libpng-dev libtiff5-dev libjpeg-dev
 
-# Configure Java for R
-RUN R CMD javareconf
-
-# Install remotes and drat packages
-RUN R -e "install.packages(c('remotes', 'drat'), repos='https://cloud.r-project.org/')"
-
-# Add OHDSI drat repository and install HADES
-RUN R -e "drat::addRepo('OHDSI'); install.packages('Hades', repos=c('https://cloud.r-project.org/', 'https://OHDSI.github.io/drat'))"
-
-# Expose RStudio port
+## Configure Java for R
+#RUN R CMD javareconf
+#
+## Install remotes and drat packages
+#RUN R -e "install.packages(c('remotes', 'drat'), repos='https://cloud.r-project.org/')"
+#
+## Add OHDSI drat repository and install HADES
+#RUN R -e "drat::addRepo('OHDSI'); install.packages('Hades', repos=c('https://cloud.r-project.org/', 'https://OHDSI.github.io/drat'))
+#
+## Expose RStudio port
 EXPOSE 8787
-
-# Set working directory
-WORKDIR /home/rstudio
+#
+## Set working directory
+#WORKDIR /home/rstudio
