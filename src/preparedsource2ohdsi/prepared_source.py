@@ -113,9 +113,6 @@ class SourcePersonObject(PreparedSourceObject):
         ]
 
     def _meta_data(self):
-        return {}
-
-    def _meta_data(self):
         return {"s_gender": "Source gender description",
                 "s_gender_code": "Source gender code",
                 "s_gender_code_type": "Source gender code type (human readable & OPTIONAL)",
@@ -139,7 +136,7 @@ class SourcePersonObject(PreparedSourceObject):
                 }
 
 
-class SourcePersonAddressHistory(PreparedSourceObject):
+class SourcePersonAddressHistoryObject(PreparedSourceObject):
     """Stores the history of addresses for a person"""
     def _fields(self):
         return ["s_person_id",
