@@ -29,7 +29,6 @@
 
 """
 
-#TODO: Add PreparedSourceNote()
 
 
 class PreparedSourceObject(object):
@@ -138,6 +137,28 @@ class SourcePersonObject(PreparedSourceObject):
                 "m_ethnicity_code_type_oid": "Use 'ohdsi.ethnicity' for standard OHDSI ethnicity codes",
                 "k_location": "Key value to location in source_location table"
                 }
+
+
+class SourcePersonAddressHistory(PreparedSourceObject):
+    """Stores the history of addresses for a person"""
+    def _fields(self):
+        return ["s_person_id",
+                "s_start_datetime",
+                "s_end_datetime",
+                "k_location",
+                "s_address_type",
+                "s_address_type_code",
+                "s_address_type_code_type",
+                "s_address_type_code_type_oid",
+                "s_source_system",
+                "m_source_system"
+        ]
+
+    def _table_name(self):
+        return "source_person_address_history"
+
+    def _meta_data(self):
+        return {}
 
 
 class SourcePersonMapObject(PreparedSourceObject):
@@ -505,7 +526,7 @@ class SourceMedicationObject(PreparedSourceObject):
 
 class SourceCareSiteObject(PreparedSourceObject):
     def _fields(self):
-        return ["k_care_site", "s_care_site_name"]
+        return ["k_care_site", "s_care_site_name", "k_location"]
 
     def _meta_data(self):
         return {}
@@ -513,7 +534,10 @@ class SourceCareSiteObject(PreparedSourceObject):
 
 class SourceProviderObject(PreparedSourceObject):
     def _fields(self):
-        return ["k_provider", "s_provider_name", "s_npi", "s_source_system", "m_source_system", "i_exclude"]
+        return ["k_provider", "s_provider_name", "s_npi",
+                "s_specialty", "s_specialty_code", "s_specialty_code_type", "s_specialty_code_type_oid", "s_birth_datetime",
+                "s_gender", "s_gender_code", "s_gender_code_type", "s_gender_code_type_oid",
+                "s_source_system", "m_source_system", "i_exclude"]
 
     def _meta_data(self):
         return {}
@@ -537,7 +561,8 @@ class SourceLocationObject(PreparedSourceObject):
                 "s_country",
                 "s_location_name",
                 "s_latitude",
-                "s_longitude"
+                "s_longitude",
+                "s_geocoding_type"
                ]
 
     def _meta_data(self):

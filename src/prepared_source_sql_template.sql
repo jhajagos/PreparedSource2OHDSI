@@ -21,6 +21,7 @@
 select
     NULL as k_care_site --Foreign key to the care care site
    ,NULL as s_care_site_name
+   ,NULL as k_location
 from SourceCareSiteObject;
 
 select
@@ -162,6 +163,7 @@ select
    ,NULL as s_location_name
    ,NULL as s_latitude
    ,NULL as s_longitude
+   ,NULL as s_geocoding_type
 from SourceLocationObject;
 
 select
@@ -363,6 +365,15 @@ select
     NULL as k_provider --Foreign key to the provider
    ,NULL as s_provider_name
    ,NULL as s_npi
+   ,NULL as s_specialty
+   ,NULL as s_specialty_code
+   ,NULL as s_specialty_code_type
+   ,NULL as s_specialty_code_type_oid
+   ,NULL as s_birth_datetime
+   ,NULL as s_gender
+   ,NULL as s_gender_code
+   ,NULL as s_gender_code_type
+   ,NULL as s_gender_code_type_oid
    ,NULL as s_source_system --Source system row was extracted from
    ,NULL as m_source_system --Mapped source system the row was extracted from
    ,NULL as i_exclude --Value of 1 instructs the mapper to skip the row
