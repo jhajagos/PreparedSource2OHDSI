@@ -54,7 +54,7 @@ class PreparedSourceObject(object):
                 "m_source_system": "Mapped source system the row was extracted from",
                 "i_exclude": "Value of 1 instructs the mapper to skip the row",
                 "k_provider": "Foreign key to the provider",
-                "k_care_site": "Foreign key to the care care site"
+                "k_care_site": "Foreign key to the care site"
                 }
 
     def _meta_data(self):
@@ -115,7 +115,7 @@ class SourcePersonObject(PreparedSourceObject):
     def _meta_data(self):
         return {"s_gender": "Source gender description",
                 "s_gender_code": "Source gender code",
-                "s_gender_code_type": "Source gender code type (human readable & OPTIONAL)",
+                "s_gender_code_type": "Source gender code type (human-readable & OPTIONAL)",
                 "s_gender_code_type_oid": "Source gender code type specified by OID (used in OHDSI mapping)",
                 "m_gender": "Mapped by ETL gender description",
                 "m_gender_code": "Mapped by ETL gender code (See: https://phinvads.cdc.gov/vads/ViewCodeSystem.action?id=2.16.840.1.113883.12.1)",
@@ -123,12 +123,12 @@ class SourcePersonObject(PreparedSourceObject):
                 "m_gender_code_type_oid": "Mapped by ETL gender code type by OID (Gender 2.16.840.1.113883.12.1)",
                 "s_race": "Source race (Black, white, etc) description",
                 "s_race_code": "Source race code",
-                "s_race_code_type": "Source race code type (human readable & OPTIONAL)",
+                "s_race_code_type": "Source race code type (human-readable & OPTIONAL)",
                 "m_race_code": "See: https://athena.ohdsi.org/search-terms/terms?domain=Race&standardConcept=Standard&page=1&pageSize=15&query=",
                 "m_race_code_type_oid": "Use 'ohdsi.race' for OHDSI standard race codes",
                 "s_ethnicity": "Source ethnicity description (Hispanic, Not Hispanic)",
                 "s_ethnicity_code": "Source ethnicity code",
-                "s_ethnicity_code_type": "Source gender code type (human readable & OPTIONAL)",
+                "s_ethnicity_code_type": "Source gender code type (human-readable & OPTIONAL)",
                 "s_ethnicity_code_type_oid": "Source ethnicity code type specified by OID (used in OHDSI mapping)",
                 "m_ethnicity_code": "See: https://athena.ohdsi.org/search-terms/terms?domain=Ethnicity&standardConcept=Standard&page=1&pageSize=15&query=",
                 "m_ethnicity_code_type_oid": "Use 'ohdsi.ethnicity' for standard OHDSI ethnicity codes",
@@ -292,7 +292,7 @@ class SourceConditionObject(PreparedSourceObject):
           "s_start_condition_datetime": "Condition start date time",
           "s_end_condition_datetime": "Condition end date time",
           "s_condition_code": "Code for condition/diagnosis",
-          "s_condition_code_type": "Condition code type (Human readable)",
+          "s_condition_code_type": "Condition code type (Human-readable)",
           "s_condition_code_type_oid": "Condition code type by OID (used by OHDSI mapper) ICD10: 2.16.840.1.113883.6.90",
           "m_condition_type": "Source of concept (usually EHR, Claim)",
           "m_condition_type_code": "See: https://athena.ohdsi.org/search-terms/terms?domain=Type+Concept&standardConcept=Standard&page=1&pageSize=15&query=",
@@ -442,6 +442,8 @@ class SourceResultObject(PreparedSourceObject):
                 "m_result_unit_code_type_oid",
                 "s_result_numeric_lower",
                 "s_result_numeric_upper",
+                "m_result_numeric_lower",
+                "m_result_numeric_upper",
                 "s_operator",
                 "m_operator",
                 "m_operator_code",
@@ -459,7 +461,10 @@ class SourceResultObject(PreparedSourceObject):
                 ]
 
     def _meta_data(self):
-        return {}
+        return {"s_result_numeric_lower": "The source numeric lower limit for the normal range",
+                "s_result_numeric_upper": "The source numeric upper limit for the normal range",
+                "m_result_numeric_lower": "Lower bound of the result range for the normal range",
+                "m_result_numeric_upper": "Upper bound of the result range for the normal range"}
 
 
 class SourceMedicationObject(PreparedSourceObject):
@@ -531,13 +536,28 @@ class SourceCareSiteObject(PreparedSourceObject):
 
 class SourceProviderObject(PreparedSourceObject):
     def _fields(self):
-        return ["k_provider", "s_provider_name", "s_npi",
+        return ["k_provider", "s_provider_name", "s_npi","s_dea_number"
                 "s_specialty", "s_specialty_code", "s_specialty_code_type", "s_specialty_code_type_oid", "s_birth_datetime",
                 "s_gender", "s_gender_code", "s_gender_code_type", "s_gender_code_type_oid",
                 "s_source_system", "m_source_system", "i_exclude"]
 
     def _meta_data(self):
+        return {"s_npi": "National Provider Identifier",
+                "s_dea_number": "Drug Enforcement Administration Number for identifier prescribers"}
+
+
+class SourceProviderMapObject(PreparedSourceObject):
+    def _fields(self):
+        return ["k_provider", "s_map_name", "s_source_system", "s_sequence_id", "s_alternative_id"]
+    def _meta_data(self):
         return {}
+
+
+class SourceProviderSpecialtyObject(PreparedSourceObject):
+    def _fields(self):
+        return ["k_provider", "s_sequence_id", "s_specialty", "s_specialty_code",
+                "s_specialty_code_type", "s_specialty_code_type_oid",
+                "s_source_system", "m_source_system"]
 
 
 class SourceLocationObject(PreparedSourceObject):

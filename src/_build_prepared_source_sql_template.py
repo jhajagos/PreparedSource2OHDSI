@@ -37,7 +37,7 @@ def main(outfile_name):
     k_ field prefix indicates a key value for linking to another table
     
     _code field suffix indicates value is coded
-    _code_type field suffix is the human readable description
+    _code_type field suffix is the human-readable description
     _code_type_oid field suffix is the OID value of the field
 */
 """
