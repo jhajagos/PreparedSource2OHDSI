@@ -146,7 +146,7 @@ from patients p
     source_care_site_sql = """select distinct 
     `Id` as k_care_site
    ,`NAME` as s_care_site_name 
-   sha1(coalesce(`ADDRESS`, '') || coalesce(`CITY`,'') || coalesce(`STATE`,'') || coalesce(`ZIP`, '')) as k_location                           
+   ,sha1(coalesce(`ADDRESS`, '') || coalesce(`CITY`,'') || coalesce(`STATE`,'') || coalesce(`ZIP`, '')) as k_location                           
     from organizations
                            """
 
