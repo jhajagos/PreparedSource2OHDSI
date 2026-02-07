@@ -30,15 +30,6 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
 
     starting_time = time.time()
 
-    # if CHECK_POINTING == "REMOTE":
-    #     check_point_path = output_path + "checkpoint/"
-    #
-    #     logging.info(f"Check pointing directory: {check_point_path}")
-    #     spark.sparkContext.setCheckpointDir(check_point_path)
-    #
-    # if "local_csv_output_path" in config: # For sample output
-    #     local_path = config["local_csv_output_path"]
-
     shi_salt = ""
     stable_hash_s_person_id = False
     stable_hash_s_encounter_id = False
@@ -161,7 +152,6 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
             "g_source_table_name": "g_source_table_name"
         }
 
-
     ohdsi_location_sdf = mapping_utilities.map_table_column_names(source_location_sdf, location_field_map)
     ohdsi_location_sdf = mapping_utilities.column_names_to_align_to(ohdsi_location_sdf,
                                                                     ohdsi.LocationObject())
@@ -173,24 +163,75 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
     ohdsi_sdf_dict["location"] = ohdsi_location_sdf, location_path
     location_build_end_time = time.time()
     logging.info(f"Finished building location table (total elapsed time: {location_build_end_time - location_build_start_time} seconds)")
-    # if evaluate_samples:
-    #     generate_local_samples(ohdsi_location_sdf, local_path, "location")
+
+    # Generate care_site
+    logging.info(f"Building care_site table")
+    care_site_build_start_time = time.time()
+    source_care_site_sdf = prepared_source_sdf_dict["source_care_site"]
+
+    source_care_site_sdf = source_care_site_sdf.withColumn("g_source_table_name", F.lit("source_care_site"))
+
+    source_care_site_sdf = source_care_site_sdf.alias("cs").join(ohdsi_location_sdf.alias("l"),
+                                                          F.col("cs.k_location") == F.col(
+                                                              "l.location_source_value"), how="left_outer"). \
+        select("p.*", F.col("l.location_id").alias("g_location_id"))
+
+    source_care_site_sdf = source_care_site_sdf.withColumn("s_g_id", F.col("g_id"))
+
+    care_site_field_map = {"g_id": "care_site_id",
+                           "s_care_site_name": "care_site_name",
+                           "k_care_site": "care_site_source_value",
+                           "g_source_table_name": "g_source_table_name",
+                           "g_location_id": "location_id",
+                           "s_g_id": "s_g_id"
+    }
+
+    ohdsi_care_site_sdf = mapping_utilities.map_table_column_names(source_care_site_sdf, care_site_field_map)
+    ohdsi_care_site_sdf = mapping_utilities.column_names_to_align_to(ohdsi_care_site_sdf, ohdsi.CareSiteObject())
+
+    ohdsi_care_site_sdf, care_site_path = mapping_utilities.write_parquet_file_and_reload(spark, ohdsi_care_site_sdf, "care_site",
+                                                        output_path)
+
+    care_site_build_end_time = time.time()
+    logging.info(f"Finished building care_site table (Total elapsed time: {format_log_time(care_site_build_start_time, care_site_build_end_time)})")
+
+    ohdsi_sdf_dict["care_site"] = ohdsi_care_site_sdf, care_site_path
 
     # Build provider
-    # TODO: Build out more provider fields, e.g., specialty, care_site
     logging.info("Building provider table")
     provider_build_start_time = time.time()
 
     source_provider_sdf = prepared_source_sdf_dict["source_provider"]
     source_provider_sdf = source_provider_sdf.withColumn("g_source_table_name", F.lit("source_provider"))
+
+    source_provider_sdf = source_provider_sdf.alias("sp").join(ohdsi_care_site_sdf.alias("c"),
+                                                                F.col("sp.k_care_site") == F.col(
+                                                                    "c.care_site_source_value"), how="left_outer"). \
+        select("e.*", F.col("c.care_site_id").alias("g_care_site_id"))
+
+    source_provider_sdf = gender_code_mapper(source_provider_sdf, concept_sdf, oid_to_vocab_sdf, concept_map_sdf)
+
+    source_provider_sdf = specialty_source_code_mapper(source_provider_sdf, concept_sdf, oid_to_vocab_sdf, concept_map_sdf)
+
     source_provider_sdf = source_provider_sdf.withColumn("s_g_id", F.col("g_id"))
+
+    source_provider_sdf = source_provider_sdf.withColumn("g_birth_year",
+                                                     F.expr("extract(year from cast(s_birth_datetime as date))"))
+
 
     provider_field_map = {
         "g_id": "provider_id",
         "s_provider_name": "provider_name",
         "k_provider": "provider_source_value",
         "s_npi": "npi",
-        "s_dea_number": "dea_number",
+        "s_dea_number": "dea",
+        "g_care_site_id": "care_site_id",
+        "g_specialty_concept_id": "specialty_concept_id",
+        "g_specialty_source_concept_id": "specialty_source_concept_id",
+        "s_gender": "gender_source_value",
+        "g_gender_concept_id": "gender_concept_id",
+        "g_gender_source_concept_id": "gender_source_concept_id",
+        "g_birth_year": "year_of_birth",
         "s_g_id": "s_g_id",
         "g_source_table_name": "g_source_table_name"
     }
@@ -306,43 +347,6 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
     logging.info(f"Finished building death table (Total elapsed time: {format_log_time(death_build_start_time, death_build_end_time)})")
 
     ohdsi_sdf_dict["death"] = ohdsi_death_sdf, death_path
-    # if evaluate_samples:
-    #     generate_local_samples(ohdsi_death_sdf,  local_path, "death")
-
-    # Generate care_site
-    logging.info(f"Building care_site table")
-    care_site_build_start_time = time.time()
-    source_care_site_sdf = prepared_source_sdf_dict["source_care_site"]
-
-    source_care_site_sdf = source_care_site_sdf.withColumn("g_source_table_name", F.lit("source_care_site"))
-
-    source_care_site_sdf = source_care_site_sdf.alias("cs").join(ohdsi_location_sdf.alias("l"),
-                                                          F.col("cs.k_location") == F.col(
-                                                              "l.location_source_value"), how="left_outer"). \
-        select("p.*", F.col("l.location_id").alias("g_location_id"))
-
-    source_care_site_sdf = source_care_site_sdf.withColumn("s_g_id", F.col("g_id"))
-
-    care_site_field_map = {"g_id": "care_site_id",
-                           "s_care_site_name": "care_site_name",
-                           "k_care_site": "care_site_source_value",
-                           "g_source_table_name": "g_source_table_name",
-                           "g_location_id": "location_id",
-                           "s_g_id": "s_g_id"
-    }
-
-    ohdsi_care_site_sdf = mapping_utilities.map_table_column_names(source_care_site_sdf, care_site_field_map)
-    ohdsi_care_site_sdf = mapping_utilities.column_names_to_align_to(ohdsi_care_site_sdf, ohdsi.CareSiteObject())
-
-    ohdsi_care_site_sdf, care_site_path = mapping_utilities.write_parquet_file_and_reload(spark, ohdsi_care_site_sdf, "care_site",
-                                                        output_path)
-
-    care_site_build_end_time = time.time()
-    logging.info(f"Finished building care_site table (Total elapsed time: {format_log_time(care_site_build_start_time, care_site_build_end_time)})")
-
-    ohdsi_sdf_dict["care_site"] = ohdsi_care_site_sdf, care_site_path
-    # if evaluate_samples:
-    #     generate_local_samples(ohdsi_care_site_sdf, local_path, "care_site")
 
     # Generate visit_occurrence
     logging.info(f"Building visit_occurrence")
@@ -362,7 +366,7 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
     source_encounter_sdf = admit_source_code_mapper(source_encounter_sdf, concept_sdf, oid_to_vocab_sdf, concept_map_sdf)
 
     # Discharge To
-    source_encounter_sdf = discharge_to_code_code_mapper(source_encounter_sdf, concept_sdf, oid_to_vocab_sdf, concept_map_sdf)
+    source_encounter_sdf = discharge_to_code_mapper(source_encounter_sdf, concept_sdf, oid_to_vocab_sdf, concept_map_sdf)
 
     source_encounter_sdf = source_encounter_sdf.withColumn("g_visit_start_date",
                                                            F.to_date(F.col("s_visit_start_datetime")))
@@ -507,7 +511,7 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
     payer_plan_period_build_start_time = time.time()
     source_payer_sdf = prepared_source_sdf_dict["source_payer"]
     source_payer_sdf = align_to_person_id(source_payer_sdf, ohdsi_person_sdf)
-    source_payer_sdf = payer_source_code_code_mapper(source_payer_sdf, concept_sdf, oid_to_vocab_sdf, concept_map_sdf)
+    source_payer_sdf = payer_source_code_mapper(source_payer_sdf, concept_sdf, oid_to_vocab_sdf, concept_map_sdf)
 
     source_payer_sdf = source_payer_sdf.withColumn("g_payer_start_date", F.to_date(F.col("s_payer_start_datetime")))
     source_payer_sdf = source_payer_sdf.withColumn("g_payer_end_date", F.to_date(F.coalesce(F.col("s_payer_end_datetime"), F.col("s_payer_start_datetime"))))
@@ -1963,7 +1967,7 @@ def admit_source_code_mapper(source_encounter_sdf, concept_sdf, oid_vocab_sdf, c
                                 "g_admitting_source_source_concept_id", "g_admitting_source_concept_id")
 
 
-def discharge_to_code_code_mapper(source_encounter_sdf, concept_sdf, oid_vocab_sdf, concept_map_sdf):
+def discharge_to_code_mapper(source_encounter_sdf, concept_sdf, oid_vocab_sdf, concept_map_sdf):
     return mapped_and_source_standard_code_mapper(source_encounter_sdf, concept_sdf, oid_vocab_sdf, concept_map_sdf,
                                 "m_discharge_to_code", "m_discharge_to_code_type_oid",
                                 "s_discharge_to_code", "s_discharge_to_code_type_oid",
@@ -1976,11 +1980,17 @@ def observation_period_source_code_mapper(source_observation_period_sdf, concept
                                 "g_period_type_concept_id")
 
 
-def payer_source_code_code_mapper(source_payer_sdf, concept_sdf, oid_vocab_sdf, concept_map_sdf):
+def payer_source_code_mapper(source_payer_sdf, concept_sdf, oid_vocab_sdf, concept_map_sdf):
     return mapped_and_source_standard_code_mapper(source_payer_sdf, concept_sdf, oid_vocab_sdf, concept_map_sdf,
                                 "m_payer_code", "m_payer_code_type_oid",
                                 "s_payer_code", "s_payer_code_type_oid",
                                 "g_payer_source_concept_id", "g_payer_concept_id")
+
+def specialty_source_code_mapper(source_payer_sdf, concept_sdf, oid_vocab_sdf, concept_map_sdf):
+    return mapped_and_source_standard_code_mapper(source_payer_sdf, concept_sdf, oid_vocab_sdf, concept_map_sdf,
+                                "m_specialty_code", "m_specialty_code_type_oid",
+                                "s_specialty_code", "s_specialty_code_type_oid",
+                                "g_specialty_source_concept_id", "g_specialty_concept_id")
 
 
 def condition_type_code_mapper(source_condition_sdf, concept_sdf, oid_vocab_sdf):
