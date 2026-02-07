@@ -174,7 +174,7 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
     source_care_site_sdf = source_care_site_sdf.alias("cs").join(ohdsi_location_sdf.alias("l"),
                                                           F.col("cs.k_location") == F.col(
                                                               "l.location_source_value"), how="left_outer"). \
-        select("p.*", F.col("l.location_id").alias("g_location_id"))
+        select("cs.*", F.col("l.location_id").alias("g_location_id"))
 
     source_care_site_sdf = source_care_site_sdf.withColumn("s_g_id", F.col("g_id"))
 
