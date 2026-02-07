@@ -159,6 +159,8 @@ from patients p
     `Id` as k_provider
    ,`NAME` as s_provider_name
    ,cast(NULL as STRING) as s_npi
+   ,cast(NULL as STRING) as s_dea_number
+   ,cast(NULL as TIMESTAMP) as s_birth_datetime)
    ,sm.s_specialty
    ,sm.m_specialty
    ,sm.m_specialty_code
@@ -169,6 +171,7 @@ from patients p
    ,gm.m_gender_code
    ,gm.m_gender_code_type
    ,gm.m_gender_code_type_oid
+   ,`ORGANIZATION` as k_care_site`
 from providers p 
         left outer join specialty_mapping sm on p.`SPECIALITY` = sm.s_specialty
         left outer join gender_mapping gm on p.`GENDER` = gm.s_gender
