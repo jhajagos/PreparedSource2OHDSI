@@ -162,6 +162,9 @@ from patients p
    ,cast(NULL as STRING) as s_dea_number
    ,cast(NULL as TIMESTAMP) as s_birth_datetime
    ,sm.s_specialty
+   ,cast(NULL as STRING) as s_specialty_code
+   ,cast(NULL as STRING) as s_specialty_code_type
+   ,cast(NULL as STRING) as s_specialty_code_type_oid
    ,sm.m_specialty
    ,sm.m_specialty_code
    ,sm.m_specialty_code_type
