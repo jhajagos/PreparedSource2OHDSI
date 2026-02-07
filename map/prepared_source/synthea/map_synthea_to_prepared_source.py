@@ -160,7 +160,7 @@ from patients p
    ,`NAME` as s_provider_name
    ,cast(NULL as STRING) as s_npi
    ,cast(NULL as STRING) as s_dea_number
-   ,cast(NULL as TIMESTAMP) as s_birth_datetime)
+   ,cast(NULL as TIMESTAMP) as s_birth_datetime
    ,sm.s_specialty
    ,sm.m_specialty
    ,sm.m_specialty_code
