@@ -207,7 +207,7 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
     source_provider_sdf = source_provider_sdf.alias("sp").join(ohdsi_care_site_sdf.alias("c"),
                                                                 F.col("sp.k_care_site") == F.col(
                                                                     "c.care_site_source_value"), how="left_outer"). \
-        select("e.*", F.col("c.care_site_id").alias("g_care_site_id"))
+        select("sp.*", F.col("c.care_site_id").alias("g_care_site_id"))
 
     source_provider_sdf = gender_code_mapper(source_provider_sdf, concept_sdf, oid_to_vocab_sdf, concept_map_sdf)
 
