@@ -190,6 +190,7 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
         "s_provider_name": "provider_name",
         "k_provider": "provider_source_value",
         "s_npi": "npi",
+        "s_dea_number": "dea_number",
         "s_g_id": "s_g_id",
         "g_source_table_name": "g_source_table_name"
     }
@@ -222,6 +223,7 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
                                                                 F.col("p.k_location") == F.col(
                                                                 "l.location_source_value"), how="left_outer"). \
         select("p.*", F.col("l.location_id").alias("g_location_id"))
+
 
     source_person_sdf = source_person_sdf.withColumn("g_s_person_id", F.xxhash64(F.concat(F.lit(shi_salt), F.col("s_person_id"))))
 
@@ -313,12 +315,19 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
     source_care_site_sdf = prepared_source_sdf_dict["source_care_site"]
 
     source_care_site_sdf = source_care_site_sdf.withColumn("g_source_table_name", F.lit("source_care_site"))
+
+    source_care_site_sdf = source_care_site_sdf.alias("cs").join(ohdsi_location_sdf.alias("l"),
+                                                          F.col("cs.k_location") == F.col(
+                                                              "l.location_source_value"), how="left_outer"). \
+        select("p.*", F.col("l.location_id").alias("g_location_id"))
+
     source_care_site_sdf = source_care_site_sdf.withColumn("s_g_id", F.col("g_id"))
 
     care_site_field_map = {"g_id": "care_site_id",
                            "s_care_site_name": "care_site_name",
                            "k_care_site": "care_site_source_value",
                            "g_source_table_name": "g_source_table_name",
+                           "g_location_id": "location_id",
                            "s_g_id": "s_g_id"
     }
 

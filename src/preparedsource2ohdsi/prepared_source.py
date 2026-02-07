@@ -274,6 +274,7 @@ class SourceEncounterDetailObject(PreparedSourceObject):
                 "m_visit_detail_source_code",
                 "m_visit_detail_source_code_type",
                 "m_visit_detail_source_code_type_oid",
+                "k_provider",
                 "i_exclude",
                 "s_id",
                 "s_source_system",
@@ -398,6 +399,7 @@ class SourceDeviceObject(PreparedSourceObject):
             "m_device_type_code",
             "m_device_type_code_type",
             "m_device_type_code_type_oid",
+            "k_provider",
             "i_exclude",
             "s_source_system",
             "m_source_system"
@@ -456,6 +458,7 @@ class SourceResultObject(PreparedSourceObject):
                 "m_source_code_type_oid",
                 "i_exclude",
                 "s_id",
+                "k_provider",
                 "s_source_system",
                 "m_source_system"
                 ]

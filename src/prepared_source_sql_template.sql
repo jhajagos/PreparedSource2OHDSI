@@ -72,8 +72,9 @@ select
    ,NULL as m_device_type_code
    ,NULL as m_device_type_code_type
    ,NULL as m_device_type_code_type_oid
+   ,NULL as k_provider --Foreign key to the provider
    ,NULL as i_exclude --Value of 1 instructs the mapper to skip the row
-   ,NULL as s_source_system --Source system row was extracted from
+   ,NULL as s_source_system  --Source system row was extracted from
    ,NULL as m_source_system --Mapped source system the row was extracted from
 from SourceDeviceObject;
 
@@ -96,6 +97,7 @@ select
    ,NULL as m_visit_detail_source_code
    ,NULL as m_visit_detail_source_code_type
    ,NULL as m_visit_detail_source_code_type_oid
+   ,NULL as k_provider --Foreign key to the provider
    ,NULL as i_exclude --Value of 1 instructs the mapper to skip the row
    ,NULL as s_id --Row source identifier
    ,NULL as s_source_system --Source system row was extracted from
@@ -480,6 +482,7 @@ select
    ,NULL as m_source_code_type_oid
    ,NULL as i_exclude --Value of 1 instructs the mapper to skip the row
    ,NULL as s_id --Row source identifier
+   ,NULL as k_provider --Foreign key to the provider
    ,NULL as s_source_system --Source system row was extracted from
    ,NULL as m_source_system --Mapped source system the row was extracted from
 from SourceResultObject;
