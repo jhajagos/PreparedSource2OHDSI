@@ -167,6 +167,9 @@ from patients p
    ,sm.m_specialty_code_type
    ,sm.m_specialty_code_type_oid
    ,gm.s_gender
+   ,cast(NULL as STRING) as s_gender_code
+   ,cast(NULL as STRING) as s_gender_code_type
+   ,cast(NULL as STRING) as s_gender_code_type_oid
    ,gm.m_gender
    ,gm.m_gender_code
    ,gm.m_gender_code_type
