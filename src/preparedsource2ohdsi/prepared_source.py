@@ -542,6 +542,7 @@ class SourceProviderObject(PreparedSourceObject):
                 "s_birth_datetime",
                 "s_gender", "s_gender_code", "s_gender_code_type", "s_gender_code_type_oid",
                 "m_gender", "m_gender_code", "m_gender_code_type", "m_gender_code_type_oid",
+                "k_care_site",
                 "s_source_system", "m_source_system", "i_exclude"]
 
     def _meta_data(self):

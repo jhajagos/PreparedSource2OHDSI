@@ -68,6 +68,20 @@ def main(config):
    ,`LAT` as s_latitude
    ,`LON` as s_longitude
 from patients p
+union 
+   select distinct
+    sha1(coalesce(`ADDRESS`, '') || coalesce(`CITY`,'') || coalesce(`STATE`,'') || coalesce(`ZIP`, '')) as k_location
+   ,`ADDRESS` as s_address_1
+   ,cast(NULL as STRING) as s_address_2
+   ,`CITY` as s_city
+   ,`STATE` as s_state
+   ,`ZIP` as s_zip
+   ,null as s_county
+   ,'U.S.A.' as s_country
+   ,cast(NULL as STRING) as s_location_name
+   ,`LAT` as s_latitude
+   ,`LON` as s_longitude
+from organization o    
     """
 
     source_location_sdf = distinct_and_add_row_id(spark.sql(sql_source_location))
@@ -131,7 +145,10 @@ from patients p
 
     source_care_site_sql = """select distinct 
     `Id` as k_care_site
-   ,`NAME` as s_care_site_name from organizations"""
+   ,`NAME` as s_care_site_name 
+   sha1(coalesce(`ADDRESS`, '') || coalesce(`CITY`,'') || coalesce(`STATE`,'') || coalesce(`ZIP`, '')) as k_location                           
+    from organizations
+                           """
 
     source_care_site_sdf = distinct_and_add_row_id(spark.sql(source_care_site_sql))
     prepared_source_dict["source_care_site"], _ = write_parquet_file_and_reload(spark, source_care_site_sdf, "source_care_site",
