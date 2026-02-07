@@ -23,5 +23,7 @@
   "ohdsi.type_concept": "Type Concept",
   "ohdsi.condition_status": "Condition Status",
   "nahdo.sopt": "SOPT",
-  "ohdsi.relationship": "Relationship"
+  "ohdsi.relationship": "Relationship",
+  "2.16.840.1.113883.6.101": "NUCC",
+  "urn:cerner:codingsystem:cms:medicalspecialty": "Medicare Specialty"
 }

@@ -80,6 +80,7 @@ from patients p
     race_mapping_sdf = load_local_csv_file(spark, mappings_p / "mappings/race.csv", table_name="race_mapping")
     ethnicity_mapping_sdf = load_local_csv_file(spark, mappings_p / "mappings/ethnicity.csv", table_name="ethnicity_mapping")
     gender_mapping_sdf = load_local_csv_file(spark, mappings_p / "mappings/gender.csv", table_name="gender_mapping")
+    specialty_mapping_sdf = load_local_csv_file(spark, mappings_p / "mappings/specialty.csv", table_name="specialty_mapping")
 
     sql_source_person = """
     select
@@ -141,7 +142,19 @@ from patients p
     `Id` as k_provider
    ,`NAME` as s_provider_name
    ,cast(NULL as STRING) as s_npi
-from providers
+   ,sm.s_specialty
+   ,sm.m_specialty
+   ,sm.m_specialty_code
+   ,sm.m_specialty_code_type
+   ,sm.m_specialty_code_type_oid
+   ,gm.s_gender
+   ,gm.m_gender
+   ,gm.m_gender_code
+   ,gm.m_gender_code_type
+   ,gm.m_gender_code_type_oid
+from providers p 
+        left outer join specialty_mapping sm on p.`SPECIALITY` = sm.s_specialty
+        left outer join gender_mapping gm on p.`GENDER` = gm.s_gender
     """
 
     source_provider_sdf = distinct_and_add_row_id(spark.sql(source_provider_sql))
