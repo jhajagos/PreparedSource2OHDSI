@@ -81,7 +81,7 @@ union
    ,cast(NULL as STRING) as s_location_name
    ,`LAT` as s_latitude
    ,`LON` as s_longitude
-from organization o    
+from organizations o    
     """
 
     source_location_sdf = distinct_and_add_row_id(spark.sql(sql_source_location))
