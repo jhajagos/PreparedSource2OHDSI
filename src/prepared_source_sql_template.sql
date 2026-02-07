@@ -13,14 +13,15 @@
     k_ field prefix indicates a key value for linking to another table
     
     _code field suffix indicates value is coded
-    _code_type field suffix is the human readable description
+    _code_type field suffix is the human-readable description
     _code_type_oid field suffix is the OID value of the field
 */
 
 
 select
-    NULL as k_care_site --Foreign key to the care care site
+    NULL as k_care_site --Foreign key to the care site
    ,NULL as s_care_site_name
+   ,NULL as k_location
 from SourceCareSiteObject;
 
 select
@@ -82,7 +83,7 @@ select
    ,NULL as s_encounter_id --Source identifier for encounter or visit
    ,NULL as s_start_datetime
    ,NULL as s_end_datetime
-   ,NULL as k_care_site --Foreign key to the care care site
+   ,NULL as k_care_site --Foreign key to the care site
    ,NULL as s_visit_detail_type
    ,NULL as s_visit_detail_type_code
    ,NULL as s_visit_detail_type_code_type
@@ -142,7 +143,7 @@ select
    ,NULL as m_admitting_source_code
    ,NULL as m_admitting_source_code_type
    ,NULL as m_admitting_source_code_type_oid
-   ,NULL as k_care_site --Foreign key to the care care site
+   ,NULL as k_care_site --Foreign key to the care site
    ,NULL as k_provider --Foreign key to the provider
    ,NULL as i_exclude --Value of 1 instructs the mapper to skip the row
    ,NULL as s_id --Row source identifier
@@ -162,6 +163,7 @@ select
    ,NULL as s_location_name
    ,NULL as s_latitude
    ,NULL as s_longitude
+   ,NULL as s_geocoding_type
 from SourceLocationObject;
 
 select
@@ -286,6 +288,19 @@ from SourcePayerObject;
 
 select
     NULL as s_person_id --Source identifier for patient or person
+   ,NULL as s_start_datetime
+   ,NULL as s_end_datetime
+   ,NULL as k_location
+   ,NULL as s_address_type
+   ,NULL as s_address_type_code
+   ,NULL as s_address_type_code_type
+   ,NULL as s_address_type_code_type_oid
+   ,NULL as s_source_system --Source system row was extracted from
+   ,NULL as m_source_system --Mapped source system the row was extracted from
+from SourcePersonAddressHistoryObject;
+
+select
+    NULL as s_person_id --Source identifier for patient or person
    ,NULL as s_map_name
    ,NULL as s_source_system --Source system row was extracted from
    ,NULL as s_sequence_id
@@ -296,7 +311,7 @@ select
     NULL as s_person_id --Source identifier for patient or person
    ,NULL as s_gender --Source gender description
    ,NULL as s_gender_code --Source gender code
-   ,NULL as s_gender_code_type --Source gender code type (human readable & OPTIONAL)
+   ,NULL as s_gender_code_type --Source gender code type (human-readable & OPTIONAL)
    ,NULL as s_gender_code_type_oid --Source gender code type specified by OID (used in OHDSI mapping)
    ,NULL as m_gender --Mapped by ETL gender description
    ,NULL as m_gender_code --Mapped by ETL gender code (See: https://phinvads.cdc.gov/vads/ViewCodeSystem.action?id=2.16.840.1.113883.12.1)
@@ -310,7 +325,7 @@ select
    ,NULL as m_death_source_code_type_oid
    ,NULL as s_race --Source race (Black, white, etc) description
    ,NULL as s_race_code --Source race code
-   ,NULL as s_race_code_type --Source race code type (human readable & OPTIONAL)
+   ,NULL as s_race_code_type --Source race code type (human-readable & OPTIONAL)
    ,NULL as s_race_code_type_oid
    ,NULL as m_race
    ,NULL as m_race_code --See: https://athena.ohdsi.org/search-terms/terms?domain=Race&standardConcept=Standard&page=1&pageSize=15&query=
@@ -318,7 +333,7 @@ select
    ,NULL as m_race_code_type_oid --Use 'ohdsi.race' for OHDSI standard race codes
    ,NULL as s_ethnicity --Source ethnicity description (Hispanic, Not Hispanic)
    ,NULL as s_ethnicity_code --Source ethnicity code
-   ,NULL as s_ethnicity_code_type --Source gender code type (human readable & OPTIONAL)
+   ,NULL as s_ethnicity_code_type --Source gender code type (human-readable & OPTIONAL)
    ,NULL as s_ethnicity_code_type_oid --Source ethnicity code type specified by OID (used in OHDSI mapping)
    ,NULL as m_ethnicity
    ,NULL as m_ethnicity_code --See: https://athena.ohdsi.org/search-terms/terms?domain=Ethnicity&standardConcept=Standard&page=1&pageSize=15&query=
@@ -361,12 +376,40 @@ from SourceProcedureObject;
 
 select
     NULL as k_provider --Foreign key to the provider
+   ,NULL as s_map_name
+   ,NULL as s_source_system --Source system row was extracted from
+   ,NULL as s_sequence_id
+   ,NULL as s_alternative_id
+from SourceProviderMapObject;
+
+select
+    NULL as k_provider --Foreign key to the provider
    ,NULL as s_provider_name
    ,NULL as s_npi
+   ,NULL as s_specialty
+   ,NULL as s_specialty_code
+   ,NULL as s_specialty_code_type
+   ,NULL as s_specialty_code_type_oid
+   ,NULL as s_birth_datetime
+   ,NULL as s_gender
+   ,NULL as s_gender_code
+   ,NULL as s_gender_code_type
+   ,NULL as s_gender_code_type_oid
    ,NULL as s_source_system --Source system row was extracted from
    ,NULL as m_source_system --Mapped source system the row was extracted from
    ,NULL as i_exclude --Value of 1 instructs the mapper to skip the row
 from SourceProviderObject;
+
+select
+    NULL as k_provider --Foreign key to the provider
+   ,NULL as s_sequence_id
+   ,NULL as s_specialty
+   ,NULL as s_specialty_code
+   ,NULL as s_specialty_code_type
+   ,NULL as s_specialty_code_type_oid
+   ,NULL as s_source_system --Source system row was extracted from
+   ,NULL as m_source_system --Mapped source system the row was extracted from
+from SourceProviderSpecialtyObject;
 
 select
     NULL as s_id --Row source identifier
@@ -412,8 +455,10 @@ select
    ,NULL as m_result_unit_code
    ,NULL as m_result_unit_code_type
    ,NULL as m_result_unit_code_type_oid
-   ,NULL as s_result_numeric_lower
-   ,NULL as s_result_numeric_upper
+   ,NULL as s_result_numeric_lower --The source numeric lower limit for the normal range
+   ,NULL as s_result_numeric_upper --The source numeric upper limit for the normal range
+   ,NULL as m_result_numeric_lower --Lower bound of the result range for the normal range
+   ,NULL as m_result_numeric_upper --Upper bound of the result range for the normal range
    ,NULL as s_operator
    ,NULL as m_operator
    ,NULL as m_operator_code

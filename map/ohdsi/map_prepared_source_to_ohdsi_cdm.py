@@ -1198,6 +1198,8 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
 
     source_result_sdf = source_result_sdf.withColumn("g_result_text", F.expr("coalesce(m_result_text, s_result_text)"))
 
+    source_result_sdf = source_result_sdf.withColumn("g_result_unit", F.expr("coalesce(m_result_unit, s_result_unit)"))
+
     source_result_sdf = source_result_sdf.withColumn("g_result_numeric", F.coalesce(F.col("m_result_numeric"), F.col("s_result_numeric")).cast("double"))
 
     source_result_sdf = source_result_sdf.withColumn("g_result_numeric_lower",
@@ -1241,7 +1243,7 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
         "g_result_numeric": "value_as_number",
         "g_result_text": "value_source_value",
         "g_unit_concept_id": "unit_concept_id",
-        "s_result_unit": "unit_source_value",
+        "g_result_unit": "unit_source_value",
         "g_result_numeric_lower": "range_low",
         "g_result_numeric_upper": "range_high",
         "g_operator_concept_id": "operator_concept_id",

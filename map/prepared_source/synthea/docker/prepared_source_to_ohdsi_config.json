@@ -10,6 +10,8 @@
     "s_id_fields": ["s_person_id", "s_encounter_id"],
     "salt": "Synthea data hash"
   },
+  "fact_relationship":
+  [{"source_table_name": "source_relationship", "relationships_to_generate": [{"s_relationship": "payer", "ohdsi_table_from": "payer_plan_period", "ohdsi_table_to": "visit_occurrence"}]}],
   "jdbc": {
     "connection_string": "",
     "properties": {"username":  "", "password":  ""}
