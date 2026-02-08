@@ -150,7 +150,9 @@ from patients p
     source_care_site_sql = """select distinct 
     `Id` as k_care_site
    ,`NAME` as s_care_site_name 
-   ,sha1(coalesce(`ADDRESS`, '') || coalesce(`CITY`,'') || coalesce(`STATE`,'') || coalesce(`ZIP`, '')) as k_location                           
+   ,sha1(coalesce(`ADDRESS`, '') || coalesce(`CITY`,'') || coalesce(`STATE`,'') || coalesce(`ZIP`, '')) as k_location
+   ,'synthea' as s_source_system --Source system row was extracted from
+   ,cast(NULL as STRING) as m_source_system --Mapped source system the row was extracted from    
     from organizations
                            """
 
