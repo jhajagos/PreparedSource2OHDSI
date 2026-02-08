@@ -628,13 +628,6 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
                                                         "p.provider_source_value"), how="left_outer"). \
         select("c.*", F.col("p.provider_id").alias("g_provider_id"))
 
-    # if CHECK_POINTING == "LOCAL":
-    #     source_condition_sdf = source_condition_sdf.localCheckpoint()
-    # elif CHECK_POINTING == "REMOTE":
-    #     source_condition_sdf = source_condition_sdf.checkpoint()
-    # else:
-    #     pass
-
     # Determine the domain based on mapped concept_id's domain
     source_condition_matched_sdf = map_codes_to_domain(source_condition_sdf, concept_sdf, oid_to_vocab_sdf, concept_map_sdf,
                                                        "s_condition_code", "s_condition_code_type_oid", "g_condition_occurrence_id",
