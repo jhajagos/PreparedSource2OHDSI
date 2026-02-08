@@ -246,7 +246,6 @@ class SourceEncounterMapObject(PreparedSourceObject):
         return [
                 "s_encounter_id",
                 "s_map_name",
-                "s_source_system",
                 "s_sequence_id",
                 "s_alternative_id",
                 "s_source_system",
