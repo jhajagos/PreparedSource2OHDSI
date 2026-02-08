@@ -106,10 +106,10 @@ class SourcePersonObject(PreparedSourceObject):
                 "m_ethnicity_code_type",
                 "m_ethnicity_code_type_oid",
                 "k_location",
-                "i_exclude",
                 "s_id",
                 "s_source_system",
-                "m_source_system"
+                "m_source_system",
+                "i_exclude"
         ]
 
     def _meta_data(self):
@@ -148,7 +148,8 @@ class SourcePersonAddressHistoryObject(PreparedSourceObject):
                 "s_address_type_code_type",
                 "s_address_type_code_type_oid",
                 "s_source_system",
-                "m_source_system"
+                "m_source_system",
+                "i_exclude"
         ]
 
     def _table_name(self):
@@ -166,7 +167,10 @@ class SourcePersonMapObject(PreparedSourceObject):
                 "s_map_name",
                 "s_source_system",
                 "s_sequence_id",
-                "s_alternative_id"
+                "s_alternative_id",
+                "s_source_system",
+                "m_source_system",
+                "i_exclude"
         ]
 
     def _meta_data(self):
@@ -183,7 +187,7 @@ class SourceObservationPeriodObject(PreparedSourceObject):
                 "m_source",
                 "m_source_code",
                 "m_source_code_type",
-                "m_source_code_type_oid"
+                "m_source_code_type_oid",
                 ]
     def _meta_data(self):
         return {}
@@ -227,10 +231,10 @@ class SourceEncounterObject(PreparedSourceObject):
                 "m_admitting_source_code_type_oid",
                 "k_care_site",
                 "k_provider",
-                "i_exclude",
                 "s_id",
                 "s_source_system",
-                "m_source_system"
+                "m_source_system",
+                "i_exclude"
                 ]
 
     def _meta_data(self):
@@ -245,7 +249,10 @@ class SourceEncounterMapObject(PreparedSourceObject):
                 "s_map_name",
                 "s_source_system",
                 "s_sequence_id",
-                "s_alternative_id"
+                "s_alternative_id",
+                "s_source_system",
+                "m_source_system",
+                "i_exclude"
         ]
 
     def _meta_data(self):
@@ -275,10 +282,10 @@ class SourceEncounterDetailObject(PreparedSourceObject):
                 "m_visit_detail_source_code_type",
                 "m_visit_detail_source_code_type_oid",
                 "k_provider",
-                "i_exclude",
                 "s_id",
                 "s_source_system",
-                "m_source_system"
+                "m_source_system",
+                "i_exclude"
                 ]
 
     def _meta_data(self):
@@ -333,10 +340,10 @@ class SourceConditionObject(PreparedSourceObject):
                 "s_present_on_admission_indicator",
                 "s_sequence_id",
                 "k_provider",
-                "i_exclude",
                 "s_id",
                 "s_source_system",
-                "m_source_system"
+                "m_source_system",
+                "i_exclude"
                 ]
 
     def _meta_data(self):
@@ -365,13 +372,13 @@ class SourceProcedureObject(PreparedSourceObject):
                 "s_modifier_code_type_oid",
                 "s_quantity",
                 "k_provider",
-                "i_exclude",
                 "s_id",
                 "s_place_of_service_code",
                 "s_place_of_service_code_type",
                 "s_place_of_service_code_type_oid",
                 "s_source_system",
                 "m_source_system"
+                "i_exclude"
                 ]
 
     def _meta_data(self):
@@ -400,9 +407,9 @@ class SourceDeviceObject(PreparedSourceObject):
             "m_device_type_code_type",
             "m_device_type_code_type_oid",
             "k_provider",
-            "i_exclude",
             "s_source_system",
-            "m_source_system"
+            "m_source_system",
+            "i_exclude"
         ]
 
     def _meta_data(self):
@@ -546,7 +553,8 @@ class SourceProviderObject(PreparedSourceObject):
                 "s_gender", "s_gender_code", "s_gender_code_type", "s_gender_code_type_oid",
                 "m_gender", "m_gender_code", "m_gender_code_type", "m_gender_code_type_oid",
                 "k_care_site",
-                "s_source_system", "m_source_system", "i_exclude"]
+                "s_source_system", "m_source_system",
+                "i_exclude"]
 
     def _meta_data(self):
         return {"s_npi": "National Provider Identifier",
@@ -555,7 +563,8 @@ class SourceProviderObject(PreparedSourceObject):
 
 class SourceProviderMapObject(PreparedSourceObject):
     def _fields(self):
-        return ["k_provider", "s_map_name", "s_source_system", "s_sequence_id", "s_alternative_id"]
+        return ["k_provider", "s_map_name", "s_source_system", "s_sequence_id", "s_alternative_id",
+                "s_source_system", "m_source_system", "i_exclude"]
     def _meta_data(self):
         return {}
 
@@ -564,7 +573,7 @@ class SourceProviderSpecialtyObject(PreparedSourceObject):
     def _fields(self):
         return ["k_provider", "s_sequence_id", "s_specialty", "s_specialty_code",
                 "s_specialty_code_type", "s_specialty_code_type_oid",
-                "s_source_system", "m_source_system"]
+                "s_source_system", "m_source_system", "i_exclude"]
 
 
 class SourceLocationObject(PreparedSourceObject):
@@ -586,7 +595,8 @@ class SourceLocationObject(PreparedSourceObject):
                 "s_location_name",
                 "s_latitude",
                 "s_longitude",
-                "s_geocoding_type"
+                "s_geocoding_type",
+                "s_source_system", "m_source_system"
                ]
 
     def _meta_data(self):
@@ -638,7 +648,9 @@ class SourceNoteObject(PreparedSourceObject):
                 "m_note_class", "m_note_class_code", "m_note_class_code_type", "m_note_class_code_type_oid",
                 "k_provider", "s_note_type", "s_note_type_code", "s_note_type_code_type","s_note_type_code_type_oid",
                 "s_language", "s_language_code", "s_language_code_type", "s_language_code_type_oid",
-                "s_encoding", "s_encoding_code", "s_encoding_code_type", "s_encoding_code_type_oid", "i_exclude"]
+                "s_encoding", "s_encoding_code", "s_encoding_code_type", "s_encoding_code_type_oid",
+                "s_source_system", "m_source_system",
+                "i_exclude"]
 
     def _meta_data(self):
         return {
@@ -668,7 +680,8 @@ class SourceRelationshipObject(PreparedSourceObject):
     def _fields(self):
         return ["s_id", "s_relationship",  "s_relationship_code", "s_relationship_code_type", "s_relationship_code_type_oid",
                 "s_target_from_table_name", "s_target_from_table_field", "s_target_from_value",
-                "s_target_to_table_name", "s_target_to_table_field", "s_target_to_value"
+                "s_target_to_table_name", "s_target_to_table_field", "s_target_to_value",
+                "s_source_system", "m_source_system", "i_exclude"
                 ]
 
     def _meta_data(self):
