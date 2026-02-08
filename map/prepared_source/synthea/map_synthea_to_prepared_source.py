@@ -610,6 +610,7 @@ from medications
    ,`UNITS` as s_result_unit_code
    ,'UCUM' as s_result_unit_code_type
    ,'2.16.840.1.113883.4.642.3.912' as s_result_unit_code_type_oid
+   ,cast(NULL as STRING) as m_result_unit
    ,cast(NULL as STRING) as m_result_unit_code
    ,cast(NULL as STRING) as m_result_unit_code_type
    ,cast(NULL as STRING) as m_result_unit_code_type_oid
