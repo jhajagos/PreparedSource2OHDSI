@@ -72,8 +72,9 @@ select
    ,NULL as m_device_type_code
    ,NULL as m_device_type_code_type
    ,NULL as m_device_type_code_type_oid
+   ,NULL as k_provider --Foreign key to the provider
    ,NULL as i_exclude --Value of 1 instructs the mapper to skip the row
-   ,NULL as s_source_system --Source system row was extracted from
+   ,NULL as s_source_system  --Source system row was extracted from
    ,NULL as m_source_system --Mapped source system the row was extracted from
 from SourceDeviceObject;
 
@@ -96,6 +97,7 @@ select
    ,NULL as m_visit_detail_source_code
    ,NULL as m_visit_detail_source_code_type
    ,NULL as m_visit_detail_source_code_type_oid
+   ,NULL as k_provider --Foreign key to the provider
    ,NULL as i_exclude --Value of 1 instructs the mapper to skip the row
    ,NULL as s_id --Row source identifier
    ,NULL as s_source_system --Source system row was extracted from
@@ -385,16 +387,25 @@ from SourceProviderMapObject;
 select
     NULL as k_provider --Foreign key to the provider
    ,NULL as s_provider_name
-   ,NULL as s_npi
-   ,NULL as s_specialty
+   ,NULL as s_npi --National Provider Identifier
+   ,NULL as s_dea_numbers_specialty
    ,NULL as s_specialty_code
    ,NULL as s_specialty_code_type
    ,NULL as s_specialty_code_type_oid
+   ,NULL as m_specialty
+   ,NULL as m_specialty_code
+   ,NULL as m_specialty_code_type
+   ,NULL as m_specialty_code_type_oid
    ,NULL as s_birth_datetime
    ,NULL as s_gender
    ,NULL as s_gender_code
    ,NULL as s_gender_code_type
    ,NULL as s_gender_code_type_oid
+   ,NULL as m_gender
+   ,NULL as m_gender_code
+   ,NULL as m_gender_code_type
+   ,NULL as m_gender_code_type_oid
+   ,NULL as k_care_site --Foreign key to the care site
    ,NULL as s_source_system --Source system row was extracted from
    ,NULL as m_source_system --Mapped source system the row was extracted from
    ,NULL as i_exclude --Value of 1 instructs the mapper to skip the row
@@ -471,6 +482,7 @@ select
    ,NULL as m_source_code_type_oid
    ,NULL as i_exclude --Value of 1 instructs the mapper to skip the row
    ,NULL as s_id --Row source identifier
+   ,NULL as k_provider --Foreign key to the provider
    ,NULL as s_source_system --Source system row was extracted from
    ,NULL as m_source_system --Mapped source system the row was extracted from
 from SourceResultObject;

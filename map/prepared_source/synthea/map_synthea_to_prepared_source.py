@@ -68,6 +68,20 @@ def main(config):
    ,`LAT` as s_latitude
    ,`LON` as s_longitude
 from patients p
+union 
+   select distinct
+    sha1(coalesce(`ADDRESS`, '') || coalesce(`CITY`,'') || coalesce(`STATE`,'') || coalesce(`ZIP`, '')) as k_location
+   ,`ADDRESS` as s_address_1
+   ,cast(NULL as STRING) as s_address_2
+   ,`CITY` as s_city
+   ,`STATE` as s_state
+   ,`ZIP` as s_zip
+   ,null as s_county
+   ,'U.S.A.' as s_country
+   ,cast(NULL as STRING) as s_location_name
+   ,`LAT` as s_latitude
+   ,`LON` as s_longitude
+from organizations o    
     """
 
     source_location_sdf = distinct_and_add_row_id(spark.sql(sql_source_location))
@@ -80,6 +94,7 @@ from patients p
     race_mapping_sdf = load_local_csv_file(spark, mappings_p / "mappings/race.csv", table_name="race_mapping")
     ethnicity_mapping_sdf = load_local_csv_file(spark, mappings_p / "mappings/ethnicity.csv", table_name="ethnicity_mapping")
     gender_mapping_sdf = load_local_csv_file(spark, mappings_p / "mappings/gender.csv", table_name="gender_mapping")
+    specialty_mapping_sdf = load_local_csv_file(spark, mappings_p / "mappings/specialty.csv", table_name="specialty_mapping")
 
     sql_source_person = """
     select
@@ -130,7 +145,10 @@ from patients p
 
     source_care_site_sql = """select distinct 
     `Id` as k_care_site
-   ,`NAME` as s_care_site_name from organizations"""
+   ,`NAME` as s_care_site_name 
+   ,sha1(coalesce(`ADDRESS`, '') || coalesce(`CITY`,'') || coalesce(`STATE`,'') || coalesce(`ZIP`, '')) as k_location                           
+    from organizations
+                           """
 
     source_care_site_sdf = distinct_and_add_row_id(spark.sql(source_care_site_sql))
     prepared_source_dict["source_care_site"], _ = write_parquet_file_and_reload(spark, source_care_site_sdf, "source_care_site",
@@ -141,7 +159,28 @@ from patients p
     `Id` as k_provider
    ,`NAME` as s_provider_name
    ,cast(NULL as STRING) as s_npi
-from providers
+   ,cast(NULL as STRING) as s_dea_number
+   ,cast(NULL as TIMESTAMP) as s_birth_datetime
+   ,sm.s_specialty
+   ,cast(NULL as STRING) as s_specialty_code
+   ,cast(NULL as STRING) as s_specialty_code_type
+   ,cast(NULL as STRING) as s_specialty_code_type_oid
+   ,sm.m_specialty
+   ,sm.m_specialty_code
+   ,sm.m_specialty_code_type
+   ,sm.m_specialty_code_type_oid
+   ,gm.s_gender
+   ,cast(NULL as STRING) as s_gender_code
+   ,cast(NULL as STRING) as s_gender_code_type
+   ,cast(NULL as STRING) as s_gender_code_type_oid
+   ,gm.m_gender
+   ,gm.m_gender_code
+   ,gm.m_gender_code_type
+   ,gm.m_gender_code_type_oid
+   ,`ORGANIZATION` as k_care_site
+from providers p 
+        left outer join specialty_mapping sm on p.`SPECIALITY` = sm.s_specialty
+        left outer join gender_mapping gm on p.`GENDER` = gm.s_gender
     """
 
     source_provider_sdf = distinct_and_add_row_id(spark.sql(source_provider_sql))
@@ -348,7 +387,6 @@ from conditions
    ,'synthea' as s_source_system --Source system row was extracted from
    ,cast(NULL as STRING) as m_source_system --Mapped source system the row was extracted from
 from encounters where REASONCODE is not NULL
-    
     """
 
     source_condition_sql = source_condition_sql_1 + "\nunion\n" + source_condition_sql_2
@@ -572,6 +610,7 @@ from medications
    ,`UNITS` as s_result_unit_code
    ,'UCUM' as s_result_unit_code_type
    ,'2.16.840.1.113883.4.642.3.912' as s_result_unit_code_type_oid
+   ,cast(NULL as STRING) as m_result_unit
    ,cast(NULL as STRING) as m_result_unit_code
    ,cast(NULL as STRING) as m_result_unit_code_type
    ,cast(NULL as STRING) as m_result_unit_code_type_oid
