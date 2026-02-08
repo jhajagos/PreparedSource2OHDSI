@@ -1023,6 +1023,13 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
 
     source_device_sdf = align_to_visit(source_device_sdf, ohdsi_person_sdf, visit_source_link_sdf)
 
+    # Add provider associated with the device
+    source_device_sdf = source_device_sdf.alias("d").join(ohdsi_provider_sdf.alias("p"),
+                                                                F.col("d.k_provider") == F.col(
+                                                                    "p.provider_source_value"), how="left_outer"). \
+        select("d.*", F.col("p.provider_id").alias("g_provider_id"))
+
+
     source_device_sdf = source_device_sdf.withColumn("g_start_device_date", F.to_date("s_start_device_datetime"))
     source_device_sdf = source_device_sdf.withColumn("g_end_device_date", F.to_date("s_end_device_datetime"))
     source_device_sdf = device_type_code_mapper(source_device_sdf, concept_sdf, oid_to_vocab_sdf)
@@ -1060,7 +1067,8 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
         "s_id": "s_id",
         "g_source_table_name": "g_source_table_name",
         "s_g_id": "s_g_id",
-        "s_unique_device_identifier": "unique_device_id"
+        "g_provider_id": "provider_id",
+        "s_unique_device_identifier": "unique_device_id",
     }
 
     device_source_path = root_source_path + "device/"
@@ -1314,6 +1322,13 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
 
     source_note_sdf = align_to_visit(source_note_sdf, ohdsi_person_sdf, visit_source_link_sdf)
 
+    # Add provider associated with note
+    source_note_sdf = source_note_sdf.alias("n").join(ohdsi_provider_sdf.alias("p"),
+                                                                F.col("n.k_provider") == F.col(
+                                                                    "p.provider_source_value"), how="left_outer"). \
+        select("n.*", F.col("p.provider_id").alias("g_provider_id"))
+
+
     source_note_sdf = note_class_code_mapper(source_note_sdf, concept_sdf, oid_to_vocab_sdf)
 
     source_note_sdf = standard_code_mapper(source_note_sdf, concept_sdf, oid_to_vocab_sdf,
@@ -1349,7 +1364,8 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
         "s_g_id": "s_g_id",
         "s_note_class": "note_source_value",
         "s_note_title": "note_title",
-        "s_note_text": "note_text"
+        "s_note_text": "note_text",
+        "g_provider_id": "provider_id"
     }
 
     source_note_sdf = mapping_utilities.map_table_column_names(source_note_sdf, note_source_field_map)
