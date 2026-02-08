@@ -107,7 +107,6 @@ from SourceEncounterDetailObject;
 select
     NULL as s_encounter_id --Source identifier for encounter or visit
    ,NULL as s_map_name
-   ,NULL as s_source_system --Source system row was extracted from
    ,NULL as s_sequence_id
    ,NULL as s_alternative_id
    ,NULL as s_source_system --Source system row was extracted from
