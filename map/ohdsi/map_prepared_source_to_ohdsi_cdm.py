@@ -1252,6 +1252,8 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
     source_result_sdf = source_result_sdf.withColumn("g_result_numeric_upper",
                                                      F.coalesce(F.col("m_result_numeric_upper").cast("double"),F.col("s_result_numeric_upper").cast("double")))
 
+    source_result_sdf = add_g_source_system(source_result_sdf)
+
     source_result_partition_by = None
     if "build_by_stages" in config:
         if "source_result" in config["build_by_stages"]:
