@@ -463,11 +463,11 @@ class SourceResultObject(PreparedSourceObject):
                 "m_source_code",
                 "m_source_code_type",
                 "m_source_code_type_oid",
-                "i_exclude",
-                "s_id",
                 "k_provider",
+                "s_id",
                 "s_source_system",
-                "m_source_system"
+                "m_source_system",
+                "i_exclude"
                 ]
 
     def _meta_data(self):
