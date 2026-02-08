@@ -184,12 +184,15 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
 
     source_care_site_sdf = source_care_site_sdf.withColumn("s_g_id", F.col("g_id"))
 
+    source_care_site_sdf = add_g_source_system(source_care_site_sdf)
+
     care_site_field_map = {"g_id": "care_site_id",
                            "s_care_site_name": "care_site_name",
                            "k_care_site": "care_site_source_value",
                            "g_source_table_name": "g_source_table_name",
                            "g_location_id": "location_id",
-                           "s_g_id": "s_g_id"
+                           "s_g_id": "s_g_id",
+                           "g_source_system": "g_source_system"
     }
 
     ohdsi_care_site_sdf = mapping_utilities.map_table_column_names(source_care_site_sdf, care_site_field_map)
@@ -224,6 +227,7 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
     source_provider_sdf = source_provider_sdf.withColumn("g_birth_year",
                                                      F.expr("extract(year from cast(s_birth_datetime as date))"))
 
+    source_provider_sdf = add_g_source_system(source_provider_sdf)
 
     provider_field_map = {
         "g_id": "provider_id",
@@ -239,7 +243,8 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
         "g_gender_source_concept_id": "gender_source_concept_id",
         "g_birth_year": "year_of_birth",
         "s_g_id": "s_g_id",
-        "g_source_table_name": "g_source_table_name"
+        "g_source_table_name": "g_source_table_name",
+        "g_source_system": "g_source_system"
     }
 
     ohdsi_provider_sdf = mapping_utilities.map_table_column_names(source_provider_sdf, provider_field_map)
@@ -274,6 +279,8 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
 
     source_person_sdf = source_person_sdf.withColumn("g_s_person_id", F.xxhash64(F.concat(F.lit(shi_salt), F.col("s_person_id"))))
 
+    source_person_sdf = add_g_source_system(source_person_sdf)
+
     patient_field_map = {
         "g_id": "person_id",
         "s_person_id": "person_source_value",
@@ -293,7 +300,8 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
         "g_location_id": "location_id",
         "s_id": "s_id",
         "g_source_table_name": "g_source_table_name",
-        "s_g_id": "s_g_id"
+        "s_g_id": "s_g_id",
+        "g_source_system": "g_source_system"
     }
 
     # TODO: Add check if g_s_person_id fails if there are duplicates
@@ -328,6 +336,8 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
 
     source_death_sdf = source_death_sdf.withColumn("g_s_person_id",
                                                      F.xxhash64(F.concat(F.lit(shi_salt), F.col("s_person_id"))))
+
+    # TODO: "g_source_system" should be the source system that the mortality comes from
 
     death_field_map = {
         "g_id": "person_id",
@@ -399,6 +409,8 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
     source_encounter_sdf = source_encounter_sdf.withColumn("g_s_encounter_id",
                                                      F.xxhash64(F.concat(F.lit(shi_salt), F.col("s_encounter_id"))))
 
+    source_encounter_sdf = add_g_source_system(source_encounter_sdf)
+
     # Map fields for visit_occurrence_id
     if ohdsi_version == "5.3.1":
         visit_field_map = {
@@ -422,7 +434,8 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
             "g_provider_id": "provider_id",
             "s_id": "s_id",
             "g_source_table_name": "g_source_table_name",
-            "s_g_id": "s_g_id"
+            "s_g_id": "s_g_id",
+            "g_source_system": "g_source_system"
         }
     elif ohdsi_version == "5.4.1":
         visit_field_map = {
@@ -446,7 +459,8 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
             "g_provider_id": "provider_id",
             "s_id": "s_id",
             "g_source_table_name": "g_source_table_name",
-            "s_g_id": "s_g_id"
+            "s_g_id": "s_g_id",
+            "g_source_system": "g_source_system"
         }
 
     if stable_hash_s_encounter_id:
@@ -525,6 +539,8 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
     source_payer_sdf = source_payer_sdf.withColumn("g_source_table_name", F.lit("source_payer"))
     source_payer_sdf = source_payer_sdf.withColumn("s_g_id", F.col("g_id"))
 
+    source_payer_sdf = add_g_source_system(source_payer_sdf)
+
     payer_plan_build_map = {
         "g_id": "payer_plan_period_id",
         "g_person_id": "person_id",
@@ -534,7 +550,8 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
         "g_payer_concept_id": "payer_concept_id",
         "g_payer_source_concept_id": "payer_source_concept_id",
         "s_g_id": "s_g_id",
-        "g_source_table_name": "g_source_table_name"
+        "g_source_table_name": "g_source_table_name",
+        "g_source_system": "g_source_system"
     }
 
     source_payer_sdf = mapping_utilities.map_table_column_names(source_payer_sdf, payer_plan_build_map)
@@ -580,6 +597,8 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
     source_encounter_detail_sdf = source_encounter_detail_sdf.withColumn("g_source_table_name", F.lit("source_encounter_detail"))
     source_encounter_detail_sdf = source_encounter_detail_sdf.withColumn("s_g_id", F.col("g_id"))
 
+    source_encounter_detail_sdf = add_g_source_system(source_encounter_detail_sdf)
+
     # Map fields to encounter
     visit_detail_field_map = {
         "g_id": "visit_detail_id",
@@ -597,7 +616,8 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
         "g_care_site_id": "care_site_id",
         "s_id": "s_id",
         "g_source_table_name": "g_source_table_name",
-        "s_g_id": "s_g_id"
+        "s_g_id": "s_g_id",
+        "g_source_system": "g_source_system"
     }
     ohdsi_visit_detail_sdf = mapping_utilities.map_table_column_names(source_encounter_detail_sdf, visit_detail_field_map)
     ohdsi_visit_detail_sdf = mapping_utilities.column_names_to_align_to(ohdsi_visit_detail_sdf,
@@ -634,6 +654,8 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
                                                         "p.provider_source_value"), how="left_outer"). \
         select("c.*", F.col("p.provider_id").alias("g_provider_id"))
 
+    source_condition_sdf = add_g_source_system(source_condition_sdf)
+
     # Determine the domain based on mapped concept_id's domain
     source_condition_matched_sdf = map_codes_to_domain(source_condition_sdf, concept_sdf, oid_to_vocab_sdf, concept_map_sdf,
                                                        "s_condition_code", "s_condition_code_type_oid", "g_condition_occurrence_id",
@@ -646,7 +668,6 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
         F.col("s_end_condition_datetime")))
 
     # Write a parquet file partitioned by domain
-
     source_condition_matched_sdf = build_matched_tables_in_stages(source_condition_sdf, source_condition_matched_sdf,
                                                                "source_condition", config, output_path)
 
@@ -667,7 +688,8 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
         "s_id": "s_id",
         "g_source_table_name": "g_source_table_name",
         "s_g_id": "s_g_id",
-        "g_provider_id": "provider_id"
+        "g_provider_id": "provider_id",
+        "g_source_system": "g_source_system"
     }
 
     root_source_path = output_path + "source/"
@@ -716,7 +738,9 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
             "g_condition_type_concept_id": "procedure_type_concept_id",
             "s_id": "s_id",
             "g_source_table_name": "g_source_table_name",
-            "s_g_id": "s_g_id"
+            "s_g_id": "s_g_id",
+            "g_provider_id": "provider_id",
+            "g_source_system": "g_source_system"
         }
     elif ohdsi_version == "5.4.1":
         procedure_domain_condition_source_field_map = {
@@ -733,7 +757,9 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
             "g_condition_type_concept_id": "procedure_type_concept_id",
             "s_id": "s_id",
             "g_source_table_name": "g_source_table_name",
-            "s_g_id": "s_g_id"
+            "s_g_id": "s_g_id",
+            "g_provider_id": "provider_id",
+            "g_source_system": "g_source_system"
         }
 
     procedure_domain_condition_source_sdf = build_mapped_domain_df(spark, source_condition_matched_sdf,
@@ -760,7 +786,9 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
         "g_condition_type_concept_id": "observation_type_concept_id",
         "s_id": "s_id",
         "g_source_table_name": "g_source_table_name",
-        "s_g_id": "s_g_id"
+        "s_g_id": "s_g_id",
+        "g_provider_id": "provider_id",
+        "g_source_system": "g_source_system"
     }
 
     observation_domain_condition_source_sdf = build_mapped_domain_df(spark, source_condition_matched_sdf,
@@ -771,9 +799,6 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
                                                                      source_path=condition_source_path)
 
     ohdsi_sdf_dict["observation"] += [observation_domain_condition_source_sdf]
-
-    # if evaluate_samples:
-    #     generate_local_samples(observation_domain_condition_source_sdf, local_path, "observation_source_condition")
 
     measurement_domain_condition_source_field_map = {
         "g_condition_occurrence_id": "measurement_id",
@@ -787,7 +812,9 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
         "g_condition_type_concept_id": "measurement_type_concept_id",
         "s_id": "s_id",
         "g_source_table_name": "g_source_table_name",
-        "s_g_id": "s_g_id"
+        "s_g_id": "s_g_id",
+        "g_provider_id": "provider_id",
+        "g_source_system": "g_source_system"
     }
 
     measurement_domain_condition_source_sdf = build_mapped_domain_df(spark, source_condition_matched_sdf,
@@ -824,6 +851,8 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
                                                                     "p.provider_source_value"), how="left_outer"). \
         select("pc.*", F.col("p.provider_id").alias("g_provider_id"))
 
+    source_procedure_sdf = add_g_source_system(source_procedure_sdf)
+
     source_procedure_matched_sdf = map_codes_to_domain(source_procedure_sdf, concept_sdf, oid_to_vocab_sdf,
                                                        concept_map_sdf,
                                                        "s_procedure_code", "s_procedure_code_type_oid",
@@ -848,7 +877,8 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
             "s_id": "s_id",
             "g_source_table_name": "g_source_table_name",
             "s_g_id": "s_g_id",
-            "g_provider_id": "provider_id"
+            "g_provider_id": "provider_id",
+            "g_source_system": "g_source_system"
         }
     elif ohdsi_version == "5.4.1":
         procedure_field_map = {
@@ -866,7 +896,8 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
             "s_id": "s_id",
             "g_source_table_name": "g_source_table_name",
             "s_g_id": "s_g_id",
-            "g_provider_id": "provider_id"
+            "g_provider_id": "provider_id",
+            "g_source_system": "g_source_system"
         }
 
     procedure_source_path = root_source_path + "procedure/"
@@ -894,7 +925,9 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
             "g_procedure_type_concept_id": "drug_type_concept_id",
             "s_id": "s_id",
             "g_source_table_name": "g_source_table_name",
-            "s_g_id": "s_g_id"
+            "s_g_id": "s_g_id",
+            "g_provider_id": "provider_id",
+            "g_source_system": "g_source_system"
         }
     elif ohdsi_version == "5.4.1":
         drug_domain_procedure_source_field_map = {
@@ -911,7 +944,9 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
             "g_procedure_type_concept_id": "drug_type_concept_id",
             "s_id": "s_id",
             "g_source_table_name": "g_source_table_name",
-            "s_g_id": "s_g_id"
+            "s_g_id": "s_g_id",
+            "g_provider_id": "provider_id",
+            "g_source_system": "g_source_system"
         }
 
     drug_domain_procedure_source_sdf = build_mapped_domain_df(spark, source_procedure_matched_sdf,
@@ -920,9 +955,6 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
                                                                      domain="Drug",
                                                                      table_name="drug_exposure",
                                                                      source_path=procedure_source_path)
-
-    # if evaluate_samples:
-    #     generate_local_samples(drug_domain_procedure_source_sdf, local_path, "drug_exposure_source_procedure")
 
     ohdsi_sdf_dict["drug_exposure"] += [drug_domain_procedure_source_sdf]
 
@@ -938,7 +970,9 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
         "g_procedure_type_concept_id": "measurement_type_concept_id",
         "s_id": "s_id",
         "g_source_table_name": "g_source_table_name",
-        "s_g_id": "s_g_id"
+        "s_g_id": "s_g_id",
+        "g_provider_id": "provider_id",
+        "g_source_system": "g_source_system"
     }
 
     measurement_domain_procedure_source_sdf = build_mapped_domain_df(spark, source_procedure_matched_sdf,
@@ -962,7 +996,9 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
         "g_procedure_type_concept_id": "observation_type_concept_id",
         "s_id": "s_id",
         "g_source_table_name": "g_source_table_name",
-        "s_g_id": "s_g_id"
+        "s_g_id": "s_g_id",
+        "g_provider_id": "provider_id",
+        "g_source_system": "g_source_system"
     }
 
     observation_domain_procedure_source_sdf = build_mapped_domain_df(spark, source_procedure_matched_sdf,
@@ -987,7 +1023,9 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
             "g_procedure_type_concept_id": "device_type_concept_id",
             "s_id": "s_id",
             "g_source_table_name": "g_source_table_name",
-            "s_g_id": "s_g_id"
+            "s_g_id": "s_g_id",
+            "g_provider_id": "provider_id",
+            "g_source_system": "g_source_system"
         }
     elif ohdsi_version == "5.4.1":
         device_domain_procedure_source_field_map = {
@@ -1004,7 +1042,9 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
             "g_procedure_type_concept_id": "device_type_concept_id",
             "s_id": "s_id",
             "g_source_table_name": "g_source_table_name",
-            "s_g_id": "s_g_id"
+            "s_g_id": "s_g_id",
+            "g_provider_id": "provider_id",
+            "g_source_system": "g_source_system"
         }
 
     device_domain_procedure_source_sdf = build_mapped_domain_df(spark, source_procedure_matched_sdf,
@@ -1017,9 +1057,6 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
     ohdsi_sdf_dict["device_exposure"] += [device_domain_procedure_source_sdf]
     source_procedure_process_end_time = time.time()
     logging.info(f"Finished processing source_procedure (Total elapsed time: {format_log_time(source_procedure_process_start_time, source_procedure_process_end_time)})")
-
-    # if evaluate_samples:
-    #     generate_local_samples(device_domain_procedure_source_sdf, local_path, "device_exposure_source_procedure")
 
     # Device_Exposure
     logging.info("Started building main device_exposure table")
@@ -1040,6 +1077,8 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
     source_device_sdf = source_device_sdf.withColumn("g_end_device_date", F.to_date("s_end_device_datetime"))
     source_device_sdf = device_type_code_mapper(source_device_sdf, concept_sdf, oid_to_vocab_sdf)
 
+    source_device_sdf = add_g_source_system(source_device_sdf)
+
     source_device_matched_sdf = mapped_and_source_standard_code_mapper(source_device_sdf, concept_sdf, oid_to_vocab_sdf,
                                                        concept_map_sdf,
                                                        "m_device_code", "m_device_code_type_oid",
@@ -1056,7 +1095,6 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
                                                                      F.col("g_device_concept_id_domain_id"))
 
     source_device_matched_sdf = source_device_matched_sdf.withColumn("s_g_id", F.col("g_id"))
-
 
     device_exposure_source_field_map = {
         "g_id": "device_exposure_id",
@@ -1075,6 +1113,7 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
         "s_g_id": "s_g_id",
         "g_provider_id": "provider_id",
         "s_unique_device_identifier": "unique_device_id",
+        "g_source_system": "g_source_system"
     }
 
     device_source_path = root_source_path + "device/"
@@ -1121,6 +1160,8 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
                                                                     "p.provider_source_value"), how="left_outer"). \
         select("m.*", F.col("p.provider_id").alias("g_provider_id"))
 
+    source_med_sdf = add_g_source_system(source_med_sdf)
+
     source_matched_med_sdf = three_level_standard_code_mapper(source_med_sdf, concept_sdf, oid_to_vocab_sdf, concept_map_sdf,
                                                       "m_drug_code", "m_drug_code_type_oid",
                                                       "s_drug_code", "s_drug_code_type_oid",
@@ -1157,7 +1198,8 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
         "s_id": "s_id",
         "g_provider_id": "provider_id",
         "g_source_table_name": "g_source_table_name",
-        "s_g_id": "s_g_id"
+        "s_g_id": "s_g_id",
+        "g_source_system": "g_source_system"
     }
 
     drug_source_path = root_source_path + "drug/"
@@ -1251,7 +1293,8 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
         "g_operator_concept_id": "operator_concept_id",
         "s_id": "s_id",
         "g_source_table_name": "g_source_table_name",
-        "s_g_id": "s_g_id"
+        "s_g_id": "s_g_id",
+        "g_source_system": "g_source_system"
     }
 
     result_source_path = root_source_path + "result/"
@@ -1283,7 +1326,8 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
             "s_result_unit": "unit_source_value",
             "s_id": "s_id",
             "g_source_table_name": "g_source_table_name",
-            "s_g_id": "s_g_id"
+            "s_g_id": "s_g_id",
+            "g_source_system": "g_source_system"
         }
     elif ohdsi_version == "5.4.1":
         observation_field_map = {
@@ -1303,7 +1347,8 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
             "s_result_unit": "unit_source_value",
             "s_id": "s_id",
             "g_source_table_name": "g_source_table_name",
-            "s_g_id": "s_g_id"
+            "s_g_id": "s_g_id",
+            "g_source_system": "g_source_system"
         }
 
     ohdsi_observation_sdf = build_mapped_domain_df(spark, source_result_matched_sdf,
@@ -1355,6 +1400,8 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
 
     source_note_sdf = source_note_sdf.withColumn("g_source_table_name", F.lit("source_note"))
 
+    source_note_sdf = add_g_source_system(source_note_sdf)
+
     note_source_field_map = {
         "g_id": "note_id",
         "g_person_id": "person_id",
@@ -1367,11 +1414,12 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
         "g_note_type_concept_id": "note_type_concept_id",
         "s_id": "s_id",
         "g_source_table_name": "g_source_table_name",
-        "s_g_id": "s_g_id",
         "s_note_class": "note_source_value",
         "s_note_title": "note_title",
         "s_note_text": "note_text",
-        "g_provider_id": "provider_id"
+        "g_provider_id": "provider_id",
+        "s_g_id": "s_g_id",
+        "g_source_system": "g_source_system"
     }
 
     source_note_sdf = mapping_utilities.map_table_column_names(source_note_sdf, note_source_field_map)
