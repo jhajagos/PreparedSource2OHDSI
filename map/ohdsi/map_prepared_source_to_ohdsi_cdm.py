@@ -796,9 +796,6 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
     source_condition_process_end_time = time.time()
     logging.info(f"Finished processing source_condition (Total elapsed time: {format_log_time(source_condition_process_start_time, source_condition_process_end_time)})")
 
-    # if evaluate_samples:
-    #     generate_local_samples(measurement_domain_condition_source_sdf, local_path, "measurement_source_condition.csv")
-
     # Process source_procedure
     logging.info("Started processing source_procedure")
     source_procedure_process_start_time = time.time()
@@ -877,10 +874,6 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
 
     ohdsi_sdf_dict["procedure_occurrence"] += [procedure_source_sdf]
 
-    # if evaluate_samples:
-    #     generate_local_samples(procedure_source_sdf, local_path, "procedure_occurrence")
-
-    # Source Procedure -> domain/mapped_domain Drug
     # TODO:  drug_exposure_end_date cannot be null
     if ohdsi_version == "5.3.1":
         drug_domain_procedure_source_field_map = {
@@ -951,9 +944,6 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
 
     ohdsi_sdf_dict["measurement"] += [measurement_domain_procedure_source_sdf]
 
-    # if evaluate_samples:
-    #     generate_local_samples(measurement_domain_procedure_source_sdf, local_path, "measurement_source_procedure")
-
     observation_domain_procedure_source_field_map = {
         "g_procedure_occurrence_id": "observation_id",
         "g_person_id": "person_id",
@@ -977,9 +967,6 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
                                                                      source_path=procedure_source_path)
 
     ohdsi_sdf_dict["observation"] += [observation_domain_procedure_source_sdf]
-
-    # if evaluate_samples:
-    #     generate_local_samples(observation_domain_procedure_source_sdf, local_path, "observation_source_procedure")
 
     if ohdsi_version == "5.3.1":
         device_domain_procedure_source_field_map = {
@@ -1040,8 +1027,6 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
     source_device_sdf = source_device_sdf.withColumn("g_end_device_date", F.to_date("s_end_device_datetime"))
     source_device_sdf = device_type_code_mapper(source_device_sdf, concept_sdf, oid_to_vocab_sdf)
 
-    #(source_sdf, concept_sdf, oid_vocab_sdf, concept_map_sdf, m_code, m_code_oid, s_code, s_code_oid,
-    #                                       source_concept_id_field_name, concept_id_field_name, mapped_domain_id=None)
     source_device_matched_sdf = mapped_and_source_standard_code_mapper(source_device_sdf, concept_sdf, oid_to_vocab_sdf,
                                                        concept_map_sdf,
                                                        "m_device_code", "m_device_code_type_oid",
@@ -1176,9 +1161,6 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
 
     ohdsi_sdf_dict["drug_exposure"] += [ohdsi_drug_sdf]
 
-    # if evaluate_samples:
-    #     generate_local_samples(ohdsi_drug_sdf, local_path, "drug_exposure")
-
     # Measurement (labs and clinical events)
     logging.info("Started processing source_result")
     source_result_process_start_time = time.time()
@@ -1209,10 +1191,10 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
     source_result_sdf = source_result_sdf.withColumn("g_result_numeric", F.coalesce(F.col("m_result_numeric"), F.col("s_result_numeric")).cast("double"))
 
     source_result_sdf = source_result_sdf.withColumn("g_result_numeric_lower",
-                                                     F.col("s_result_numeric_lower").cast("double"))
+                                                     F.coalesce(F.col("m_result_numeric_lower").cast("double"), F.col("s_result_numeric_lower").cast("double")))
 
     source_result_sdf = source_result_sdf.withColumn("g_result_numeric_upper",
-                                                     F.col("s_result_numeric_upper").cast("double"))
+                                                     F.coalesce(F.col("m_result_numeric_upper").cast("double"),F.col("s_result_numeric_upper").cast("double")))
 
     source_result_partition_by = None
     if "build_by_stages" in config:
@@ -1269,9 +1251,6 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
 
     ohdsi_sdf_dict["measurement"] += [ohdsi_measurement_sdf]
 
-    # if evaluate_samples:
-    #     generate_local_samples(ohdsi_measurement_sdf, local_path, "measurement")
-
     if ohdsi_version == "5.3.1":
         observation_field_map = {
             "g_id": "observation_id",
@@ -1324,9 +1303,6 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
 
     source_result_process_end_time = time.time()
     logging.info(f"Finished processing source_result (Total elapsed time: {format_log_time(source_result_process_start_time, source_result_process_end_time)})")
-
-    # if evaluate_samples:
-    #     generate_local_samples(ohdsi_observation_sdf, local_path, "observation")
 
     # Notes
     logging.info("Started building note table")
