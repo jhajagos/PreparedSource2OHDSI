@@ -387,7 +387,6 @@ from conditions
    ,'synthea' as s_source_system --Source system row was extracted from
    ,cast(NULL as STRING) as m_source_system --Mapped source system the row was extracted from
 from encounters where REASONCODE is not NULL
-    
     """
 
     source_condition_sql = source_condition_sql_1 + "\nunion\n" + source_condition_sql_2
