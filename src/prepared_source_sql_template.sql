@@ -312,7 +312,6 @@ from SourcePersonAddressHistoryObject;
 select
     NULL as s_person_id --Source identifier for patient or person
    ,NULL as s_map_name
-   ,NULL as s_source_system --Source system row was extracted from
    ,NULL as s_sequence_id
    ,NULL as s_alternative_id
    ,NULL as s_source_system --Source system row was extracted from
