@@ -460,6 +460,7 @@ from procedures
    ,'OMOP4976890' as m_device_type_code
    ,'Type' as m_device_type_code_type
    ,'ohdsi.type_concept' as m_device_type_code_type_oid
+   ,cast(NULL as STRING) as k_provider)
    ,'synthea' as s_source_system
    ,cast(NULL as STRING) as m_source_system
    ,cast(NULL as STRING) as i_exclude
