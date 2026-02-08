@@ -616,6 +616,8 @@ from medications
    ,cast(NULL as STRING) as m_result_unit_code_type_oid
    ,cast(NULL as STRING) as s_result_numeric_lower
    ,cast(NULL as STRING) as s_result_numeric_upper
+   ,cast(NULL as STRING) as m_result_numeric_lower
+   ,cast(NULL as STRING) as m_result_numeric_upper     
    ,cast(NULL as STRING) as s_operator
    ,cast(NULL as STRING) as m_operator
    ,cast(NULL as STRING) as m_operator_code
