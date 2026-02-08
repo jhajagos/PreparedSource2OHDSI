@@ -122,6 +122,8 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
     source_location_sdf = source_location_sdf.withColumn("g_source_table_name", F.lit("source_location"))
     source_location_sdf = source_location_sdf.withColumn("s_g_id", F.col("g_id"))
 
+    source_location_sdf = add_g_source_system(source_location_sdf)
+
     if ohdsi_version == "5.3.1":
         location_field_map = {
             "g_id": "location_id",
@@ -133,7 +135,8 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
             "s_county": "county",
             "k_location": "location_source_value",
             "s_g_id": "s_g_id",
-            "g_source_table_name": "g_source_table_name"
+            "g_source_table_name": "g_source_table_name",
+            "g_source_system": "g_source_system"
         }
     elif ohdsi_version == "5.4.1":
         location_field_map = {
@@ -149,8 +152,10 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
             "s_longitude": "longitude",
             "k_location": "location_source_value",
             "s_g_id": "s_g_id",
-            "g_source_table_name": "g_source_table_name"
+            "g_source_table_name": "g_source_table_name",
+            "g_source_system": "g_source_system"
         }
+
 
     ohdsi_location_sdf = mapping_utilities.map_table_column_names(source_location_sdf, location_field_map)
     ohdsi_location_sdf = mapping_utilities.column_names_to_align_to(ohdsi_location_sdf,
@@ -159,6 +164,7 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
     ohdsi_location_sdf, location_path = mapping_utilities.write_parquet_file_and_reload(spark, ohdsi_location_sdf,
                                                                                           "location",
                                                                                           output_path)
+
 
     ohdsi_sdf_dict["location"] = ohdsi_location_sdf, location_path
     location_build_end_time = time.time()
@@ -1682,6 +1688,9 @@ def align_to_visit(source_sdf, ohdsi_person_sdf, visit_source_link_sdf, visit_jo
 
     return source_sdf
 
+def add_g_source_system(sdf):
+    sdf = sdf.withColumn("g_source_system", F.coalesce(F.col("m_source_system"), F.col("s_source_system")))
+    return sdf
 
 def map_codes_to_domain(source_sdf, concept_sdf, oid_to_vocab_sdf, concept_map_sdf, code_field_name, code_field_oid,
                         id_field_name, source_table_name, join_type="inner"):
@@ -1847,13 +1856,6 @@ def three_level_standard_code_mapper(source_sdf, concept_sdf, oid_vocab_sdf, con
                                                f"case when {concept_id_field_name} is null then 0 when {mapped_domain_field_name} != '{mapped_domain_id}' then 0 else {concept_id_field_name} end"))
 
     source_sdf = source_sdf.distinct()
-
-    # if CHECK_POINTING == "LOCAL":
-    #     source_sdf = source_sdf.localCheckpoint()  # Local checkpoint otherwise DAG (query plan) explode
-    # elif CHECK_POINTING == "REMOTE":
-    #     source_sdf = source_sdf.checkpoint()
-    # else:
-    #     pass
 
     return source_sdf
 
