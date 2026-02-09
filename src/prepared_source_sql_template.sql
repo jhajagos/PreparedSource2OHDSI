@@ -401,7 +401,8 @@ select
     NULL as k_provider --Foreign key to the provider
    ,NULL as s_provider_name
    ,NULL as s_npi --National Provider Identifier
-   ,NULL as s_dea_numbers_specialty
+   ,NULL as s_dea_number --Drug Enforcement Administration Number for identifier prescribers
+   ,NULL as s_specialty
    ,NULL as s_specialty_code
    ,NULL as s_specialty_code_type
    ,NULL as s_specialty_code_type_oid

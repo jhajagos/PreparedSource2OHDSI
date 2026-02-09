@@ -547,7 +547,7 @@ class SourceCareSiteObject(PreparedSourceObject):
 
 class SourceProviderObject(PreparedSourceObject):
     def _fields(self):
-        return ["k_provider", "s_provider_name", "s_npi","s_dea_number"
+        return ["k_provider", "s_provider_name", "s_npi","s_dea_number",
                 "s_specialty", "s_specialty_code", "s_specialty_code_type", "s_specialty_code_type_oid",
                 "m_specialty", "m_specialty_code", "m_specialty_code_type", "m_specialty_code_type_oid",
                 "s_birth_datetime",
