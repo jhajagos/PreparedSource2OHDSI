@@ -536,7 +536,10 @@ class SourceMedicationObject(PreparedSourceObject):
 
 class SourceCareSiteObject(PreparedSourceObject):
     def _fields(self):
-        return ["k_care_site", "s_care_site_name", "k_location"]
+        return ["k_care_site", "s_care_site_name", "k_location",
+                "s_source_system",
+                "m_source_system"
+                ]
 
     def _meta_data(self):
         return {}
