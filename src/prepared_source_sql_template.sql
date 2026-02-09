@@ -22,6 +22,8 @@ select
     NULL as k_care_site --Foreign key to the care site
    ,NULL as s_care_site_name
    ,NULL as k_location
+   ,NULL as s_source_system --Source system row was extracted from
+   ,NULL as m_source_system --Mapped source system the row was extracted from
 from SourceCareSiteObject;
 
 select
