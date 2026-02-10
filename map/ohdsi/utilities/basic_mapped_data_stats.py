@@ -5,12 +5,16 @@ import json
 import argparse
 import pprint
 import pandas as pd
+import datetime
+import pathlib
+import os
+import time
 
 pd.set_option('display.max_columns', None)
 pd.set_option('display.expand_frame_repr', False)
 pd.set_option('max_colwidth', None)
 
-def main(spark, tbs, extended_queries):
+def main(spark, tbs, extended_queries, output_csv_files, output_base_directory):
 
     catalog = mu.attach_catalog_dict(spark, tbs)
 
@@ -94,17 +98,34 @@ def main(spark, tbs, extended_queries):
     else:
         queries_to_run = statistics_queries
 
+
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+
+    if output_csv_files is True:
+        p_output_base_directory = pathlib.Path(output_base_directory)
+        p_output_directory = p_output_base_directory / timestamp
+        os.makedirs(p_output_directory, exist_ok=True)
+
     for tag in queries_to_run:
         print(f"{tag}:")
         query = queries_to_run[tag]
         print(query)
+        start_time = time.time()
         q_df = spark.sql(query).toPandas()
+        end_time = time.time()
 
         q_columns = q_df.columns
         if "p_n" in q_columns and "n" in q_columns:
             q_df["n / p_n"] = q_df["n"] / q_df["p_n"]
 
         print(q_df)
+        print("")
+        print(f"Total execution time: {end_time - start_time} seconds")
+
+        if output_csv_files is True:
+            p_output_file_name = p_output_directory / f"{tag}.csv"
+            print(f"Writing output to CSV'{p_output_file_name}'")
+            q_df.to_csv(p_output_file_name, index=False, header=True)
         print("")
 
 if __name__ == "__main__":
@@ -113,6 +134,8 @@ if __name__ == "__main__":
     arg_parser_obj.add_argument("-c", "--config-json-file-name", dest="config_json_file_name", default="/root/config/prepared_source_to_ohdsi_config.json.generated.parquet.json")
     arg_parser_obj.add_argument("-l", "--run-local", dest="run_local", default=False, action="store_true")
     arg_parser_obj.add_argument("--extended-queries", dest="extended_queries", default=False, action="store_true")
+    arg_parser_obj.add_argument("--output-csv-files", dest="output_csv_files", default=False, action="store_true", help="Output CSV files for each query")
+    arg_parser_obj.add_argument("--output-base-directory", dest="output_base_directory", default="./", help="Base directory for outputting CSV files. Will create a timestamped directory")
     arg_parser_obj.add_argument("--spark-config", dest="spark_config_file_name", default=None)
 
     arg_obj = arg_parser_obj.parse_args()
@@ -162,4 +185,4 @@ if __name__ == "__main__":
     with open(arg_obj.config_json_file_name) as f:
         config = json.load(f)
 
-    main(spark, config, extended_queries=arg_obj.extended_queries)
+    main(spark, config, extended_queries=arg_obj.extended_queries, output_csv_files=arg_obj.output_csv_files, output_base_directory=arg_obj.output_base_directory)
