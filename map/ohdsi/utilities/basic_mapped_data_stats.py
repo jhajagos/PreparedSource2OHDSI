@@ -106,6 +106,9 @@ def main(spark, tbs, extended_queries, output_csv_files, output_base_directory):
         p_output_directory = p_output_base_directory / timestamp
         os.makedirs(p_output_directory, exist_ok=True)
 
+
+    output_index = {}
+
     for tag in queries_to_run:
         print(f"{tag}:")
         query = queries_to_run[tag]
@@ -124,9 +127,15 @@ def main(spark, tbs, extended_queries, output_csv_files, output_base_directory):
 
         if output_csv_files is True:
             p_output_file_name = p_output_directory / f"{tag}.csv"
-            print(f"Writing output to CSV'{p_output_file_name}'")
+            print(f"Writing output to CSV file: '{p_output_file_name}'")
             q_df.to_csv(p_output_file_name, index=False, header=True)
+            output_index[tag] = str(p_output_file_name)
         print("")
+
+
+    if output_csv_files is True:
+        with open(p_output_base_directory / "output_index.json", "w") as f:
+            json.dump(output_index, f, indent=4)
 
 if __name__ == "__main__":
 
