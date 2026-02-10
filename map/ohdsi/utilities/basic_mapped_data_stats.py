@@ -63,6 +63,8 @@ def main(spark, tbs, extended_queries):
 
                           "provider_count": "select count(*) as n_r, count(distinct provider_id) as n_provider_id from provider",
 
+                          "provider_specialty_counts": "select count(*) as n_r, c1.concept_id, c1.concept_name from provider p join concept c1 on p.specialty_concept_id = c1.concept_id group by c1.concept_id, c1.concept_name order by count(*) desc",
+
                           "top_locations": "select count(*) as n_r, state, county, city  from location group by state, county, city order by count(*) desc",
 
                           "care_site_count": "select count(*) as n_r, count(distinct care_site_id) as n_care_site_id from care_site",
@@ -81,6 +83,8 @@ def main(spark, tbs, extended_queries):
         "yearly_observation_counts": "select count(distinct person_id) as n, count(distinct visit_occurrence_id) as n_visits, count(1) as n_r, t.observation_year from (select  person_id, visit_occurrence_id, extract(year from observation_date) as observation_year from observation) t group by observation_year order by observation_year desc",
         "yearly_measurement_counts": "select count(distinct person_id) as n, count(distinct visit_occurrence_id) as n_visits, count(1) as n_r, t.measurement_year from (select  person_id, visit_occurrence_id, extract(year from measurement_date) as measurement_year from measurement) t group by measurement_year order by measurement_year desc",
         "yearly_device_counts": "select count(distinct person_id) as n, count(distinct visit_occurrence_id) as n_visits, count(1) as n_r, device_year from (select  person_id, visit_occurrence_id, extract(year from device_exposure_start_date) as device_year from device_exposure) t group by device_year order by device_year desc",
+        "measurement_units_ranges": "select t.*, 1 - n_r_no_units / n_r, 1 - n_r_no_high_low / n_r from (select count(*) as n_r, count(distinct m.person_id), c1.concept_name, c1.concept_id, sum(case when unit_concept_id is null or unit_concept_id = 0 then 1 else 0 end) as n_r_no_units, sum(case when range_high is null and range_low is null then 1 else 0 end) as n_r_no_high_low from measurement m join concept c1 on c1.concept_id = m.measurement_concept_id group by c1.concept_id, c1.concept_name) t order by n_r desc",
+        "measurement_units_ranges_by_source": "select t.*, 1 - n_r_no_units / n_r, 1 - n_r_no_high_low / n_r from (select count(*) as n_r, count(distinct m.person_id), c1.concept_name, c1.concept_id, g_source_system, sum(case when unit_concept_id is null or unit_concept_id = 0 then 1 else 0 end) as n_r_no_units, sum(case when range_high is null and range_low is null then 1 else 0 end) as n_r_no_high_low from measurement m join concept c1 on c1.concept_id = m.measurement_concept_id group by c1.concept_id, c1.concept_name, g_source_system) t order by n_r desc",
         "drugs_not_mapped_to_standard_concepts": "select t.*, c1.concept_code, c1.vocabulary_id, c1.concept_class_id, c1.concept_name from (select drug_source_value, drug_source_concept_id, count(*) as n_r, count(distinct person_id) as n from drug_exposure where drug_concept_id = 0 group by drug_source_value,drug_source_concept_id) t join concept c1 on c1.concept_id = t.drug_source_concept_id order by n_r desc"
     }
 
