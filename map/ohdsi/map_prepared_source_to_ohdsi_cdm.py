@@ -1089,7 +1089,7 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
         "s_route": "route_source_value",
         "s_status": "stop_reason",
         "s_dose": "dose_source_value",
-        "s_quantity": "g_quantity",
+        "g_quantity": "quantity",
         "s_dose_unit": "dose_unit_source_value",
         "g_drug_type_concept_id": "drug_type_concept_id",
         "g_route_concept_id": "route_concept_id",
