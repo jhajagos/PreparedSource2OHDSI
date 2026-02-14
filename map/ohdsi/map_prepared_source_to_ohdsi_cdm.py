@@ -28,6 +28,10 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
 
     #logging.info(f"Check pointing mode: {CHECK_POINTING}")
 
+    if ohdsi_version == "5.3.1":
+        raise RuntimeError("5.3.1 is not supported. Please use 5.4.1 instead.")
+
+
     starting_time = time.time()
 
     shi_salt = ""
@@ -124,21 +128,7 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
 
     source_location_sdf = add_g_source_system(source_location_sdf)
 
-    if ohdsi_version == "5.3.1":
-        location_field_map = {
-            "g_id": "location_id",
-            "s_address_1": "address_1",
-            "s_address_2": "address_2",
-            "s_city": "city",
-            "s_state": "state",
-            "s_zip": "zip",
-            "s_county": "county",
-            "k_location": "location_source_value",
-            "s_g_id": "s_g_id",
-            "g_source_table_name": "g_source_table_name",
-            "g_source_system": "g_source_system"
-        }
-    elif ohdsi_version == "5.4.1":
+    if ohdsi_version == "5.4.1":
         location_field_map = {
             "g_id": "location_id",
             "s_address_1": "address_1",
@@ -412,32 +402,7 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
     source_encounter_sdf = add_g_source_system(source_encounter_sdf)
 
     # Map fields for visit_occurrence_id
-    if ohdsi_version == "5.3.1":
-        visit_field_map = {
-            "g_id": "visit_occurrence_id",
-            "g_person_id": "person_id",
-            "g_visit_concept_id": "visit_concept_id",
-            "g_visit_source_concept_id": "visit_source_concept_id",
-            "g_visit_type_concept_id": "visit_type_concept_id",
-            "s_visit_start_datetime": "visit_start_datetime",
-            "g_visit_start_date": "visit_start_date",
-            "s_visit_end_datetime": "visit_end_datetime",
-            "g_visit_end_date": "visit_end_date",
-            "s_visit_type": "visit_source_value",
-            "s_encounter_id": "s_encounter_id",
-            "s_discharge_to": "discharge_to_source_value",
-            "s_admitting_source": "admitting_source_value",
-            "g_admitting_source_concept_id":  "admitting_source_concept_id",
-            "g_discharge_to_concept_id": "discharge_to_concept_id",
-            "s_person_id": "s_person_id",
-            "g_care_site_id": "care_site_id",
-            "g_provider_id": "provider_id",
-            "s_id": "s_id",
-            "g_source_table_name": "g_source_table_name",
-            "s_g_id": "s_g_id",
-            "g_source_system": "g_source_system"
-        }
-    elif ohdsi_version == "5.4.1":
+    if ohdsi_version == "5.4.1":
         visit_field_map = {
             "g_id": "visit_occurrence_id",
             "g_person_id": "person_id",
@@ -588,7 +553,7 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
                                                                     "c.care_site_source_value"), how="left_outer"). \
         select("e.*", F.col("c.care_site_id").alias("g_care_site_id"))
 
-    # Map whether it is an inpatient or outpatient visit detail
+    # Map whether it is an inpatient or outpatient encounter
     source_encounter_detail_sdf = visit_detail_code_mapper(source_encounter_detail_sdf, concept_sdf, oid_to_vocab_sdf, concept_map_sdf)
 
     # Map type of encounter detail
@@ -648,7 +613,7 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
     source_condition_sdf = condition_type_code_mapper(source_condition_sdf, concept_sdf, oid_to_vocab_sdf)
     source_condition_sdf = condition_status_code_mapper(source_condition_sdf, concept_sdf, oid_to_vocab_sdf, concept_map_sdf)
 
-    # Add provider associated with the condition
+    # Add the provider associated with the diagnosis/condition
     source_condition_sdf = source_condition_sdf.alias("c").join(ohdsi_provider_sdf.alias("p"),
                                                     F.col("c.k_provider") == F.col(
                                                         "p.provider_source_value"), how="left_outer"). \
@@ -723,26 +688,7 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
     # if evaluate_samples:
     #     generate_local_samples(condition_domain_sdf, local_path, "condition_occurrence")
 
-    if ohdsi_version == "5.3.1":
-        procedure_domain_condition_source_field_map = {
-            "g_condition_occurrence_id": "procedure_occurrence_id",
-            "g_person_id": "person_id",
-            "g_visit_occurrence_id": "visit_occurrence_id",
-            "g_source_concept_id": "procedure_source_concept_id",
-            "g_concept_id": "procedure_concept_id",
-            "s_start_condition_datetime": "procedure_datetime",
-            "g_start_condition_date": "procedure_date",
-            "s_end_condition_datetime": "procedure_end_datetime",
-            "g_end_condition_date": "procedure_end_date",
-            "s_condition_code": "procedure_source_value",
-            "g_condition_type_concept_id": "procedure_type_concept_id",
-            "s_id": "s_id",
-            "g_source_table_name": "g_source_table_name",
-            "s_g_id": "s_g_id",
-            "g_provider_id": "provider_id",
-            "g_source_system": "g_source_system"
-        }
-    elif ohdsi_version == "5.4.1":
+    if ohdsi_version == "5.4.1":
         procedure_domain_condition_source_field_map = {
             "g_condition_occurrence_id": "procedure_occurrence_id",
             "g_person_id": "person_id",
@@ -838,14 +784,12 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
     source_procedure_sdf = align_to_visit(source_procedure_sdf, ohdsi_person_sdf, visit_source_link_sdf)
 
     source_procedure_sdf = source_procedure_sdf.withColumn("g_start_procedure_date", F.to_date("s_start_procedure_datetime"))
-    if ohdsi_version == "5.3.1":
-        pass
-    elif ohdsi_version == "5.4.1":
+    if ohdsi_version == "5.4.1":
         source_procedure_sdf = source_procedure_sdf.withColumn("g_end_procedure_date", F.to_date("s_end_procedure_datetime"))
 
     source_procedure_sdf = procedure_type_code_mapper(source_procedure_sdf, concept_sdf, oid_to_vocab_sdf)
 
-    # Add provider associated with procedure
+    # Add provider associated with a procedure
     source_procedure_sdf = source_procedure_sdf.alias("pc").join(ohdsi_provider_sdf.alias("p"),
                                                                 F.col("pc.k_provider") == F.col(
                                                                     "p.provider_source_value"), how="left_outer"). \
@@ -863,24 +807,7 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
     # Write a parquet file partitioned by domain
     source_procedure_matched_sdf = build_matched_tables_in_stages(source_procedure_sdf, source_procedure_matched_sdf, "source_procedure", config, output_path)
 
-    if ohdsi_version == "5.3.1":
-        procedure_field_map = {
-            "g_procedure_occurrence_id": "procedure_occurrence_id",
-            "g_person_id": "person_id",
-            "g_visit_occurrence_id": "visit_occurrence_id",
-            "g_source_concept_id": "procedure_source_concept_id",
-            "g_concept_id": "procedure_concept_id",
-            "s_start_procedure_datetime": "procedure_datetime",
-            "g_start_procedure_date": "procedure_date",
-            "s_procedure_code": "procedure_source_value",
-            "g_procedure_type_concept_id": "procedure_type_concept_id",
-            "s_id": "s_id",
-            "g_source_table_name": "g_source_table_name",
-            "s_g_id": "s_g_id",
-            "g_provider_id": "provider_id",
-            "g_source_system": "g_source_system"
-        }
-    elif ohdsi_version == "5.4.1":
+    if ohdsi_version == "5.4.1":
         procedure_field_map = {
             "g_procedure_occurrence_id": "procedure_occurrence_id",
             "g_person_id": "person_id",
@@ -912,24 +839,7 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
     ohdsi_sdf_dict["procedure_occurrence"] += [procedure_source_sdf]
 
     # TODO:  drug_exposure_end_date cannot be null
-    if ohdsi_version == "5.3.1":
-        drug_domain_procedure_source_field_map = {
-            "g_procedure_occurrence_id": "drug_exposure_id",
-            "g_person_id": "person_id",
-            "g_visit_occurrence_id": "visit_occurrence_id",
-            "g_source_concept_id": "drug_source_concept_id",
-            "g_concept_id": "drug_concept_id",
-            "s_start_procedure_datetime": "drug_exposure_start_datetime",
-            "g_start_procedure_date": "drug_exposure_start_date",
-            "s_procedure_code": "drug_source_value",
-            "g_procedure_type_concept_id": "drug_type_concept_id",
-            "s_id": "s_id",
-            "g_source_table_name": "g_source_table_name",
-            "s_g_id": "s_g_id",
-            "g_provider_id": "provider_id",
-            "g_source_system": "g_source_system"
-        }
-    elif ohdsi_version == "5.4.1":
+    if ohdsi_version == "5.4.1":
         drug_domain_procedure_source_field_map = {
             "g_procedure_occurrence_id": "drug_exposure_id",
             "g_person_id": "person_id",
@@ -1010,24 +920,7 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
 
     ohdsi_sdf_dict["observation"] += [observation_domain_procedure_source_sdf]
 
-    if ohdsi_version == "5.3.1":
-        device_domain_procedure_source_field_map = {
-            "g_procedure_occurrence_id": "device_exposure_id",
-            "g_person_id": "person_id",
-            "g_visit_occurrence_id": "visit_occurrence_id",
-            "g_source_concept_id": "device_source_concept_id",
-            "g_concept_id": "device_concept_id",
-            "s_start_procedure_datetime": "device_exposure_start_datetime",
-            "g_start_procedure_date": "device_exposure_start_date",
-            "s_procedure_code": "device_source_value",
-            "g_procedure_type_concept_id": "device_type_concept_id",
-            "s_id": "s_id",
-            "g_source_table_name": "g_source_table_name",
-            "s_g_id": "s_g_id",
-            "g_provider_id": "provider_id",
-            "g_source_system": "g_source_system"
-        }
-    elif ohdsi_version == "5.4.1":
+    if ohdsi_version == "5.4.1":
         device_domain_procedure_source_field_map = {
             "g_procedure_occurrence_id": "device_exposure_id",
             "g_person_id": "person_id",
@@ -1066,7 +959,7 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
 
     source_device_sdf = align_to_visit(source_device_sdf, ohdsi_person_sdf, visit_source_link_sdf)
 
-    # Add provider associated with the device
+    # Add the provider associated with the device
     source_device_sdf = source_device_sdf.alias("d").join(ohdsi_provider_sdf.alias("p"),
                                                                 F.col("d.k_provider") == F.col(
                                                                     "p.provider_source_value"), how="left_outer"). \
@@ -1130,7 +1023,7 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
     logging.info(
         f"Finished processing source_procedure (Total elapsed time: {format_log_time(source_device_process_start_time, source_device_process_end_time)})")
 
-    # Main Drug Exposure
+    #  Drug Exposure
     logging.info("Started building main drug_exposure table")
     drug_exposure_build_start_time = time.time()
     source_med_sdf = prepared_source_sdf_dict["source_medication"]
@@ -1147,6 +1040,11 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
     source_med_sdf = source_med_sdf.withColumn("gg_drug_code_text", F.expr("coalesce(s_drug_text, s_drug_alternative_text, m_drug_text, g_drug_text)"))
 
     source_med_sdf = source_med_sdf.withColumn("g_drug_code_with_name", F.expr("coalesce(gg_drug_code, '') || '|' || coalesce(gg_drug_code_text, '')"))
+
+    # Case where s_quantity is not specified, then we use the dose
+    source_med_sdf = source_med_sdf.withColumn("g_quantity", F.coalesce(F.col("s_quantity"), F.col("m_dose"), F.col("s_dose")))
+
+    source_med_sdf = source_med_sdf.withColumn("g_sig", F.coalesce(F.col("s_patient_instructions"), F.col("s_detail_line")))
 
     source_med_sdf = drug_type_m_code_mapper(source_med_sdf, concept_sdf, oid_to_vocab_sdf)
     source_med_sdf = drug_type_s_code_mapper(source_med_sdf, concept_sdf, oid_to_vocab_sdf)
@@ -1191,10 +1089,11 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
         "s_route": "route_source_value",
         "s_status": "stop_reason",
         "s_dose": "dose_source_value",
-        "s_quantity": "quantity",
+        "s_quantity": "g_quantity",
         "s_dose_unit": "dose_unit_source_value",
         "g_drug_type_concept_id": "drug_type_concept_id",
         "g_route_concept_id": "route_concept_id",
+        "g_sig": "sig",
         "s_id": "s_id",
         "g_provider_id": "provider_id",
         "g_source_table_name": "g_source_table_name",
@@ -1310,28 +1209,7 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
 
     ohdsi_sdf_dict["measurement"] += [ohdsi_measurement_sdf]
 
-    if ohdsi_version == "5.3.1":
-        observation_field_map = {
-            "g_id": "observation_id",
-            "g_person_id": "person_id",
-            "g_visit_occurrence_id": "visit_occurrence_id",
-            "g_measurement_type_concept_id": "observation_type_concept_id",
-            "g_measurement_concept_id": "observation_concept_id",
-            "g_measurement_source_concept_id": "observation_source_concept_id",
-            "g_code": "observation_source_value",
-            "s_obtained_datetime": "observation_datetime",
-            "g_obtained_date": "observation_date",
-            "g_value_as_concept_id": "value_as_concept_id",
-            "g_result_numeric": "value_as_number",
-            "g_result_text": "value_as_string",
-            "g_unit_concept_id": "unit_concept_id",
-            "s_result_unit": "unit_source_value",
-            "s_id": "s_id",
-            "g_source_table_name": "g_source_table_name",
-            "s_g_id": "s_g_id",
-            "g_source_system": "g_source_system"
-        }
-    elif ohdsi_version == "5.4.1":
+    if ohdsi_version == "5.4.1":
         observation_field_map = {
             "g_id": "observation_id",
             "g_person_id": "person_id",
@@ -1442,10 +1320,7 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
 
         cdm_release_date = datetime.datetime.utcnow()
 
-        if ohdsi_version == "5.3.1":
-            cdm_version = "CDM v5.3.1"
-
-        elif ohdsi_version == "5.4.1":
+        if ohdsi_version == "5.4.1":
             cdm_version = "CDM v5.4.1"
         else:
             cdm_version = None
@@ -1543,10 +1418,7 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
 
         exported_table_dict["ohdsi"]["cdm_source"] = sdf_path
 
-    if ohdsi_version == "5.3.1":
-        empty_tables_dict["attribute_definition"] = ohdsi.AttributeDefinitionObject()
-
-    elif ohdsi_version == "5.4.1":
+    if ohdsi_version == "5.4.1":
         empty_tables_dict["episode"] = ohdsi.EpisodeObject()
         empty_tables_dict["episode_event"] = ohdsi.EpisodeEventObject()
 
@@ -2281,11 +2153,9 @@ if __name__ == "__main__":
     if "ohdsi_version" in config_dict and config_dict["ohdsi_version"] == "5.4.1":
         ohdsi_version = "5.4.1"
         import preparedsource2ohdsi.ohdsi_cdm_5_4 as ohdsi
-    else:
-        import preparedsource2ohdsi.ohdsi_cdm_5_3_1 as ohdsi
-        ohdsi_version = "5.3.1"
 
-    if ohdsi_version not in ("5.3.1", "5.4.1"):
-        raise RuntimeError("Only OHDSI versions 5.3.1 and 5.4 supported")
+
+    if ohdsi_version not in ("5.4.1"):
+        raise RuntimeError("Only OHDSI versions 5.4.1 supported")
 
     main(config_dict, export_json_file_name=export_parquet_json_name, ohdsi_version=ohdsi_version)
