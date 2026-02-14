@@ -10,6 +10,7 @@ import os
 import pprint
 import time
 import preparedsource2ohdsi.mapping_utilities as mapping_utilities
+from pyspark.sql.types import DoubleType
 
 logging.basicConfig(level=logging.INFO)
 
@@ -1042,7 +1043,7 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
     source_med_sdf = source_med_sdf.withColumn("g_drug_code_with_name", F.expr("coalesce(gg_drug_code, '') || '|' || coalesce(gg_drug_code_text, '')"))
 
     # Case where s_quantity is not specified, then we use the dose
-    source_med_sdf = source_med_sdf.withColumn("g_quantity", F.coalesce(F.col("s_quantity"), F.col("m_dose"), F.col("s_dose")))
+    source_med_sdf = source_med_sdf.withColumn("g_quantity", F.cast(DoubleType, F.coalesce(F.col("s_quantity"), F.col("m_dose"), F.col("s_dose"))))
 
     source_med_sdf = source_med_sdf.withColumn("g_sig", F.coalesce(F.col("s_patient_instructions"), F.col("s_detail_line")))
 
