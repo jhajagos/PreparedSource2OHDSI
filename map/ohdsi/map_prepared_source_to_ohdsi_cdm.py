@@ -20,7 +20,7 @@ logging.basicConfig(level=logging.INFO)
 # the relationship_id set to ‘Maps to value’. In this example, the ‘Maps to’ relationship directs to 4046263 ‘Enzyme measurement’
 # as well as a ‘Maps to value’ record to 4135493 ‘Abnormal’.
 
-# TODO: Add provider links to other tables than visit_occurrence
+# TODO: Datetime casting
 
 #CHECK_POINTING = 'LOCAL' #  BY default checkpointing is 'LOCAL' other option are ('REMOTE', 'NONE') this can be overwritten in the configuration file
 def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_source=True):
