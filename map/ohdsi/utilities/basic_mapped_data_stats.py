@@ -130,6 +130,7 @@ def main(spark, tbs, extended_queries, output_csv_files, output_base_directory):
 
         print(q_df)
         if "n_r" in q_columns:
+            print("")
             print(f"sum_n_r = {sum_n_r}")
 
         print("")
