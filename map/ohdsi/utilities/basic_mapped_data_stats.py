@@ -129,6 +129,7 @@ def main(spark, tbs, extended_queries, output_csv_files, output_base_directory):
             q_df["n_r / sum_n_r"] = q_df["n_r"] / sum_n_r
 
         print(q_df)
+        print(f"sum_n_r = {sum_n_r}")
         print("")
         print(f"Total execution time: {end_time - start_time} seconds")
 
