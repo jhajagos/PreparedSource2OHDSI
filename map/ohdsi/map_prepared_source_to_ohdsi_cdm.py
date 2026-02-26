@@ -311,7 +311,7 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
     logging.info(f"Finished building person table (Total elapsed time: {format_log_time(person_build_start_time, person_build_end_time)})")
 
     # if evaluate_samples:
-    #     generate_local_samples(ohdsi_person_sdf, local_path,  "person")
+    #     generate_local_samples(ohdsi_person_sdf, local_path, "person")
 
     #TODO: Check if person_table contains duplicates {Strategies: "remediate", "fail", "ignore"}
     # Death table
@@ -328,7 +328,7 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
     source_death_sdf = source_death_sdf.withColumn("g_s_person_id",
                                                      F.xxhash64(F.concat(F.lit(shi_salt), F.col("s_person_id"))))
 
-    # TODO: "g_source_system" should be the source system that the mortality comes from
+    source_death_sdf = source_death_sdf.withColumn("g_death_source_system", F.coalesce("m_death_source", "s_death_source"))
 
     death_field_map = {
         "g_id": "person_id",
@@ -337,7 +337,8 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
         "g_death_type_concept_id": "death_type_concept_id",
         "s_id": "s_id",
         "g_source_table_name": "g_source_table_name",
-        "s_g_id": "s_g_id"
+        "s_g_id": "s_g_id",
+        "g_death_source_system": "g_source_system"
     }
 
     if stable_hash_s_person_id:
