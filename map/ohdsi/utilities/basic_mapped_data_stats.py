@@ -82,7 +82,7 @@ def main(spark, tbs, extended_queries, output_csv_files, output_base_directory):
 
     # More detailed queries
     extended_queries_to_run = {
-        "yearly_visit_counts": "select count(distinct person_id) as n, count(distinct visit_occurrence_id) as n_visits, visit_year from (select  person_id, visit_occurrence_id, extract(year from visit_start_date) as visit_year from visit_occurrence) t group by visit_year order by visit_year desc",
+        "yearly_visit_counts": "select count(1) as n_r, count(distinct person_id) as n, count(distinct visit_occurrence_id) as n_visits, visit_year from (select  person_id, visit_occurrence_id, extract(year from visit_start_date) as visit_year from visit_occurrence) t group by visit_year order by visit_year desc",
         "yearly_condition_counts": "select count(distinct person_id) as n, count(distinct visit_occurrence_id) as n_visits, count(1) as n_r, condition_year from (select  person_id, visit_occurrence_id, extract(year from condition_start_date) as condition_year from condition_occurrence) t group by condition_year order by condition_year desc",
         "yearly_procedure_counts": "select count(distinct person_id) as n, count(distinct visit_occurrence_id) as n_visits, count(1) as n_r, procedure_year from (select  person_id, visit_occurrence_id, extract(year from procedure_date) as procedure_year from procedure_occurrence) t group by procedure_year order by procedure_year desc",
         "yearly_drug_counts": "select count(distinct person_id) as n, count(distinct visit_occurrence_id) as n_visits, count(1) as n_r, drug_year from (select  person_id, visit_occurrence_id, extract(year from drug_exposure_start_date) as drug_year from drug_exposure) t group by drug_year order by drug_year desc",
@@ -129,7 +129,9 @@ def main(spark, tbs, extended_queries, output_csv_files, output_base_directory):
             q_df["n_r / sum_n_r"] = q_df["n_r"] / sum_n_r
 
         print(q_df)
-        print(f"sum_n_r = {sum_n_r}")
+        if "n_r" in q_columns:
+            print(f"sum_n_r = {sum_n_r}")
+
         print("")
         print(f"Total execution time: {end_time - start_time} seconds")
 
