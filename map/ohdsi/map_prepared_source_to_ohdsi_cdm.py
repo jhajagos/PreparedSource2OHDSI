@@ -1113,6 +1113,7 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
                                                                      drug_source_path)
 
     # TODO: Mapped domain device
+
     drug_exposure_build_end_time = time.time()
     logging.info(f"Finished building main drug_exposure table ({format_log_time(drug_exposure_build_start_time, drug_exposure_build_end_time)})")
 
