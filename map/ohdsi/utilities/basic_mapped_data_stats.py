@@ -77,6 +77,8 @@ def main(spark, tbs, extended_queries, output_csv_files, output_base_directory):
 
                           "top_care_sites": "select count(distinct person_id) as n, count(*) as n_r, vo.care_site_id, cs.care_site_name from visit_occurrence vo join care_site cs on vo.care_site_id = cs.care_site_id group by vo.care_site_id, cs.care_site_name order by count(*) desc",
 
+                          "top_care_sites_from_visit_details": "select count(distinct person_id) as n, count(*) as n_r, count(distinct visit_occurrence_id) as n_visit, vd.care_site_id, cs.care_site_name from visit_detail vd join care_site cs on vd.care_site_id = cs.care_site_id group by vd.care_site_id, cs.care_site_name order by count(*) desc",
+
                           "fact_relationships_count": "select count(*) as n_r, domain_concept_id_1, c1.concept_name as domain_concept_name_1, domain_concept_id_2, c2.concept_name as domain_concept_name_2, relationship_concept_id, c3.concept_name as relationship_concept_name from fact_relationship fr join concept c1 on c1.concept_id = domain_concept_id_1 join concept c2 on c2.concept_id = domain_concept_id_2 join concept c3 on relationship_concept_id = c3.concept_id group by  domain_concept_id_1, c1.concept_name, domain_concept_id_2, c2.concept_name, relationship_concept_id, c3.concept_name order by count(*) desc",
 
                           "cdm_source": "select * from cdm_source"
