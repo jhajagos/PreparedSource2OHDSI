@@ -1512,7 +1512,10 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
                 else:
                     ohdsi_to_sdf, _ = ohdsi_sdf_dict[ohdsi_to_table_name]
 
-                sr_sdf = source_relationship_sdf_dict[table].where(
+                sr_sdf = source_relationship_sdf_dict[table]
+                sr_sdf = filter_out_i_excluded(sr_sdf)
+
+                sr_sdf = sr_sdf.where(
                     F.col("s_relationship") == F.lit(relationship["s_relationship"]))
                 s_mapping_info = \
                     sr_sdf.select("s_target_to_table_name", "s_target_from_table_name", "s_target_from_table_field",
