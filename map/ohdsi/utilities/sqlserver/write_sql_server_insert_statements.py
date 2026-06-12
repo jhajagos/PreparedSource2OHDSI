@@ -73,7 +73,7 @@ def main(schema_dict, outfile_name, schema_name="dbo", transfer_table_prefix="tr
 
         if truncate_table:
             tn, _ = get_table(schema_dict, table, dialect)
-            sql_string += f"truncate table {en(sn)}.{en(tn)};\n"
+            sql_string += f"truncate table {en(sn)}.{en(tn)} cascade;\n"
 
     for table in table_order:
 
