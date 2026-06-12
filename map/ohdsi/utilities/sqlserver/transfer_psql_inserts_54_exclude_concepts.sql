@@ -2,23 +2,23 @@
 
 
 --Truncate tables
-truncate table "ohdsi"."fact_relationship";
-truncate table "ohdsi"."payer_plan_period";
-truncate table "ohdsi"."device_exposure";
-truncate table "ohdsi"."drug_exposure";
-truncate table "ohdsi"."observation";
-truncate table "ohdsi"."measurement";
-truncate table "ohdsi"."procedure_occurrence";
-truncate table "ohdsi"."condition_occurrence";
-truncate table "ohdsi"."visit_detail";
-truncate table "ohdsi"."visit_occurrence";
-truncate table "ohdsi"."observation_period";
-truncate table "ohdsi"."death";
-truncate table "ohdsi"."person";
-truncate table "ohdsi"."provider";
-truncate table "ohdsi"."care_site";
-truncate table "ohdsi"."location";
-truncate table "ohdsi"."cdm_source";
+truncate table "ohdsi"."fact_relationship" cascade;
+truncate table "ohdsi"."payer_plan_period" cascade;
+truncate table "ohdsi"."device_exposure" cascade;
+truncate table "ohdsi"."drug_exposure" cascade;
+truncate table "ohdsi"."observation" cascade;
+truncate table "ohdsi"."measurement" cascade;
+truncate table "ohdsi"."procedure_occurrence" cascade;
+truncate table "ohdsi"."condition_occurrence" cascade;
+truncate table "ohdsi"."visit_detail" cascade;
+truncate table "ohdsi"."visit_occurrence" cascade;
+truncate table "ohdsi"."observation_period" cascade;
+truncate table "ohdsi"."death" cascade;
+truncate table "ohdsi"."person" cascade;
+truncate table "ohdsi"."provider" cascade;
+truncate table "ohdsi"."care_site" cascade;
+truncate table "ohdsi"."location" cascade;
+truncate table "ohdsi"."cdm_source" cascade;
 
 --Alter table cdm_source
 

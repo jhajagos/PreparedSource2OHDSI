@@ -67,6 +67,8 @@ def main(config):
    ,cast(NULL as STRING) as s_location_name
    ,`LAT` as s_latitude
    ,`LON` as s_longitude
+  ,'synthea' as s_source_system --Source system row was extracted from
+   ,cast(NULL as STRING) as m_source_system --Mapped source system the row was extracted from
 from patients p
 union 
    select distinct
@@ -81,6 +83,8 @@ union
    ,cast(NULL as STRING) as s_location_name
    ,`LAT` as s_latitude
    ,`LON` as s_longitude
+   ,'synthea' as s_source_system --Source system row was extracted from
+   ,cast(NULL as STRING) as m_source_system --Mapped source system the row was extracted from
 from organizations o    
     """
 
@@ -146,7 +150,9 @@ from patients p
     source_care_site_sql = """select distinct 
     `Id` as k_care_site
    ,`NAME` as s_care_site_name 
-   ,sha1(coalesce(`ADDRESS`, '') || coalesce(`CITY`,'') || coalesce(`STATE`,'') || coalesce(`ZIP`, '')) as k_location                           
+   ,sha1(coalesce(`ADDRESS`, '') || coalesce(`CITY`,'') || coalesce(`STATE`,'') || coalesce(`ZIP`, '')) as k_location
+   ,'synthea' as s_source_system --Source system row was extracted from
+   ,cast(NULL as STRING) as m_source_system --Mapped source system the row was extracted from    
     from organizations
                            """
 
@@ -178,6 +184,8 @@ from patients p
    ,gm.m_gender_code_type
    ,gm.m_gender_code_type_oid
    ,`ORGANIZATION` as k_care_site
+   ,'synthea' as s_source_system --Source system row was extracted from
+   ,cast(NULL as STRING) as m_source_system --Mapped source system the row was extracted from     
 from providers p 
         left outer join specialty_mapping sm on p.`SPECIALITY` = sm.s_specialty
         left outer join gender_mapping gm on p.`GENDER` = gm.s_gender
@@ -289,6 +297,8 @@ left outer join visit_type_mapping vtm on vtm.s_visit_type = e.`ENCOUNTERCLASS`
    ,cast(NULL as STRING) as m_plan_code_type
    ,cast(NULL as STRING) as m_plan_code_type_oid
    ,cast(NULL as STRING) as s_contributor
+   ,'synthea' as s_source_system --Source system row was extracted from
+   ,cast(NULL as STRING) as m_source_system --Mapped source system the row was extracted from     
 from payer_transitions pt 
     join payers p on pt.`PAYER` = p.`Id`
     join payer_map pm on pm.s_payer = p.`NAME`
@@ -317,6 +327,8 @@ from payer_transitions pt
    ,'source_encounter' as s_target_to_table_name
    ,'s_encounter_id' as s_target_to_table_field
    ,s_encounter_id as s_target_to_value
+   ,'synthea' as s_source_system --Source system row was extracted from
+   ,cast(NULL as STRING) as m_source_system --Mapped source system the row was extracted from
 from source_payer sp join source_encounter se on sp.s_person_id = se.s_person_id
         and coalesce(se.s_visit_end_datetime, se.s_visit_start_datetime) between s_payer_start_datetime and s_payer_end_datetime 
     """
@@ -450,6 +462,7 @@ from procedures
    ,'OMOP4976890' as m_device_type_code
    ,'Type' as m_device_type_code_type
    ,'ohdsi.type_concept' as m_device_type_code_type_oid
+   ,cast(NULL as STRING) as k_provider
    ,'synthea' as s_source_system
    ,cast(NULL as STRING) as m_source_system
    ,cast(NULL as STRING) as i_exclude
@@ -616,6 +629,8 @@ from medications
    ,cast(NULL as STRING) as m_result_unit_code_type_oid
    ,cast(NULL as STRING) as s_result_numeric_lower
    ,cast(NULL as STRING) as s_result_numeric_upper
+   ,cast(NULL as STRING) as m_result_numeric_lower
+   ,cast(NULL as STRING) as m_result_numeric_upper     
    ,cast(NULL as STRING) as s_operator
    ,cast(NULL as STRING) as m_operator
    ,cast(NULL as STRING) as m_operator_code

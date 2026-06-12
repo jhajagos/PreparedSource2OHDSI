@@ -5,12 +5,16 @@ import json
 import argparse
 import pprint
 import pandas as pd
+import datetime
+import pathlib
+import os
+import time
 
 pd.set_option('display.max_columns', None)
 pd.set_option('display.expand_frame_repr', False)
 pd.set_option('max_colwidth', None)
 
-def main(spark, tbs, extended_queries):
+def main(spark, tbs, extended_queries, output_csv_files, output_base_directory):
 
     catalog = mu.attach_catalog_dict(spark, tbs)
 
@@ -44,10 +48,12 @@ def main(spark, tbs, extended_queries):
 
                           "drug_concepts_count": "select count(distinct person_id) as n, count(*) as n_r, drug_concept_id, c.concept_name from drug_exposure de join concept c on c.concept_id = de.drug_concept_id group by drug_concept_id, c.concept_name order by count(*) desc",
 
+                          "source_drug_concepts_count": "select count(*) as n_r, count(distinct person_id) as n, drug_source_concept_id, c1.concept_name, c1.concept_code, c1.vocabulary_id,  c1.concept_class_id from drug_exposure de join concept c1 on de.drug_source_concept_id = c1.concept_id group by drug_source_concept_id, c1.concept_name, c1.concept_code, c1.vocabulary_id, c1.concept_class_id order by count(*) desc",
+
                           "measurement_concepts_count": "select count(distinct person_id) as n, count(*) as n_r, measurement_concept_id, c.concept_name as measurement_concept_name, "
                                                         "min(value_as_number) as min_value_as_number, max(value_as_number) as max_value_as_number, c2.concept_code as unit_concept_code, "
-                                                        " min(measurement_date) as min_measurement_date, max(measurement_date) as max_measurement_date, percentile(value_as_number, 0.25) as p25, "
-                                                         "percentile(value_as_number, 0.5) as p50, percentile(value_as_number, 0.75) as p75 " 
+                                                        " min(measurement_date) as min_measurement_date, max(measurement_date) as max_measurement_date, percentile(value_as_number, 0.05) as p05, percentile(value_as_number, 0.25) as p25, "
+                                                         "percentile(value_as_number, 0.5) as p50, percentile(value_as_number, 0.75) as p75, percentile(value_as_number, 0.95) as p95 " 
                                                         "from measurement m join concept c on c.concept_id = m.measurement_concept_id  "
                                                         "left outer join concept c2 on c2.concept_id = m.unit_concept_id group by measurement_concept_id, c.concept_name, c2.concept_code order by count(1) desc",
 
@@ -63,9 +69,15 @@ def main(spark, tbs, extended_queries):
 
                           "provider_count": "select count(*) as n_r, count(distinct provider_id) as n_provider_id from provider",
 
+                          "provider_specialty_counts": "select count(*) as n_r, c1.concept_id, c1.concept_name from provider p join concept c1 on p.specialty_concept_id = c1.concept_id group by c1.concept_id, c1.concept_name order by count(*) desc",
+
                           "top_locations": "select count(*) as n_r, state, county, city  from location group by state, county, city order by count(*) desc",
 
                           "care_site_count": "select count(*) as n_r, count(distinct care_site_id) as n_care_site_id from care_site",
+
+                          "top_care_sites": "select count(distinct person_id) as n, count(*) as n_r, vo.care_site_id, cs.care_site_name from visit_occurrence vo join care_site cs on vo.care_site_id = cs.care_site_id group by vo.care_site_id, cs.care_site_name order by count(*) desc",
+
+                          "top_care_sites_from_visit_details": "select count(distinct person_id) as n, count(*) as n_r, count(distinct visit_occurrence_id) as n_visit, vd.care_site_id, cs.care_site_name from visit_detail vd join care_site cs on vd.care_site_id = cs.care_site_id group by vd.care_site_id, cs.care_site_name order by count(*) desc",
 
                           "fact_relationships_count": "select count(*) as n_r, domain_concept_id_1, c1.concept_name as domain_concept_name_1, domain_concept_id_2, c2.concept_name as domain_concept_name_2, relationship_concept_id, c3.concept_name as relationship_concept_name from fact_relationship fr join concept c1 on c1.concept_id = domain_concept_id_1 join concept c2 on c2.concept_id = domain_concept_id_2 join concept c3 on relationship_concept_id = c3.concept_id group by  domain_concept_id_1, c1.concept_name, domain_concept_id_2, c2.concept_name, relationship_concept_id, c3.concept_name order by count(*) desc",
 
@@ -74,14 +86,43 @@ def main(spark, tbs, extended_queries):
 
     # More detailed queries
     extended_queries_to_run = {
-        "yearly_visit_counts": "select count(distinct person_id) as n, count(distinct visit_occurrence_id) as n_visits, visit_year from (select  person_id, visit_occurrence_id, extract(year from visit_start_date) as visit_year from visit_occurrence) t group by visit_year order by visit_year desc",
+        "yearly_visit_counts": "select count(1) as n_r, count(distinct person_id) as n, count(distinct visit_occurrence_id) as n_visits, visit_year from (select  person_id, visit_occurrence_id, extract(year from visit_start_date) as visit_year from visit_occurrence) t group by visit_year order by visit_year desc",
         "yearly_condition_counts": "select count(distinct person_id) as n, count(distinct visit_occurrence_id) as n_visits, count(1) as n_r, condition_year from (select  person_id, visit_occurrence_id, extract(year from condition_start_date) as condition_year from condition_occurrence) t group by condition_year order by condition_year desc",
         "yearly_procedure_counts": "select count(distinct person_id) as n, count(distinct visit_occurrence_id) as n_visits, count(1) as n_r, procedure_year from (select  person_id, visit_occurrence_id, extract(year from procedure_date) as procedure_year from procedure_occurrence) t group by procedure_year order by procedure_year desc",
         "yearly_drug_counts": "select count(distinct person_id) as n, count(distinct visit_occurrence_id) as n_visits, count(1) as n_r, drug_year from (select  person_id, visit_occurrence_id, extract(year from drug_exposure_start_date) as drug_year from drug_exposure) t group by drug_year order by drug_year desc",
         "yearly_observation_counts": "select count(distinct person_id) as n, count(distinct visit_occurrence_id) as n_visits, count(1) as n_r, t.observation_year from (select  person_id, visit_occurrence_id, extract(year from observation_date) as observation_year from observation) t group by observation_year order by observation_year desc",
         "yearly_measurement_counts": "select count(distinct person_id) as n, count(distinct visit_occurrence_id) as n_visits, count(1) as n_r, t.measurement_year from (select  person_id, visit_occurrence_id, extract(year from measurement_date) as measurement_year from measurement) t group by measurement_year order by measurement_year desc",
         "yearly_device_counts": "select count(distinct person_id) as n, count(distinct visit_occurrence_id) as n_visits, count(1) as n_r, device_year from (select  person_id, visit_occurrence_id, extract(year from device_exposure_start_date) as device_year from device_exposure) t group by device_year order by device_year desc",
-        "drugs_not_mapped_to_standard_concepts": "select t.*, c1.concept_code, c1.vocabulary_id, c1.concept_class_id, c1.concept_name from (select drug_source_value, drug_source_concept_id, count(*) as n_r, count(distinct person_id) as n from drug_exposure where drug_concept_id = 0 group by drug_source_value,drug_source_concept_id) t join concept c1 on c1.concept_id = t.drug_source_concept_id order by n_r desc"
+        "unmapped_visit_types": "select count(*) as n_r, count(distinct person_id) as n, visit_source_value, visit_concept_id, c1.concept_name, min(visit_start_date) as min_visit_start_date, max(visit_start_date) as max_visit_start_date, g_source_system from visit_occurrence vo join concept c1 on vo.visit_concept_id = c1.concept_id where vo.visit_concept_id = 0 group by visit_source_value, visit_concept_id, c1.concept_name, g_source_system order by count(*) desc",
+        "measurement_units_ranges": "select t.*, 1 - n_r_no_units / n_r, 1 - n_r_no_high_low / n_r from (select count(*) as n_r, count(distinct m.person_id), c1.concept_name, c1.concept_id, sum(case when unit_concept_id is null or unit_concept_id = 0 then 1 else 0 end) as n_r_no_units, sum(case when range_high is null and range_low is null then 1 else 0 end) as n_r_no_high_low from measurement m join concept c1 on c1.concept_id = m.measurement_concept_id group by c1.concept_id, c1.concept_name) t order by n_r desc",
+        "measurement_units_ranges_by_source": "select t.*, 1 - n_r_no_units / n_r, 1 - n_r_no_high_low / n_r from (select count(*) as n_r, count(distinct m.person_id), c1.concept_name, c1.concept_id, g_source_system, sum(case when unit_concept_id is null or unit_concept_id = 0 then 1 else 0 end) as n_r_no_units, sum(case when range_high is null and range_low is null then 1 else 0 end) as n_r_no_high_low from measurement m join concept c1 on c1.concept_id = m.measurement_concept_id group by c1.concept_id, c1.concept_name, g_source_system) t order by n_r desc",
+        "drugs_not_mapped_to_standard_concepts": "select t.*, c1.concept_code, c1.vocabulary_id, c1.concept_class_id, c1.concept_name from (select drug_source_value, drug_source_concept_id, count(*) as n_r, count(distinct person_id) as n from drug_exposure where drug_concept_id = 0 group by drug_source_value,drug_source_concept_id) t join concept c1 on c1.concept_id = t.drug_source_concept_id order by n_r desc",
+        "drug_not_mapped_to_concept_ids": "select drug_source_value, count(*) as n_r, count(distinct person_id) as n from drug_exposure de where drug_source_concept_id = 0 group by drug_source_value order by count(*) desc",
+
+        "drug_types_counts": "select count(*) as n_r, count(distinct person_id) as n, drug_type_concept_id, c1.concept_name from drug_exposure de left outer join concept c1 on c1.concept_id = de.drug_type_concept_id group by drug_type_concept_id, c1.concept_name order by count(*) desc",
+        "drug_types_source_system_counts": "select count(*) as n_r, count(distinct person_id) as n, drug_type_concept_id, c1.concept_name, g_source_system, min(drug_exposure_start_date) as min_date, max(coalesce(drug_exposure_end_date, drug_exposure_start_date)) as max_date from drug_exposure de left outer join concept c1 on c1.concept_id = de.drug_type_concept_id group by drug_type_concept_id, c1.concept_name, g_source_system order by count(*) desc",
+
+        "drug_source_code_type": "select count(*) as n_r, count(distinct person_id) as n, drug_source_concept_id, c1.concept_name, c1.concept_code, c1.vocabulary_id,  c1.concept_class_id, de.drug_type_concept_id, c2.concept_name as drug_type_concept_name from drug_exposure de join concept c1 on de.drug_source_concept_id = c1.concept_id join concept c2 on c2.concept_id = de.drug_type_concept_id group by drug_source_concept_id, c1.concept_name, c1.concept_code, c1.vocabulary_id, c1.concept_class_id, de.drug_type_concept_id, c2.concept_name order by count(*) desc",
+
+        "drug_source_code_source_system": "select count(*) as n_r, count(distinct person_id) as n, drug_source_concept_id, c1.concept_name, c1.concept_code, c1.vocabulary_id,  c1.concept_class_id, g_source_system from drug_exposure de join concept c1 on de.drug_source_concept_id = c1.concept_id join concept c2 on c2.concept_id = de.drug_type_concept_id group by drug_source_concept_id, c1.concept_name, c1.concept_code, c1.vocabulary_id, c1.concept_class_id, g_source_system order by count(*) desc",
+
+        "drug_source_code_type_source_system": "select count(*) as n_r, count(distinct person_id) as n, drug_source_concept_id, c1.concept_name, c1.concept_code, c1.vocabulary_id,  c1.concept_class_id, de.drug_type_concept_id, c2.concept_name as drug_type_concept_name, g_source_system from drug_exposure de join concept c1 on de.drug_source_concept_id = c1.concept_id join concept c2 on c2.concept_id = de.drug_type_concept_id group by drug_source_concept_id, c1.concept_name, c1.concept_code, c1.vocabulary_id, c1.concept_class_id, de.drug_type_concept_id, c2.concept_name, g_source_system order by count(*) desc",
+
+        "condition_types_counts": "select count(*) as n_r, count(distinct person_id) as n, condition_type_concept_id, c1.concept_name from condition_occurrence co join concept c1 on c1.concept_id = co.condition_type_concept_id group by condition_type_concept_id, c1.concept_name order by count(*) desc",
+        "condition_types_source_system_counts": "select count(*) as n_r, count(distinct person_id) as n, condition_type_concept_id, c1.concept_name, g_source_system, min(condition_start_date) as min_date,  max(coalesce(condition_end_date, condition_start_date)) as max_date from condition_occurrence co join concept c1 on c1.concept_id = co.condition_type_concept_id group by condition_type_concept_id, c1.concept_name, g_source_system order by count(*) desc",
+
+        "procedure_types_counts": "select count(*) as n_r, count(distinct person_id) as n, procedure_type_concept_id, c1.concept_name from procedure_occurrence po join concept c1 on procedure_type_concept_id = c1.concept_id group by procedure_type_concept_id, c1.concept_name order by count(*) desc",
+        "procedure_types_source_system_counts": "select count(*) as n_r, count(distinct person_id) as n, procedure_type_concept_id, c1.concept_name, g_source_system, min(procedure_date) as min_date, max(coalesce(procedure_end_date, procedure_date)) as end_date from procedure_occurrence po join concept c1 on procedure_type_concept_id = c1.concept_id group by procedure_type_concept_id, c1.concept_name, g_source_system order by count(*) desc",
+
+        "device_types_counts": "select count(*) as n_r, count(distinct person_id) as n, device_type_concept_id, c1.concept_name from device_exposure de join concept c1 on c1.concept_id = de.device_type_concept_id group by device_type_concept_id, c1.concept_name order by count(*) desc",
+        "device_types_source_system_counts": "select count(*) as n_r, count(distinct person_id) as n, device_type_concept_id, c1.concept_name, g_source_system, min(device_exposure_start_date) as min_date, max(coalesce(device_exposure_end_date,device_exposure_start_date)) as max_date from device_exposure de join concept c1 on c1.concept_id = de.device_type_concept_id group by device_type_concept_id, c1.concept_name, g_source_system order by count(*) desc",
+
+        "measurement_types_counts": "select count(*) as n_r, count(distinct person_id) as n, measurement_type_concept_id, c1.concept_name from measurement m join concept c1 on c1.concept_id = m.measurement_type_concept_id group by measurement_type_concept_id, c1.concept_name order by count(*) desc",
+        "measurement_types_source_system_counts": "select count(*) as n_r, count(distinct person_id) as n, measurement_type_concept_id, c1.concept_name, g_source_system, min(measurement_date) as min_date, max(measurement_date) as max_date from measurement m join concept c1 on c1.concept_id = m.measurement_type_concept_id group by measurement_type_concept_id, c1.concept_name, g_source_system order by count(*) desc",
+
+        "observation_types_counts": "select count(*) as n_r, count(distinct person_id) as n, observation_type_concept_id, c1.concept_name from observation o join concept c1 on c1.concept_id = o.observation_type_concept_id group by observation_type_concept_id, c1.concept_name order by count(*) desc",
+        "observation_types_source_system_counts": "select count(*) as n_r, count(distinct person_id) as n, observation_type_concept_id, c1.concept_name, g_source_system, min(observation_date) as min_date, max(observation_date) as max_date from observation o join concept c1 on c1.concept_id = o.observation_type_concept_id group by observation_type_concept_id, c1.concept_name, g_source_system order by count(*) desc"
+
     }
 
     if extended_queries is True:
@@ -90,18 +131,52 @@ def main(spark, tbs, extended_queries):
     else:
         queries_to_run = statistics_queries
 
+
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+
+    if output_csv_files is True:
+        p_output_base_directory = pathlib.Path(output_base_directory)
+        p_output_directory = p_output_base_directory / timestamp
+        os.makedirs(p_output_directory, exist_ok=True)
+
+
+    output_index = {}
+
     for tag in queries_to_run:
         print(f"{tag}:")
         query = queries_to_run[tag]
         print(query)
+        start_time = time.time()
         q_df = spark.sql(query).toPandas()
+        end_time = time.time()
 
         q_columns = q_df.columns
         if "p_n" in q_columns and "n" in q_columns:
             q_df["n / p_n"] = q_df["n"] / q_df["p_n"]
 
+        if "n_r" in q_columns: # For total calculate fractions of records
+            sum_n_r = q_df["n_r"].sum()
+            q_df["n_r / sum_n_r"] = q_df["n_r"] / sum_n_r
+
         print(q_df)
+        if "n_r" in q_columns:
+            print("")
+            print(f"sum_n_r = {sum_n_r}")
+
         print("")
+        print(f"Total execution time: {end_time - start_time} seconds")
+
+        if output_csv_files is True:
+            p_output_file_name = p_output_directory / f"{tag}.csv"
+            print(f"Writing output to CSV file: '{p_output_file_name}'")
+            q_df.to_csv(p_output_file_name, index=False, header=True)
+            output_index[tag] = str(p_output_file_name)
+        print("")
+
+
+    if output_csv_files is True:
+        with open(p_output_base_directory / "output_index.json", "w") as f:
+            json.dump(output_index, f, indent=4)
 
 if __name__ == "__main__":
 
@@ -109,6 +184,8 @@ if __name__ == "__main__":
     arg_parser_obj.add_argument("-c", "--config-json-file-name", dest="config_json_file_name", default="/root/config/prepared_source_to_ohdsi_config.json.generated.parquet.json")
     arg_parser_obj.add_argument("-l", "--run-local", dest="run_local", default=False, action="store_true")
     arg_parser_obj.add_argument("--extended-queries", dest="extended_queries", default=False, action="store_true")
+    arg_parser_obj.add_argument("--output-csv-files", dest="output_csv_files", default=False, action="store_true", help="Output CSV files for each query")
+    arg_parser_obj.add_argument("--output-base-directory", dest="output_base_directory", default="./", help="Base directory for outputting CSV files. Will create a timestamped directory")
     arg_parser_obj.add_argument("--spark-config", dest="spark_config_file_name", default=None)
 
     arg_obj = arg_parser_obj.parse_args()
@@ -158,4 +235,4 @@ if __name__ == "__main__":
     with open(arg_obj.config_json_file_name) as f:
         config = json.load(f)
 
-    main(spark, config, extended_queries=arg_obj.extended_queries)
+    main(spark, config, extended_queries=arg_obj.extended_queries, output_csv_files=arg_obj.output_csv_files, output_base_directory=arg_obj.output_base_directory)

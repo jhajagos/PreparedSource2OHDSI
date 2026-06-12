@@ -21,7 +21,11 @@
 select
     NULL as k_care_site --Foreign key to the care site
    ,NULL as s_care_site_name
-   ,NULL as k_location
+   ,NULL as k_location --Foreign key to the location
+   ,NULL as s_source_system --Source system row was extracted from
+   ,NULL as m_source_system --Mapped source system the row was extracted from
+   ,NULL as i_exclude --Value of 1 instructs the mapper to skip the row
+   ,NULL as i_exclude_reason --Reason for exclusion (e.g., duplicate)
 from SourceCareSiteObject;
 
 select
@@ -47,10 +51,11 @@ select
    ,NULL as s_present_on_admission_indicator
    ,NULL as s_sequence_id
    ,NULL as k_provider --Foreign key to the provider
-   ,NULL as i_exclude --Value of 1 instructs the mapper to skip the row
    ,NULL as s_id --Row source identifier
    ,NULL as s_source_system --Source system row was extracted from
    ,NULL as m_source_system --Mapped source system the row was extracted from
+   ,NULL as i_exclude --Value of 1 instructs the mapper to skip the row
+   ,NULL as i_exclude_reason --Reason for exclusion (e.g., duplicate)
 from SourceConditionObject;
 
 select
@@ -73,9 +78,10 @@ select
    ,NULL as m_device_type_code_type
    ,NULL as m_device_type_code_type_oid
    ,NULL as k_provider --Foreign key to the provider
-   ,NULL as i_exclude --Value of 1 instructs the mapper to skip the row
-   ,NULL as s_source_system  --Source system row was extracted from
+   ,NULL as s_source_system --Source system row was extracted from
    ,NULL as m_source_system --Mapped source system the row was extracted from
+   ,NULL as i_exclude --Value of 1 instructs the mapper to skip the row
+   ,NULL as i_exclude_reason --Reason for exclusion (e.g., duplicate)
 from SourceDeviceObject;
 
 select
@@ -98,18 +104,22 @@ select
    ,NULL as m_visit_detail_source_code_type
    ,NULL as m_visit_detail_source_code_type_oid
    ,NULL as k_provider --Foreign key to the provider
-   ,NULL as i_exclude --Value of 1 instructs the mapper to skip the row
    ,NULL as s_id --Row source identifier
    ,NULL as s_source_system --Source system row was extracted from
    ,NULL as m_source_system --Mapped source system the row was extracted from
+   ,NULL as i_exclude --Value of 1 instructs the mapper to skip the row
+   ,NULL as i_exclude_reason --Reason for exclusion (e.g., duplicate)
 from SourceEncounterDetailObject;
 
 select
     NULL as s_encounter_id --Source identifier for encounter or visit
    ,NULL as s_map_name
-   ,NULL as s_source_system --Source system row was extracted from
    ,NULL as s_sequence_id
    ,NULL as s_alternative_id
+   ,NULL as s_source_system --Source system row was extracted from
+   ,NULL as m_source_system --Mapped source system the row was extracted from
+   ,NULL as i_exclude --Value of 1 instructs the mapper to skip the row
+   ,NULL as i_exclude_reason --Reason for exclusion (e.g., duplicate)
 from SourceEncounterMapObject;
 
 select
@@ -147,14 +157,15 @@ select
    ,NULL as m_admitting_source_code_type_oid
    ,NULL as k_care_site --Foreign key to the care site
    ,NULL as k_provider --Foreign key to the provider
-   ,NULL as i_exclude --Value of 1 instructs the mapper to skip the row
    ,NULL as s_id --Row source identifier
    ,NULL as s_source_system --Source system row was extracted from
    ,NULL as m_source_system --Mapped source system the row was extracted from
+   ,NULL as i_exclude --Value of 1 instructs the mapper to skip the row
+   ,NULL as i_exclude_reason --Reason for exclusion (e.g., duplicate)
 from SourceEncounterObject;
 
 select
-    NULL as k_location
+    NULL as k_location --Foreign key to the location
    ,NULL as s_address_1
    ,NULL as s_address_2
    ,NULL as s_city
@@ -166,6 +177,10 @@ select
    ,NULL as s_latitude
    ,NULL as s_longitude
    ,NULL as s_geocoding_type
+   ,NULL as s_source_system --Source system row was extracted from
+   ,NULL as m_source_system --Mapped source system the row was extracted from
+   ,NULL as i_exclude --Value of 1 instructs the mapper to skip the row
+   ,NULL as i_exclude_reason --Reason for exclusion (e.g., duplicate)
 from SourceLocationObject;
 
 select
@@ -215,10 +230,10 @@ select
    ,NULL as m_drug_type_code_type
    ,NULL as m_drug_type_code_type_oid
    ,NULL as k_provider --Foreign key to the provider
-   ,NULL as i_exclude --Value of 1 instructs the mapper to skip the row
    ,NULL as s_id --Row source identifier
    ,NULL as s_source_system --Source system row was extracted from
-   ,NULL as m_source_system --Mapped source system the row was extracted from
+   ,NULL as m_source_systemi_exclude
+   ,NULL as i_exclude_reason --Reason for exclusion (e.g., duplicate)
 from SourceMedicationObject;
 
 select
@@ -249,7 +264,10 @@ select
    ,NULL as s_encoding_code --
    ,NULL as s_encoding_code_type --
    ,NULL as s_encoding_code_type_oid --
+   ,NULL as s_source_system --Source system row was extracted from
+   ,NULL as m_source_system --Mapped source system the row was extracted from
    ,NULL as i_exclude --Value of 1 instructs the mapper to skip the row
+   ,NULL as i_exclude_reason --Reason for exclusion (e.g., duplicate)
 from SourceNoteObject;
 
 select
@@ -260,6 +278,8 @@ select
    ,NULL as m_source_code
    ,NULL as m_source_code_type
    ,NULL as m_source_code_type_oid
+   ,NULL as i_exclude --Value of 1 instructs the mapper to skip the row
+   ,NULL as i_exclude_reason --Reason for exclusion (e.g., duplicate)
 from SourceObservationPeriodObject;
 
 select
@@ -286,27 +306,33 @@ select
    ,NULL as s_source_system --Source system row was extracted from
    ,NULL as m_source_system --Mapped source system the row was extracted from
    ,NULL as i_exclude --Value of 1 instructs the mapper to skip the row
+   ,NULL as i_exclude_reason --Reason for exclusion (e.g., duplicate)
 from SourcePayerObject;
 
 select
     NULL as s_person_id --Source identifier for patient or person
    ,NULL as s_start_datetime
    ,NULL as s_end_datetime
-   ,NULL as k_location
+   ,NULL as k_location --Foreign key to the location
    ,NULL as s_address_type
    ,NULL as s_address_type_code
    ,NULL as s_address_type_code_type
    ,NULL as s_address_type_code_type_oid
    ,NULL as s_source_system --Source system row was extracted from
    ,NULL as m_source_system --Mapped source system the row was extracted from
+   ,NULL as i_exclude --Value of 1 instructs the mapper to skip the row
+   ,NULL as i_exclude_reason --Reason for exclusion (e.g., duplicate)
 from SourcePersonAddressHistoryObject;
 
 select
     NULL as s_person_id --Source identifier for patient or person
    ,NULL as s_map_name
-   ,NULL as s_source_system --Source system row was extracted from
    ,NULL as s_sequence_id
    ,NULL as s_alternative_id
+   ,NULL as s_source_system --Source system row was extracted from
+   ,NULL as m_source_system --Mapped source system the row was extracted from
+   ,NULL as i_exclude --Value of 1 instructs the mapper to skip the row
+   ,NULL as i_exclude_reason --Reason for exclusion (e.g., duplicate)
 from SourcePersonMapObject;
 
 select
@@ -341,11 +367,12 @@ select
    ,NULL as m_ethnicity_code --See: https://athena.ohdsi.org/search-terms/terms?domain=Ethnicity&standardConcept=Standard&page=1&pageSize=15&query=
    ,NULL as m_ethnicity_code_type
    ,NULL as m_ethnicity_code_type_oid --Use 'ohdsi.ethnicity' for standard OHDSI ethnicity codes
-   ,NULL as k_location --Key value to location in source_location table
-   ,NULL as i_exclude --Value of 1 instructs the mapper to skip the row
+   ,NULL as k_location --Foreign key to the location
    ,NULL as s_id --Row source identifier
    ,NULL as s_source_system --Source system row was extracted from
    ,NULL as m_source_system --Mapped source system the row was extracted from
+   ,NULL as i_exclude --Value of 1 instructs the mapper to skip the row
+   ,NULL as i_exclude_reason --Reason for exclusion (e.g., duplicate)
 from SourcePersonObject;
 
 select
@@ -367,13 +394,13 @@ select
    ,NULL as s_modifier_code_type_oid
    ,NULL as s_quantity
    ,NULL as k_provider --Foreign key to the provider
-   ,NULL as i_exclude --Value of 1 instructs the mapper to skip the row
    ,NULL as s_id --Row source identifier
    ,NULL as s_place_of_service_code
    ,NULL as s_place_of_service_code_type
    ,NULL as s_place_of_service_code_type_oid
    ,NULL as s_source_system --Source system row was extracted from
-   ,NULL as m_source_system --Mapped source system the row was extracted from
+   ,NULL as m_source_systemi_exclude
+   ,NULL as i_exclude_reason --Reason for exclusion (e.g., duplicate)
 from SourceProcedureObject;
 
 select
@@ -382,13 +409,18 @@ select
    ,NULL as s_source_system --Source system row was extracted from
    ,NULL as s_sequence_id
    ,NULL as s_alternative_id
+   ,NULL as s_source_system --Source system row was extracted from
+   ,NULL as m_source_system --Mapped source system the row was extracted from
+   ,NULL as i_exclude --Value of 1 instructs the mapper to skip the row
+   ,NULL as i_exclude_reason --Reason for exclusion (e.g., duplicate)
 from SourceProviderMapObject;
 
 select
     NULL as k_provider --Foreign key to the provider
    ,NULL as s_provider_name
    ,NULL as s_npi --National Provider Identifier
-   ,NULL as s_dea_numbers_specialty
+   ,NULL as s_dea_number --Drug Enforcement Administration Number for identifier prescribers
+   ,NULL as s_specialty
    ,NULL as s_specialty_code
    ,NULL as s_specialty_code_type
    ,NULL as s_specialty_code_type_oid
@@ -409,6 +441,7 @@ select
    ,NULL as s_source_system --Source system row was extracted from
    ,NULL as m_source_system --Mapped source system the row was extracted from
    ,NULL as i_exclude --Value of 1 instructs the mapper to skip the row
+   ,NULL as i_exclude_reason --Reason for exclusion (e.g., duplicate)
 from SourceProviderObject;
 
 select
@@ -420,6 +453,8 @@ select
    ,NULL as s_specialty_code_type_oid
    ,NULL as s_source_system --Source system row was extracted from
    ,NULL as m_source_system --Mapped source system the row was extracted from
+   ,NULL as i_exclude --Value of 1 instructs the mapper to skip the row
+   ,NULL as i_exclude_reason --Reason for exclusion (e.g., duplicate)
 from SourceProviderSpecialtyObject;
 
 select
@@ -434,6 +469,10 @@ select
    ,NULL as s_target_to_table_name
    ,NULL as s_target_to_table_field
    ,NULL as s_target_to_value
+   ,NULL as s_source_system --Source system row was extracted from
+   ,NULL as m_source_system --Mapped source system the row was extracted from
+   ,NULL as i_exclude --Value of 1 instructs the mapper to skip the row
+   ,NULL as i_exclude_reason --Reason for exclusion (e.g., duplicate)
 from SourceRelationshipObject;
 
 select
@@ -480,9 +519,10 @@ select
    ,NULL as m_source_code
    ,NULL as m_source_code_type
    ,NULL as m_source_code_type_oid
-   ,NULL as i_exclude --Value of 1 instructs the mapper to skip the row
-   ,NULL as s_id --Row source identifier
    ,NULL as k_provider --Foreign key to the provider
+   ,NULL as s_id --Row source identifier
    ,NULL as s_source_system --Source system row was extracted from
    ,NULL as m_source_system --Mapped source system the row was extracted from
+   ,NULL as i_exclude --Value of 1 instructs the mapper to skip the row
+   ,NULL as i_exclude_reason --Reason for exclusion (e.g., duplicate)
 from SourceResultObject;
