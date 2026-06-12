@@ -2,31 +2,31 @@
 
 
 --Truncate tables
-truncate table [dbo].[fact_relationship];
-truncate table [dbo].[payer_plan_period];
-truncate table [dbo].[device_exposure];
-truncate table [dbo].[drug_exposure];
-truncate table [dbo].[observation];
-truncate table [dbo].[measurement];
-truncate table [dbo].[procedure_occurrence];
-truncate table [dbo].[condition_occurrence];
-truncate table [dbo].[visit_detail];
-truncate table [dbo].[visit_occurrence];
-truncate table [dbo].[observation_period];
-truncate table [dbo].[death];
-truncate table [dbo].[person];
-truncate table [dbo].[provider];
-truncate table [dbo].[care_site];
-truncate table [dbo].[location];
-truncate table [dbo].[cdm_source];
-truncate table [dbo].[drug_strength];
-truncate table [dbo].[concept_relationship];
-truncate table [dbo].[relationship];
-truncate table [dbo].[concept_ancestor];
-truncate table [dbo].[vocabulary];
-truncate table [dbo].[concept];
-truncate table [dbo].[concept_class];
-truncate table [dbo].[domain];
+truncate table [dbo].[fact_relationship] cascade;
+truncate table [dbo].[payer_plan_period] cascade;
+truncate table [dbo].[device_exposure] cascade;
+truncate table [dbo].[drug_exposure] cascade;
+truncate table [dbo].[observation] cascade;
+truncate table [dbo].[measurement] cascade;
+truncate table [dbo].[procedure_occurrence] cascade;
+truncate table [dbo].[condition_occurrence] cascade;
+truncate table [dbo].[visit_detail] cascade;
+truncate table [dbo].[visit_occurrence] cascade;
+truncate table [dbo].[observation_period] cascade;
+truncate table [dbo].[death] cascade;
+truncate table [dbo].[person] cascade;
+truncate table [dbo].[provider] cascade;
+truncate table [dbo].[care_site] cascade;
+truncate table [dbo].[location] cascade;
+truncate table [dbo].[cdm_source] cascade;
+truncate table [dbo].[drug_strength] cascade;
+truncate table [dbo].[concept_relationship] cascade;
+truncate table [dbo].[relationship] cascade;
+truncate table [dbo].[concept_ancestor] cascade;
+truncate table [dbo].[vocabulary] cascade;
+truncate table [dbo].[concept] cascade;
+truncate table [dbo].[concept_class] cascade;
+truncate table [dbo].[domain] cascade;
 
 --Alter table domain
 
