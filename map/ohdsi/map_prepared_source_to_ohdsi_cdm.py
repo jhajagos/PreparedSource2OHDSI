@@ -1262,7 +1262,6 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
                                                                     "p.provider_source_value"), how="left_outer"). \
         select("n.*", F.col("p.provider_id").alias("g_provider_id"))
 
-
     source_note_sdf = note_class_code_mapper(source_note_sdf, concept_sdf, oid_to_vocab_sdf)
 
     source_note_sdf = standard_code_mapper(source_note_sdf, concept_sdf, oid_to_vocab_sdf,
