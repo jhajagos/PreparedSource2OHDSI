@@ -1480,7 +1480,8 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
             "observation": "Observation",
             "device_exposure": "Device",
             "note": "Note",
-            "care_site": "Care site"
+            "care_site": "Care site",
+            "location": "Location"
         }
 
         with open(oid_to_vocab_id_path) as f:
