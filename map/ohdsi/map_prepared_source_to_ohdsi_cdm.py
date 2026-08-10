@@ -1481,7 +1481,7 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
             "device_exposure": "Device",
             "note": "Note",
             "care_site": "Care site",
-            "location": "Location"
+            "location": "Geographical object" # Closest match
         }
 
         with open(oid_to_vocab_id_path) as f:
