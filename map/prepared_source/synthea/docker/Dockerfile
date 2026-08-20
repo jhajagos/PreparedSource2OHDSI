@@ -139,3 +139,5 @@ RUN mkdir /root/sql/psql/
 COPY ./psql/create_schema_stub.sql /root/sql/psql/
 COPY ./psql/drop_schema_stub.sql /root/sql/psql/
 
+RUN mkdir /data/ohdsi/stats
+
