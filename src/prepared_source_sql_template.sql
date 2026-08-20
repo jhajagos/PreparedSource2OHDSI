@@ -31,24 +31,26 @@ from SourceCareSiteObject;
 select
     NULL as s_person_id --Source identifier for patient or person
    ,NULL as s_encounter_id --Source identifier for encounter or visit
-   ,NULL as s_start_condition_datetime
-   ,NULL as s_end_condition_datetime
-   ,NULL as s_condition_code
-   ,NULL as s_condition_code_type
-   ,NULL as s_condition_code_type_oid
-   ,NULL as m_condition_type
-   ,NULL as m_condition_type_code
-   ,NULL as m_condition_type_code_type
-   ,NULL as m_condition_type_code_type_oid
-   ,NULL as s_condition_status
-   ,NULL as s_condition_status_code
-   ,NULL as s_condition_status_code_type
-   ,NULL as s_condition_status_code_type_oid
-   ,NULL as m_condition_status
-   ,NULL as m_condition_status_code
-   ,NULL as m_condition_status_code_type
-   ,NULL as m_condition_status_code_type_oid
-   ,NULL as s_present_on_admission_indicator
+   ,NULL as s_start_condition_datetime --Condition start date time
+   ,NULL as s_end_condition_datetime --Condition end date time
+   ,NULL as s_condition_code --Code for condition/diagnosis
+   ,NULL as s_condition_code_type --Condition code type (Human-readable)
+   ,NULL as s_condition_code_type_oid --Condition code type by OID (used by OHDSI mapper) ICD10: 2.16.840.1.113883.6.90
+   ,NULL as s_condition_code_domain --Default domain to map row to in case of no mappings, e.g., 'Condition', 'Observation
+   ,NULL as s_condition_code_class --Condition code class to map to in the concept table
+   ,NULL as m_condition_type --Source of concept (usually EHR, Claim)
+   ,NULL as m_condition_type_code --See: https://athena.ohdsi.org/search-terms/terms?domain=Type+Concept&standardConcept=Standard&page=1&pageSize=15&query=
+   ,NULL as m_condition_type_code_type --
+   ,NULL as m_condition_type_code_type_oid --Use 'ohdsi.type_concept
+   ,NULL as s_condition_status --Type of condition code (admit, discharge)
+   ,NULL as s_condition_status_code --Local source code
+   ,NULL as s_condition_status_code_type --Local source code type
+   ,NULL as s_condition_status_code_type_oid --
+   ,NULL as m_condition_status --
+   ,NULL as m_condition_status_code --
+   ,NULL as m_condition_status_code_type --See: https://athena.ohdsi.org/search-terms/terms?domain=Condition+Status&standardConcept=Standard&page=1&pageSize=15&query=
+   ,NULL as m_condition_status_code_type_oid --Use 'ohdsi.type_concept'
+   ,NULL as s_present_on_admission_indicator --Indicates whether diagnosis is POA (not mapped to OHDSI table)
    ,NULL as s_sequence_id
    ,NULL as k_provider --Foreign key to the provider
    ,NULL as s_id --Row source identifier

@@ -61,6 +61,8 @@ def main(config, spark, evaluate_samples=False):
         F.col("c1.concept_code").alias("source_concept_code"),
         F.col("c1.standard_concept").alias("source_standard_concept"),
         F.col("c1.concept_name").alias("source_concept_name"),
+        F.col("c1.concept_class_id").alias("source_concept_class_id"),
+        F.col("c1.invalid_reason").alias("source_invalid_reason"),
         F.col("cr.relationship_id"),
         F.col("c2.concept_id").alias("mapped_concept_id"),
         F.col("c2.vocabulary_id").alias("mapped_vocabulary_id"),
@@ -68,7 +70,9 @@ def main(config, spark, evaluate_samples=False):
         F.col("c2.domain_id").alias("mapped_domain_id"),
         F.col("c2.standard_concept").alias("mapped_standard_concept"),
         F.col("c2.concept_code").alias("mapped_concept_code"),
-        F.col("c2.concept_name").alias("mapped_concept_name")
+        F.col("c2.concept_name").alias("mapped_concept_name"),
+        F.col("c2.concept_class_id").alias("mapped_concept_class_id"),
+        F.col("c2.invalid_reason").alias("mapped_invalid_reason")
         )
 
     if evaluate_samples:

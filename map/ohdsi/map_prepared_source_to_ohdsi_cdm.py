@@ -1154,6 +1154,8 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
     source_result_sdf = source_result_sdf.withColumn("g_result_numeric_upper",
                                                      F.coalesce(F.col("m_result_numeric_upper").cast("double"),F.col("s_result_numeric_upper").cast("double")))
 
+    source_result_sdf = source_result_sdf.withColumn("gg_value_as_concept_id", F.when(F.col("g_value_as_concept_id") > 0, F.col("g_value_as_concept_id")).otherwise(F.col("g_value_as_source_concept_id")))
+
     source_result_sdf = add_g_source_system(source_result_sdf)
 
     source_result_partition_by = None
@@ -1187,7 +1189,7 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
         "g_code": "measurement_source_value",
         "s_obtained_datetime": "measurement_datetime",
         "g_obtained_date": "measurement_date",
-        "g_value_as_concept_id": "value_as_concept_id",
+        "gg_value_as_concept_id": "value_as_concept_id",
         "g_result_numeric": "value_as_number",
         "g_result_text": "value_source_value",
         "g_unit_concept_id": "unit_concept_id",
@@ -1223,7 +1225,7 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
             "g_code": "observation_source_value",
             "s_obtained_datetime": "observation_datetime",
             "g_obtained_date": "observation_date",
-            "g_value_as_concept_id": "value_as_concept_id",
+            "gg_value_as_concept_id": "value_as_concept_id",
             "g_result_numeric": "value_as_number",
             "g_result_text": "value_as_string",
             "g_unit_concept_id": "unit_concept_id",
@@ -1261,7 +1263,6 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
                                                                 F.col("n.k_provider") == F.col(
                                                                     "p.provider_source_value"), how="left_outer"). \
         select("n.*", F.col("p.provider_id").alias("g_provider_id"))
-
 
     source_note_sdf = note_class_code_mapper(source_note_sdf, concept_sdf, oid_to_vocab_sdf)
 
@@ -1481,7 +1482,8 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
             "observation": "Observation",
             "device_exposure": "Device",
             "note": "Note",
-            "care_site": "Care site"
+            "care_site": "Care site",
+            "location": "Geographical object" # Closest match
         }
 
         with open(oid_to_vocab_id_path) as f:

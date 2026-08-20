@@ -24,5 +24,6 @@
   "SOPT": "nahdo.sopt",
   "Relationship": "ohdsi.relationship",
   "NUCC": "2.16.840.1.113883.6.101",
-  "Medicare Specialty": "urn:cerner:codingsystem:cms:medicalspecialty"
+  "Medicare Specialty": "urn:cerner:codingsystem:cms:medicalspecialty",
+  "DRG": "urn:cerner:codingsystem:drg:msdrg"
 }

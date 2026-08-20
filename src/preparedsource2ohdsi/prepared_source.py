@@ -30,8 +30,6 @@
 """
 
 
-#TODO: Add i_excluded_reason
-
 
 class PreparedSourceObject(object):
     def fields(self):
@@ -304,28 +302,6 @@ class SourceEncounterDetailObject(PreparedSourceObject):
 class SourceConditionObject(PreparedSourceObject):
     """Conditions or diagnosis codes (ICD10CM coding)"""
 
-    def _meta_data(self):
-        return {
-          "s_start_condition_datetime": "Condition start date time",
-          "s_end_condition_datetime": "Condition end date time",
-          "s_condition_code": "Code for condition/diagnosis",
-          "s_condition_code_type": "Condition code type (Human-readable)",
-          "s_condition_code_type_oid": "Condition code type by OID (used by OHDSI mapper) ICD10: 2.16.840.1.113883.6.90",
-          "m_condition_type": "Source of concept (usually EHR, Claim)",
-          "m_condition_type_code": "See: https://athena.ohdsi.org/search-terms/terms?domain=Type+Concept&standardConcept=Standard&page=1&pageSize=15&query=",
-          "m_condition_type_code_type": "",
-          "m_condition_type_code_type_oid": "Use 'ohdsi.type_concept",
-          "s_condition_status": "Type of condition code (admit, discharge)",
-          "s_condition_status_code": "Local source code",
-          "s_condition_status_code_type": "Local source code type",
-          "s_condition_status_code_type_oid": "",
-          "m_condition_status": "",
-          "m_condition_status_code": "",
-          "m_condition_status_code_type": "See: https://athena.ohdsi.org/search-terms/terms?domain=Condition+Status&standardConcept=Standard&page=1&pageSize=15&query=",
-          "m_condition_status_code_type_oid": "Use 'ohdsi.type_concept'",
-          "s_present_on_admission_indicator": "Indicates whether diagnosis is POA (not mapped to OHDSI table)"
-        }
-
     def _fields(self):
         return ["s_person_id",
                 "s_encounter_id",
@@ -334,6 +310,8 @@ class SourceConditionObject(PreparedSourceObject):
                 "s_condition_code",
                 "s_condition_code_type",
                 "s_condition_code_type_oid",
+                "s_condition_code_domain",
+                "s_condition_code_class",
                 "m_condition_type",
                 "m_condition_type_code",
                 "m_condition_type_code_type",
@@ -357,7 +335,28 @@ class SourceConditionObject(PreparedSourceObject):
                 ]
 
     def _meta_data(self):
-        return {}
+        return {
+            "s_start_condition_datetime": "Condition start date time",
+            "s_end_condition_datetime": "Condition end date time",
+            "s_condition_code": "Code for condition/diagnosis",
+            "s_condition_code_type": "Condition code type (Human-readable)",
+            "s_condition_code_type_oid": "Condition code type by OID (used by OHDSI mapper) ICD10: 2.16.840.1.113883.6.90",
+            "s_condition_code_class": "Condition code class to map to in the concept table",
+            "s_condition_code_domain": "Default domain to map row to in case of no mappings, e.g., 'Condition', 'Observation",
+            "m_condition_type": "Source of concept (usually EHR, Claim)",
+            "m_condition_type_code": "See: https://athena.ohdsi.org/search-terms/terms?domain=Type+Concept&standardConcept=Standard&page=1&pageSize=15&query=",
+            "m_condition_type_code_type": "",
+            "m_condition_type_code_type_oid": "Use 'ohdsi.type_concept",
+            "s_condition_status": "Type of condition code (admit, discharge)",
+            "s_condition_status_code": "Local source code",
+            "s_condition_status_code_type": "Local source code type",
+            "s_condition_status_code_type_oid": "",
+            "m_condition_status": "",
+            "m_condition_status_code": "",
+            "m_condition_status_code_type": "See: https://athena.ohdsi.org/search-terms/terms?domain=Condition+Status&standardConcept=Standard&page=1&pageSize=15&query=",
+            "m_condition_status_code_type_oid": "Use 'ohdsi.type_concept'",
+            "s_present_on_admission_indicator": "Indicates whether diagnosis is POA (not mapped to OHDSI table)"
+        }
 
 
 class SourceProcedureObject(PreparedSourceObject):
