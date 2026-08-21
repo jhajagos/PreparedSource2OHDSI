@@ -117,6 +117,10 @@ from organizations o
    ,cast(NULL as STRING) as m_death_source_code
    ,cast(NULL as STRING) as m_death_source_code_type
    ,cast(NULL as STRING) as m_death_source_code_type_oid
+   ,cast(NULL as STRING) as s_death_source
+   ,cast(NULL as STRING) as s_death_source_code
+   ,cast(NULL as STRING) as s_death_source_code_type
+   ,cast(NULL as STRING) as s_death_source_code_type_oid
    ,p.`RACE` as s_race --Source race (Black, white, etc) description
    ,cast(NULL as STRING) as s_race_code --Source race code
    ,cast(NULL as STRING) as s_race_code_type --Source race code type (human readable & OPTIONAL)
@@ -329,6 +333,7 @@ from payer_transitions pt
    ,s_encounter_id as s_target_to_value
    ,'synthea' as s_source_system --Source system row was extracted from
    ,cast(NULL as STRING) as m_source_system --Mapped source system the row was extracted from
+   ,cast(NULL as STRING) as i_exclude
 from source_payer sp join source_encounter se on sp.s_person_id = se.s_person_id
         and coalesce(se.s_visit_end_datetime, se.s_visit_start_datetime) between s_payer_start_datetime and s_payer_end_datetime 
     """
@@ -520,6 +525,8 @@ from devices
    ,cast(NULL as STRING) as s_drug_type_code
    ,cast(NULL as STRING) as s_drug_type_code_type
    ,cast(NULL as STRING) as s_drug_type_code_type_oid
+   ,cast(NULL as STRING) as s_patient_instructions
+   ,cast(NULL as STRING) as s_detail_line
    ,'EHR' as m_drug_type
    ,'OMOP4976890' as m_drug_type_code
    ,'Type' as m_drug_type_code_type
@@ -575,6 +582,8 @@ from medications
        ,cast(NULL as STRING) as s_drug_type_code
        ,cast(NULL as STRING) as s_drug_type_code_type
        ,cast(NULL as STRING) as s_drug_type_code_type_oid
+       ,cast(NULL as STRING) as s_patient_instructions
+       ,cast(NULL as STRING) as s_detail_line
        ,'EHR' as m_drug_type
        ,'OMOP4976890' as m_drug_type_code
        ,'Type' as m_drug_type_code_type
