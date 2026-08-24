@@ -5,3 +5,7 @@ inpatient,Inpatient Visit,IP,Visit,ohdsi.visit
 outpatient,Outpatient Visit,OP,Visit,ohdsi.visit
 urgentcare,Outpatient Visit,OP,Visit,ohdsi.visit
 wellness,Outpatient Visit,OP,Visit,ohdsi.visit
+home,Home Visit,OMOP4822459,Visit,ohdsi.visit
+virtual,Telehealth,OMOP5556618,Visit,ohdsi.visit
+snf,Non-hospital institution Visit,LTCP,Visit,ohdsi.visit
+hospice,Non-hospital institution Visit,LTCP,Visit,ohdsi.visit
