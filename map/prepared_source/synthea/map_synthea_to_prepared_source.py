@@ -722,7 +722,7 @@ from medications
    ,'ohdsi.type_concept' as m_source_code_type_oid
    ,cast(NULL as STRING) as i_exclude --Value of 1 instructs the mapper to skip the row
    ,cast(NULL as STRING) as s_id --Row source identifier
-   ,'sythea' as s_source_system --Source system row was extracted from
+   ,'synthea' as s_source_system --Source system row was extracted from
    ,cast(NULL as STRING) as m_source_system --Mapped source system the row was extracted from
 from observations o left outer join result_code_mapping rcm on o.`VALUE` = rcm.s_result_text and `TYPE` = 'text'
     """
