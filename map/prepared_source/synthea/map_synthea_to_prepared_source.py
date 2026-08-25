@@ -25,7 +25,7 @@ def main(config):
     # Tables which are not used are commented out
 
     table_names = [
-                    #"allergies",
+                    "allergies",
                     #"careplans",
                     "conditions",
                     "devices",
@@ -676,7 +676,7 @@ from medications
 
     result_code_mapping_sdf = load_local_csv_file(spark, mappings_p / "mappings/result_code.csv", table_name="result_code_mapping")
 
-    source_result_sql = """
+    source_result_sql_1 = """
     select
     `PATIENT` as s_person_id --Source identifier for patient or person
    ,`ENCOUNTER` as s_encounter_id --Source identifier for encounter or visit
@@ -710,7 +710,7 @@ from medications
    ,cast(NULL as STRING) as s_result_numeric_lower
    ,cast(NULL as STRING) as s_result_numeric_upper
    ,cast(NULL as STRING) as m_result_numeric_lower
-   ,cast(NULL as STRING) as m_result_numeric_upper     
+   ,cast(NULL as STRING) as m_result_numeric_upper
    ,cast(NULL as STRING) as s_operator
    ,cast(NULL as STRING) as m_operator
    ,cast(NULL as STRING) as m_operator_code
@@ -726,6 +726,68 @@ from medications
    ,cast(NULL as STRING) as m_source_system --Mapped source system the row was extracted from
 from observations o left outer join result_code_mapping rcm on o.`VALUE` = rcm.s_result_text and `TYPE` = 'text'
     """
+
+    # Allergies/intolerances: the allergen itself (CODE/DESCRIPTION, e.g., "Mold (organism)")
+    # is the finding being recorded, so it's carried as the result code/name with no
+    # separate result value column to fill -- TYPE ('allergy' vs 'intolerance') goes in
+    # s_result_text as the qualifying detail, landing in observation.value_as_string.
+    # Most allergen codes resolve to the Observation domain (verified against the loaded
+    # vocabulary), so this reaches the OHDSI observation table via source_result's existing
+    # domain-based routing, same path observations.csv rows already take. The specific
+    # REACTION1/2, DESCRIPTION1/2, and SEVERITY1/2 columns (largely Condition-domain
+    # findings, not Observation) have no home in SourceResultObject and are dropped.
+    source_result_sql_2 = """
+    select
+    `PATIENT` as s_person_id --Source identifier for patient or person
+   ,`ENCOUNTER` as s_encounter_id --Source identifier for encounter or visit
+   ,`START` as s_obtained_datetime
+   ,`DESCRIPTION` as s_name
+   ,`CODE` as s_code
+   ,'SNOMED' as s_code_type
+   ,'2.16.840.1.113883.6.96' as s_code_type_oid
+   ,cast(NULL as STRING) as m_code
+   ,cast(NULL as STRING) as m_code_type
+   ,cast(NULL as STRING) as m_code_type_oid
+   ,`TYPE` as s_result_text
+   ,cast(NULL as STRING) as m_result_text
+   ,cast(NULL as STRING) as s_result_numeric
+   ,cast(NULL as STRING) as m_result_numeric
+   ,cast(NULL as STRING) as s_result_datetime
+   ,cast(NULL as STRING) as s_result_code
+   ,cast(NULL as STRING) as s_result_code_type
+   ,cast(NULL as STRING) as s_result_code_type_oid
+   ,cast(NULL as STRING) as m_result_code
+   ,cast(NULL as STRING) as m_result_code_type
+   ,cast(NULL as STRING) as m_result_code_type_oid
+   ,cast(NULL as STRING) as s_result_unit
+   ,cast(NULL as STRING) as s_result_unit_code
+   ,cast(NULL as STRING) as s_result_unit_code_type
+   ,cast(NULL as STRING) as s_result_unit_code_type_oid
+   ,cast(NULL as STRING) as m_result_unit
+   ,cast(NULL as STRING) as m_result_unit_code
+   ,cast(NULL as STRING) as m_result_unit_code_type
+   ,cast(NULL as STRING) as m_result_unit_code_type_oid
+   ,cast(NULL as STRING) as s_result_numeric_lower
+   ,cast(NULL as STRING) as s_result_numeric_upper
+   ,cast(NULL as STRING) as m_result_numeric_lower
+   ,cast(NULL as STRING) as m_result_numeric_upper
+   ,cast(NULL as STRING) as s_operator
+   ,cast(NULL as STRING) as m_operator
+   ,cast(NULL as STRING) as m_operator_code
+   ,cast(NULL as STRING) as m_operator_code_type
+   ,cast(NULL as STRING) as m_operator_code_type_oid
+   ,'EHR' as s_source
+   ,'OMOP4976890' as m_source_code
+   ,'Type' as m_source_code_type
+   ,'ohdsi.type_concept' as m_source_code_type_oid
+   ,cast(NULL as STRING) as i_exclude --Value of 1 instructs the mapper to skip the row
+   ,cast(NULL as STRING) as s_id --Row source identifier
+   ,'synthea' as s_source_system --Source system row was extracted from
+   ,cast(NULL as STRING) as m_source_system --Mapped source system the row was extracted from
+from allergies
+    """
+
+    source_result_sql = source_result_sql_1 + "\nunion\n" + source_result_sql_2
 
     source_result_sdf = distinct_and_add_row_id(spark.sql(source_result_sql))
 
