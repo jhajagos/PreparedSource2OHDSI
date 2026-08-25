@@ -59,8 +59,8 @@ RUN cd /root/scripts/ && ln -s /root/github/PreparedSource2OHDSI/map/ohdsi/utili
 COPY generate_synthetic_covid19.sh /root/scripts/
 RUN chmod u+x /root/scripts/generate_synthetic_covid19.sh
 
-COPY generate_synthea_all_data.sh /root/scripts/
-RUN chmod u+x /root/scripts/generate_synthea_all_data.sh
+COPY generate_synthea_data.sh /root/scripts/
+RUN chmod u+x /root/scripts/generate_synthea_data.sh
 
 COPY map_synthea_csv_to_prepared_source.sh /root/scripts/
 RUN chmod u+x /root/scripts/map_synthea_csv_to_prepared_source.sh
@@ -91,9 +91,6 @@ COPY fully_load_ohdsi_parquet_files_into_rdbms.sh /root/scripts/
 RUN chmod u+x /root/scripts/fully_load_ohdsi_parquet_files_into_rdbms.sh
 
 COPY fully_load_ohdsi_parquet_files_excluding_concepts_into_rdbms.sh /root/scripts/
-RUN chmod u+x /root/scripts/fully_load_ohdsi_parquet_files_excluding_concepts_into_rdbms.sh
-
-COPY generate_synthea_module_data.sh /root/scripts/
 RUN chmod u+x /root/scripts/fully_load_ohdsi_parquet_files_excluding_concepts_into_rdbms.sh
 
 RUN mkdir /root/scripts/mssql/
