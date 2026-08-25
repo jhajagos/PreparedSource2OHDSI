@@ -30,7 +30,7 @@ def main(config):
                     "conditions",
                     "devices",
                     "encounters",
-                    #"imaging_studies",
+                    "imaging_studies",
                     "immunizations",
                     "medications",
                     "observations",
@@ -415,7 +415,7 @@ from encounters where REASONCODE is not NULL
                                                                                 config[
                                                                                     "prepared_source_output_location"])
 
-    source_procedure_sql = """
+    source_procedure_sql_1 = """
     select
     `PATIENT` as s_person_id --Source identifier for patient or person
    ,`ENCOUNTER` as s_encounter_id --Source identifier for encounter or visit
@@ -441,6 +441,39 @@ from encounters where REASONCODE is not NULL
    ,cast(NULL as STRING) as m_source_system --Mapped source system the row was extracted from
 from procedures
     """
+
+    # Imaging studies: DICOM-derived rows, one per acquired series, each carrying the
+    # SNOMED procedure code for the imaging exam performed (e.g., "CT of chest w/o contrast").
+    # Only a single DATE is available (no separate start/stop), so it fills both procedure
+    # start and end.
+    source_procedure_sql_2 = """
+    select
+    `PATIENT` as s_person_id --Source identifier for patient or person
+   ,`ENCOUNTER` as s_encounter_id --Source identifier for encounter or visit
+   ,`DATE` as s_start_procedure_datetime
+   ,`DATE` as s_end_procedure_datetime
+   ,`PROCEDURE_CODE` as s_procedure_code
+   ,'SNOMED' as s_procedure_code_type
+   ,'2.16.840.1.113883.6.96' as s_procedure_code_type_oid
+   , 'EHR' as m_procedure_type
+   ,'OMOP4976890' as m_procedure_type_code
+   ,'Type' as m_procedure_type_code_type
+   ,'ohdsi.type_concept' as m_procedure_type_code_type_oid
+   ,cast(NULL as STRING) as s_sequence_id
+   ,cast(NULL as STRING) as s_modifier
+   ,cast(NULL as STRING) as s_modifier_code
+   ,cast(NULL as STRING) as s_modifier_code_type
+   ,cast(NULL as STRING) as s_modifier_code_type_oid
+   ,cast(NULL as STRING) as s_quantity
+   ,cast(NULL as STRING) as k_provider
+   ,cast(NULL as STRING) as i_exclude --Value of 1 instructs the mapper to skip the row
+   ,cast(NULL as STRING) as s_id --Row source identifier
+   ,'synthea' as s_source_system --Source system row was extracted from
+   ,cast(NULL as STRING) as m_source_system --Mapped source system the row was extracted from
+from imaging_studies
+    """
+
+    source_procedure_sql = source_procedure_sql_1 + "\nunion\n" + source_procedure_sql_2
 
     source_procedure_sdf = distinct_and_add_row_id(spark.sql(source_procedure_sql))
 
