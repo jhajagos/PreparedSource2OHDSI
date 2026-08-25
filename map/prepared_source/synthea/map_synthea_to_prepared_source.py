@@ -39,7 +39,8 @@ def main(config):
                     "payers",
                     "payer_transitions",
                     "procedures",
-                    "providers",                    #"supplies"
+                    "providers",
+                    "supplies",
     ]
 
     table_dict = {tn: tn for tn in table_names}
@@ -481,7 +482,7 @@ from imaging_studies
                                                                                 "source_procedure",
                                                                                 config[
                                                                                     "prepared_source_output_location"])
-    source_device_sql = """
+    source_device_sql_1 = """
     select
     `PATIENT` as s_person_id --Source identifier for patient or person
    ,`ENCOUNTER` as s_encounter_id --Source identifier for encounter or visit
@@ -507,6 +508,43 @@ from imaging_studies
    ,cast(NULL as STRING) as s_id
 from devices
     """
+
+    # Supplies: consumables/physical objects used during an encounter (e.g., dental floss,
+    # dressings, catheters). Coded with the same SNOMED "Physical Object" vocabulary as
+    # devices.csv, so they union into the same source_device table. Only a single DATE is
+    # available (no start/stop), so it fills both device start and end. QUANTITY has no
+    # home in SourceDeviceObject and is dropped. Codes that resolve to a standard concept
+    # outside the Device domain (e.g., a dose-form/drug code) are filtered out downstream
+    # by the domain="Device" restriction in map_prepared_source_to_ohdsi_cdm.py, same as
+    # any other source_device row.
+    source_device_sql_2 = """
+    select
+    `PATIENT` as s_person_id --Source identifier for patient or person
+   ,`ENCOUNTER` as s_encounter_id --Source identifier for encounter or visit
+   ,`DATE` as s_start_device_datetime
+   ,`DATE` as s_end_device_datetime
+   ,`DESCRIPTION` as s_device
+   ,`CODE` as s_device_code
+   ,'SNOMED' as s_device_code_type
+   ,'2.16.840.1.113883.6.96' as s_device_code_type_oid
+   ,cast(NULL as STRING) as m_device
+   ,cast(NULL as STRING) as m_device_code
+   ,cast(NULL as STRING) as m_device_code_type
+   ,cast(NULL as STRING) as m_device_code_type_oid
+   ,cast(NULL as STRING) as s_unique_device_identifier --A unique identifier for the device exposed to
+   ,'EHR' as m_device_type
+   ,'OMOP4976890' as m_device_type_code
+   ,'Type' as m_device_type_code_type
+   ,'ohdsi.type_concept' as m_device_type_code_type_oid
+   ,cast(NULL as STRING) as k_provider
+   ,'synthea' as s_source_system
+   ,cast(NULL as STRING) as m_source_system
+   ,cast(NULL as STRING) as i_exclude
+   ,cast(NULL as STRING) as s_id
+from supplies
+    """
+
+    source_device_sql = source_device_sql_1 + "\nunion\n" + source_device_sql_2
 
     source_device_sdf = distinct_and_add_row_id(spark.sql(source_device_sql))
 
