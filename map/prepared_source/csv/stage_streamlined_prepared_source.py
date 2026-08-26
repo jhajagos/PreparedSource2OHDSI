@@ -27,7 +27,8 @@ def main(config, spark):
         "source_encounter_map": prepared_source.SourceEncounterMapObject(),
         "source_device": prepared_source.SourceDeviceObject(),
         "source_provider": prepared_source.SourceProviderObject(),
-        "source_note": prepared_source.SourceNoteObject()
+        "source_note": prepared_source.SourceNoteObject(),
+        "source_relationship": prepared_source.SourceRelationshipObject()
     }
 
     if "staging_table_uppercase_file_name" in config:
