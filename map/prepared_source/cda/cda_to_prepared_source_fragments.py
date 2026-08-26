@@ -617,6 +617,7 @@ def extract_source_note_ccda(xml_doc, source_person_id, source_cda_file_name):
                             fw.write(base64.standard_b64decode(note_b64))
 
                         print(f"Extracting text from '{binary_file_name}'")
+                        
                         with open(binary_file_name, "rb") as fb:
                             pdf_reader = pypdf.PdfReader(fb)
                             p_text = ""
