@@ -12,7 +12,7 @@ RUN ./Miniconda3-latest-Linux-x86_64.sh -b
 
 # Setup Python
 
-RUN /root/miniconda3/bin/conda create --name PySpark python=3.10 pandas
+RUN /root/miniconda3/bin/conda create --name PySpark python=3.12 pandas
 RUN /root/miniconda3/bin/conda init && bash ~/.bashrc && . ~/.bashrc
 
 ENV conda /root/miniconda3/bin/conda
@@ -21,7 +21,7 @@ ENV bashrc /root/.bashrc
 RUN $conda tos accept --override-channels --channel  https://repo.anaconda.com/pkgs/main
 RUN $conda tos accept --override-channels --channel  https://repo.anaconda.com/pkgs/r
 
-RUN $conda init && . $bashrc && conda activate PySpark && pip install pyspark==3.5.5
+RUN $conda init && . $bashrc && conda activate PySpark && pip install pyspark==3.5.9
 
 
 RUN mkdir /root/github/
@@ -32,7 +32,7 @@ RUN cd ~/github/ && git clone  https://github.com/jhajagos/PreparedSource2OHDSI.
 RUN $conda init && . $bashrc && conda activate PySpark && pip install build
 RUN $conda init && . $bashrc && conda activate PySpark && cd ~/github/PreparedSource2OHDSI/ &&  python -m build --wheel
 RUN $conda init && . $bashrc && conda activate PySpark && cd ~/github/PreparedSource2OHDSI/dist/ \
-    && pip install preparedsource2ohdsi-0.1.9-py3-none-any.whl # Change for new version
+    && pip install preparedsource2ohdsi-0.1.13-py3-none-any.whl # Change for new version
 
 RUN $conda init && . $bashrc && conda activate PySpark && conda install ipython
 
