@@ -127,6 +127,21 @@ of prebuilt modules and the ability to create your own using a JSON file: see th
 and the [generic framework](https://github.com/synthetichealth/synthea/wiki/Generic-Module-Framework). You can test synthetic 
 patient data generation outside this container.
 
+For anything beyond the fixed covid19/New York example above, use `generate_synthea_data.sh`, a general-purpose
+wrapper around the Synthea commandline tool with named flags (population, module, state/city, seed, gender/age,
+output directory, and more -- run `./generate_synthea_data.sh --help` for the full list). It covers both a full
+default-module run and a module-restricted run that used to be two separate scripts:
+```bash
+cd /root/scripts
+./generate_synthea_data.sh -p 10000 --state "New York"                      # full default module set
+./generate_synthea_data.sh -m covid19 -p 10000 --state "New York"           # restricted to one module
+./generate_synthea_data.sh -m covid19 -m sepsis -p 500 --state Utah --city "Salt Lake City"
+./generate_synthea_data.sh -p 1000 --state Texas --output-dir /data/ohdsi/output/texas/
+./generate_synthea_data.sh -p 10 --state Texas --dry-run                    # print the java command, don't run it
+```
+Any flag it doesn't recognize that looks like `--key=value` (e.g. `--exporter.fhir.export=true`) is passed straight
+through to Synthea as a config override, so you're not limited to the flags it names explicitly.
+
 To understand how the synthetic data is generated with Synthea; here is a sample commandline execution of the tool:
 ```
 java -jar  synthea-with-dependencies.jar -d /root/synthea/modules/ --exporter.csv.export=true -m covid19 -p 10000 "New York"

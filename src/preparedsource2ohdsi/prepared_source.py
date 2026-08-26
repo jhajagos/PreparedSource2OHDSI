@@ -540,7 +540,7 @@ class SourceMedicationObject(PreparedSourceObject):
                 "k_provider",
                 "s_id",
                 "s_source_system",
-                "m_source_system"
+                "m_source_system",
                 "i_exclude",
                 "i_exclude_reason"
                 ]
