@@ -541,6 +541,8 @@ class SourceMedicationObject(PreparedSourceObject):
                 "m_drug_type_code",
                 "m_drug_type_code_type",
                 "m_drug_type_code_type_oid",
+                "s_patient_instructions",
+                "s_detail_line",
                 "k_provider",
                 "s_id",
                 "s_source_system",
