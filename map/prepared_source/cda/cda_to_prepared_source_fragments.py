@@ -576,6 +576,7 @@ def extract_source_note_ccda(xml_doc, source_person_id, source_cda_file_name):
         source_note_dict["s_note_type"] = "EHR"
         source_note_dict["s_note_type_code_type_oid"] = "ohdsi.type_concept"
         source_note_dict["s_note_type_code"] = "OMOP4976890"
+        source_note_dict["m_binary_file_name"] = None
 
         for child in element:
 
@@ -602,7 +603,8 @@ def extract_source_note_ccda(xml_doc, source_person_id, source_cda_file_name):
                 if "representation" in child.attrib:
                     if child.attrib["representation"] == "B64":
 
-                        note_b64 = child.text.strip()[1:-1]
+                        note_b64 = child.text.strip() #[1:-1]
+
                         directory, file_name = os.path.split(source_cda_file_name)
 
                         files_directory = os.path.join(directory, "output", "files")
@@ -617,17 +619,26 @@ def extract_source_note_ccda(xml_doc, source_person_id, source_cda_file_name):
                             fw.write(base64.standard_b64decode(note_b64))
 
                         print(f"Extracting text from '{binary_file_name}'")
+
                         with open(binary_file_name, "rb") as fb:
-                            pdf_reader = pypdf.PdfReader(fb)
+                            empty_file = False
+                            try:
+                                pdf_reader = pypdf.PdfReader(fb)
+                            except pypdf.errors.EmptyFileError:
+                                empty_file = True
+                                print(f"Empty file '{binary_file_name}'")
+
                             p_text = ""
-                            for page_number in range(len(pdf_reader.pages)):
-                                page = pdf_reader.pages[page_number]
-                                extracted_page_text = page.extract_text()
 
-                                extracted_page_text = extracted_page_text.replace("\xa0", " ")
-                                extracted_page_text += "\n\n"
+                            if not empty_file:
+                                for page_number in range(len(pdf_reader.pages)):
+                                    page = pdf_reader.pages[page_number]
+                                    extracted_page_text = page.extract_text()
 
-                                p_text += extracted_page_text
+                                    extracted_page_text = extracted_page_text.replace("\xa0", " ")
+                                    extracted_page_text += "\n\n"
+
+                                    p_text += extracted_page_text
 
                             source_note_dict["s_note_text"] = p_text #TODO: deal with conversion issues p_text
 
