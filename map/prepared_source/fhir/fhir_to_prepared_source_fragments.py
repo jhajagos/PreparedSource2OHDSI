@@ -29,6 +29,29 @@ ADMINISTRATIVE_GENDER_OID = "2.16.840.1.113883.5.1"
 # DocumentReferences that only exist to point at a DiagnosticReport/Observation, not real note text)
 MIN_NOTE_BYTES = 100
 
+DEFAULT_CODE_CROSSWALK_PATH = os.path.join(os.path.dirname(__file__), "mappings", "epic_local_code_crosswalk.csv")
+
+
+def load_code_crosswalk(csv_path=DEFAULT_CODE_CROSSWALK_PATH):
+    """Load the Epic-local-code -> LOINC/SNOMED crosswalk (map/prepared_source/fhir/mappings/
+    epic_local_code_crosswalk.csv). Many Observation/Procedure codes in this Epic export carry only
+    an Epic-internal component/procedure id, with no LOINC/SNOMED alternative on the resource itself
+    -- this hand-maintained CSV fills in a standard code for the ones we've identified so far. Keyed
+    by (s_code_type_oid, s_code); extend the CSV as new unmapped codes turn up in future exports.
+
+    Returns {} (i.e. no crosswalking) if the file doesn't exist, so callers don't need a special case."""
+    if not os.path.exists(csv_path):
+        return {}
+    crosswalk = {}
+    with open(csv_path, newline="") as f:
+        for row in csv.DictReader(f):
+            crosswalk[(row["s_code_type_oid"], row["s_code"])] = {
+                "m_code": row["m_code"],
+                "m_code_type": row["m_code_type"],
+                "m_code_type_oid": row["m_code_type_oid"],
+            }
+    return crosswalk
+
 
 def strip_oid_prefix(system):
     if system is None:
@@ -332,7 +355,8 @@ def extract_source_provider_fhir(practitioners_by_id, referenced_practitioner_id
     return rows
 
 
-def extract_source_result_fhir(observations, source_person_id, source_system):
+def extract_source_result_fhir(observations, source_person_id, source_system, code_crosswalk=None):
+    code_crosswalk = code_crosswalk or {}
     rows = []
     for observation in observations:
         d = ps.SourceResultObject().dict_template()
@@ -346,6 +370,12 @@ def extract_source_result_fhir(observations, source_person_id, source_system):
         d["s_code_type"] = code_dict["s_code_type"]
         d["s_code_type_oid"] = code_dict["s_code_type_oid"]
         d["s_name"] = observation.get("code", {}).get("text")
+
+        crosswalked = code_crosswalk.get((d["s_code_type_oid"], d["s_code"]))
+        if crosswalked:
+            d["m_code"] = crosswalked["m_code"]
+            d["m_code_type"] = crosswalked["m_code_type"]
+            d["m_code_type_oid"] = crosswalked["m_code_type_oid"]
 
         d["s_obtained_datetime"] = observation.get("effectiveDateTime")
 
@@ -399,7 +429,8 @@ def _procedure_performer_ref(procedure):
     return None
 
 
-def extract_source_procedure_fhir(procedures, source_person_id, source_system):
+def extract_source_procedure_fhir(procedures, source_person_id, source_system, code_crosswalk=None):
+    code_crosswalk = code_crosswalk or {}
     rows = []
     for procedure in procedures:
         d = ps.SourceProcedureObject().dict_template()
@@ -413,6 +444,17 @@ def extract_source_procedure_fhir(procedures, source_person_id, source_system):
         d["s_procedure_code"] = code_dict["s_code"]
         d["s_procedure_code_type"] = code_dict["s_code_type"]
         d["s_procedure_code_type_oid"] = code_dict["s_code_type_oid"]
+
+        # prepared_source.py's SourceProcedureObject has no separate m_procedure_code field (unlike
+        # source_result/source_person/etc), so a crosswalk hit replaces the source code fields
+        # outright rather than sitting alongside them. Full traceability back to the original Epic
+        # code is still available via s_id (the FHIR Procedure resource id) and the crosswalk CSV
+        # itself, keyed by the original (s_code_type_oid, s_code).
+        crosswalked = code_crosswalk.get((d["s_procedure_code_type_oid"], d["s_procedure_code"]))
+        if crosswalked:
+            d["s_procedure_code"] = crosswalked["m_code"]
+            d["s_procedure_code_type"] = crosswalked["m_code_type"]
+            d["s_procedure_code_type_oid"] = crosswalked["m_code_type_oid"]
 
         d["s_start_procedure_datetime"] = procedure.get("performedDateTime") or \
             procedure.get("performedPeriod", {}).get("start")
@@ -682,7 +724,7 @@ def collect_referenced_practitioner_ids(encounters, procedures, medication_reque
     return ids
 
 
-def main(directory, zip_path, person_id):
+def main(directory, zip_path, person_id, code_crosswalk_path=DEFAULT_CODE_CROSSWALK_PATH):
     p_directory = pathlib.Path(directory)
 
     output_directory_root = p_directory / "output"
@@ -734,6 +776,9 @@ def main(directory, zip_path, person_id):
     referenced_practitioner_ids = collect_referenced_practitioner_ids(
         encounters, procedures, medication_requests, document_references)
 
+    code_crosswalk = load_code_crosswalk(code_crosswalk_path)
+    print(f"Loaded {len(code_crosswalk)} entries from code crosswalk '{code_crosswalk_path}'")
+
     s_generation_dict = {"s_person_id": person_id, "prepared_source": {}, "fragments": {}}
 
     def write_table(table_name, rows):
@@ -751,9 +796,9 @@ def main(directory, zip_path, person_id):
     write_table("source_location", extract_source_location_fhir(locations_by_id, referenced_location_ids, source_system))
     write_table("source_care_site", extract_source_care_site_fhir(organizations_by_id, referenced_org_ids, source_system))
     write_table("source_provider", extract_source_provider_fhir(practitioners_by_id, referenced_practitioner_ids, source_system))
-    write_table("source_result", extract_source_result_fhir(observations, person_id, source_system))
+    write_table("source_result", extract_source_result_fhir(observations, person_id, source_system, code_crosswalk))
 
-    procedure_rows = extract_source_procedure_fhir(procedures, person_id, source_system) + \
+    procedure_rows = extract_source_procedure_fhir(procedures, person_id, source_system, code_crosswalk) + \
         extract_source_immunizations_as_procedure_fhir(immunizations, person_id, source_system)
     write_table("source_procedure", procedure_rows)
 
@@ -781,6 +826,10 @@ if __name__ == "__main__":
                                     "used for this patient in other sources (e.g., the value generated by "
                                     "the C-CDA converter's generate_patient_identifier()) or a duplicate "
                                     "OMOP person will be created when combined with those other sources.")
+    arg_parse_obj.add_argument("--code-crosswalk", dest="code_crosswalk_path", default=DEFAULT_CODE_CROSSWALK_PATH,
+                               help="CSV mapping Epic-local result/procedure codes to LOINC/SNOMED "
+                                    "(default: mappings/epic_local_code_crosswalk.csv next to this script). "
+                                    "Extend that file as new unmapped Epic-internal codes turn up.")
 
     arg_obj = arg_parse_obj.parse_args()
-    main(arg_obj.directory, arg_obj.zip_path, arg_obj.person_id)
+    main(arg_obj.directory, arg_obj.zip_path, arg_obj.person_id, arg_obj.code_crosswalk_path)

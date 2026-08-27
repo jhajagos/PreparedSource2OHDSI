@@ -1,6 +1,7 @@
 import unittest
 
 from ..fhir_to_prepared_source_fragments import (
+    DEFAULT_CODE_CROSSWALK_PATH,
     classify_visit_type,
     coding_to_code_dict,
     extract_source_care_site_fhir,
@@ -14,6 +15,7 @@ from ..fhir_to_prepared_source_fragments import (
     extract_source_procedure_fhir,
     extract_source_provider_fhir,
     extract_source_result_fhir,
+    load_code_crosswalk,
     pick_coding,
     ref_id,
     resource_key,
@@ -329,6 +331,55 @@ class TestExtractSourceCondition(unittest.TestCase):
         }
         rows = extract_source_condition_fhir([allergy], PERSON_ID, SOURCE_SYSTEM)
         self.assertIsNone(rows[0]["i_exclude"])
+
+
+class TestCodeCrosswalk(unittest.TestCase):
+    def test_missing_file_returns_empty_dict(self):
+        self.assertEqual({}, load_code_crosswalk("/no/such/file.csv"))
+
+    def test_bundled_crosswalk_loads_and_has_known_entries(self):
+        crosswalk = load_code_crosswalk(DEFAULT_CODE_CROSSWALK_PATH)
+        self.assertGreater(len(crosswalk), 0)
+        tsh = crosswalk[("1.2.840.114350.1.13.717.2.7.5.737384.263", "21705740")]
+        self.assertEqual("3016-3", tsh["m_code"])
+        self.assertEqual("LOINC", tsh["m_code_type"])
+        self.assertEqual("2.16.840.1.113883.6.1", tsh["m_code_type_oid"])
+
+    def test_extract_source_result_applies_crosswalk(self):
+        crosswalk = {("epic-oid", "999"): {"m_code": "3016-3", "m_code_type": "LOINC",
+                                           "m_code_type_oid": "2.16.840.1.113883.6.1"}}
+        observation = {
+            "id": "obs-tsh",
+            "code": {"coding": [{"system": "urn:oid:epic-oid", "code": "999"}], "text": "(HIS) TSH"},
+            "effectiveDateTime": "2022-01-01T00:00:00Z",
+            "valueQuantity": {"value": 3.3, "unit": "mIU/L"},
+        }
+        rows = extract_source_result_fhir([observation], PERSON_ID, SOURCE_SYSTEM, crosswalk)
+        self.assertEqual("999", rows[0]["s_code"])
+        self.assertEqual("3016-3", rows[0]["m_code"])
+        self.assertEqual("LOINC", rows[0]["m_code_type"])
+
+    def test_extract_source_result_without_crosswalk_hit_leaves_m_code_blank(self):
+        observation = {
+            "id": "obs-other",
+            "code": {"coding": [{"system": "urn:oid:epic-oid", "code": "not-in-crosswalk"}]},
+        }
+        rows = extract_source_result_fhir([observation], PERSON_ID, SOURCE_SYSTEM, {})
+        self.assertIsNone(rows[0]["m_code"])
+
+    def test_extract_source_procedure_crosswalk_replaces_source_code(self):
+        crosswalk = {("epic-proc-oid", "135591"): {"m_code": "40701008", "m_code_type": "SNOMED",
+                                                    "m_code_type_oid": "2.16.840.1.113883.6.96"}}
+        procedure = {
+            "id": "proc-echo",
+            "code": {"coding": [{"system": "urn:oid:epic-proc-oid", "code": "135591",
+                                 "display": "ECHOCARDIOGRAM 2D M-MODE DOPPLER"}]},
+            "performedDateTime": "2020-01-01T00:00:00Z",
+        }
+        rows = extract_source_procedure_fhir([procedure], PERSON_ID, SOURCE_SYSTEM, crosswalk)
+        self.assertEqual("40701008", rows[0]["s_procedure_code"])
+        self.assertEqual("SNOMED", rows[0]["s_procedure_code_type"])
+        self.assertEqual("2.16.840.1.113883.6.96", rows[0]["s_procedure_code_type_oid"])
 
 
 if __name__ == "__main__":

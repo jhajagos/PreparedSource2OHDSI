@@ -1,0 +1,46 @@
+s_code_type_oid,s_code,s_name,m_code,m_code_type,m_code_type_oid,notes
+1.2.840.114350.1.13.717.2.7.5.737384.263,2552924449,(HIS) WBC,6690-2,LOINC,2.16.840.1.113883.6.1,Leukocytes [#/volume] in Blood by Automated count
+1.2.840.114350.1.13.717.2.7.5.737384.263,2552924455,(HIS) RBC,789-8,LOINC,2.16.840.1.113883.6.1,Erythrocytes [#/volume] in Blood by Automated count
+1.2.840.114350.1.13.717.2.7.5.737384.263,2552924461,(HIS) HGB,718-7,LOINC,2.16.840.1.113883.6.1,Hemoglobin [Mass/volume] in Blood
+1.2.840.114350.1.13.717.2.7.5.737384.263,2552924467,(HIS) HCT,4544-3,LOINC,2.16.840.1.113883.6.1,Hematocrit [Volume Fraction] of Blood by Automated count
+1.2.840.114350.1.13.717.2.7.5.737384.263,2552924473,(HIS) MCV,787-2,LOINC,2.16.840.1.113883.6.1,MCV [Entitic volume] by Automated count
+1.2.840.114350.1.13.717.2.7.5.737384.263,2552924479,(HIS) MCH,785-6,LOINC,2.16.840.1.113883.6.1,MCH [Entitic mass] by Automated count
+1.2.840.114350.1.13.717.2.7.5.737384.263,2552924485,(HIS) MCHC,786-4,LOINC,2.16.840.1.113883.6.1,MCHC [Mass/volume] by Automated count
+1.2.840.114350.1.13.717.2.7.5.737384.263,2552924491,(HIS) RDW,788-0,LOINC,2.16.840.1.113883.6.1,"Erythrocyte distribution width [Ratio] by Automated count (RDW-CV); lower confidence -- source name does not distinguish RDW-CV from RDW-SD (21000-5)"
+1.2.840.114350.1.13.717.2.7.5.737384.263,24054226,(HIS) PLATELET COUNT,777-3,LOINC,2.16.840.1.113883.6.1,Platelets [#/volume] in Blood by Automated count
+1.2.840.114350.1.13.717.2.7.5.737384.263,2552924497,Neutrophil,770-8,LOINC,2.16.840.1.113883.6.1,Neutrophils/100 leukocytes in Blood by Automated count (percent)
+1.2.840.114350.1.13.717.2.7.5.737384.263,2552924503,Abs Neutrophil,751-8,LOINC,2.16.840.1.113883.6.1,Neutrophils [#/volume] in Blood by Automated count
+1.2.840.114350.1.13.717.2.7.5.737384.263,2552924551,Lymphocyte,736-9,LOINC,2.16.840.1.113883.6.1,Lymphocytes/100 leukocytes in Blood by Automated count (percent)
+1.2.840.114350.1.13.717.2.7.5.737384.263,2552924509,Abs Lymphocyte,731-0,LOINC,2.16.840.1.113883.6.1,Lymphocytes [#/volume] in Blood by Automated count
+1.2.840.114350.1.13.717.2.7.5.737384.263,2552924557,Monocytes,5905-5,LOINC,2.16.840.1.113883.6.1,Monocytes/100 leukocytes in Blood by Automated count (percent)
+1.2.840.114350.1.13.717.2.7.5.737384.263,2552924515,Abs Monocyte,742-7,LOINC,2.16.840.1.113883.6.1,Monocytes [#/volume] in Blood by Automated count
+1.2.840.114350.1.13.717.2.7.5.737384.263,2552924563,Eosinophil,713-8,LOINC,2.16.840.1.113883.6.1,Eosinophils/100 leukocytes in Blood by Automated count (percent)
+1.2.840.114350.1.13.717.2.7.5.737384.263,2552924521,Abs Eosinophil,711-2,LOINC,2.16.840.1.113883.6.1,Eosinophils [#/volume] in Blood by Automated count
+1.2.840.114350.1.13.717.2.7.5.737384.263,2552924569,Basophil,706-2,LOINC,2.16.840.1.113883.6.1,Basophils/100 leukocytes in Blood by Automated count (percent)
+1.2.840.114350.1.13.717.2.7.5.737384.263,2552924527,Abs Basophil,704-7,LOINC,2.16.840.1.113883.6.1,Basophils [#/volume] in Blood by Automated count
+1.2.840.114350.1.13.717.2.7.5.737384.263,2553335047,(HIS) IMM GRANULOCYTE,76485-2,LOINC,2.16.840.1.113883.6.1,Immature granulocytes/100 leukocytes in Blood by Automated count (percent)
+1.2.840.114350.1.13.717.2.7.5.737384.263,2553335179,(HIS) ABS IMM GRAN,33366-4,LOINC,2.16.840.1.113883.6.1,Immature granulocytes [#/volume] in Blood by Automated count
+1.2.840.114350.1.13.717.2.7.5.737384.263,2552924575,NRBC,32623-1,LOINC,2.16.840.1.113883.6.1,"Nucleated erythrocytes/100 leukocytes in Blood; lower confidence -- source name does not distinguish percent from absolute count"
+1.2.840.114350.1.13.717.2.7.5.737384.263,2553335095,(HIS) SODIUM PL,2951-2,LOINC,2.16.840.1.113883.6.1,Sodium [Moles/volume] in Serum or Plasma
+1.2.840.114350.1.13.717.2.7.5.737384.263,2553335149,(HIS) POTASSIUM PL,2823-3,LOINC,2.16.840.1.113883.6.1,Potassium [Moles/volume] in Serum or Plasma
+1.2.840.114350.1.13.717.2.7.5.737384.263,2553335059,(HIS) CHLORIDE PL,2075-0,LOINC,2.16.840.1.113883.6.1,Chloride [Moles/volume] in Serum or Plasma
+1.2.840.114350.1.13.717.2.7.5.737384.263,2553335071,(HIS) CO2 PL,2028-9,LOINC,2.16.840.1.113883.6.1,Carbon dioxide total [Moles/volume] in Serum or Plasma
+1.2.840.114350.1.13.717.2.7.5.737384.263,2553335215,(HIS) BUN PL,3094-0,LOINC,2.16.840.1.113883.6.1,Urea nitrogen [Mass/volume] in Serum or Plasma
+1.2.840.114350.1.13.717.2.7.5.737384.263,2553335143,(HIS) CREATININE PL,2160-0,LOINC,2.16.840.1.113883.6.1,Creatinine [Mass/volume] in Serum or Plasma
+1.2.840.114350.1.13.717.2.7.5.737384.263,2553335167,(HIS) GLUCOSE PL,2345-7,LOINC,2.16.840.1.113883.6.1,Glucose [Mass/volume] in Serum or Plasma
+1.2.840.114350.1.13.717.2.7.5.737384.263,2553335077,(HIS) CALCIUM PL,17861-6,LOINC,2.16.840.1.113883.6.1,Calcium [Mass/volume] in Serum or Plasma
+1.2.840.114350.1.13.717.2.7.5.737384.263,2553335113,(HIS) PROTEIN TOT PL,2885-2,LOINC,2.16.840.1.113883.6.1,Protein [Mass/volume] in Serum or Plasma
+1.2.840.114350.1.13.717.2.7.5.737384.263,2552970203,Albumin,1751-7,LOINC,2.16.840.1.113883.6.1,Albumin [Mass/volume] in Serum or Plasma
+1.2.840.114350.1.13.717.2.7.5.737384.263,2553335131,Anion Gap,1863-0,LOINC,2.16.840.1.113883.6.1,Anion gap in Serum or Plasma
+1.2.840.114350.1.13.717.2.7.5.737384.263,2553335191,(HIS) ESTIMATED GFR PL,33914-3,LOINC,2.16.840.1.113883.6.1,"Estimated GFR [Volume Rate/Area] in Serum, Plasma or Blood; lower confidence -- exact formula/race-adjustment used by the source is unspecified"
+1.2.840.114350.1.13.717.2.7.5.737384.263,2564246083,(HIS) EGFR 2021,98979-8,LOINC,2.16.840.1.113883.6.1,Estimated GFR/1.73sq M predicted [Volume Rate/Area] by Creatinine-based CKD-EPI 2021 (race-free) formula
+1.2.840.114350.1.13.717.2.7.5.737384.263,2552970197,Alanine Aminotransferase (ALT),1742-6,LOINC,2.16.840.1.113883.6.1,Alanine aminotransferase [Enzymatic activity/volume] in Serum or Plasma
+1.2.840.114350.1.13.717.2.7.5.737384.263,2553335053,Aspartate Aminotransferase (AST),1920-8,LOINC,2.16.840.1.113883.6.1,Aspartate aminotransferase [Enzymatic activity/volume] in Serum or Plasma
+1.2.840.114350.1.13.717.2.7.5.737384.263,2553335197,Alkaline Phosphatase (ALK),6768-6,LOINC,2.16.840.1.113883.6.1,Alkaline phosphatase [Enzymatic activity/volume] in Serum or Plasma
+1.2.840.114350.1.13.717.2.7.5.737384.263,2553335083,Bilirubin Total,1975-2,LOINC,2.16.840.1.113883.6.1,Bilirubin.total [Mass/volume] in Serum or Plasma
+1.2.840.114350.1.13.717.2.7.5.737384.263,2552972429,(HIS) CHOLESTEROL TOT,2093-3,LOINC,2.16.840.1.113883.6.1,Cholesterol [Mass/volume] in Serum or Plasma
+1.2.840.114350.1.13.717.2.7.5.737384.263,2552969735,(HIS) HDL CHOL,2085-9,LOINC,2.16.840.1.113883.6.1,Cholesterol in HDL [Mass/volume] in Serum or Plasma
+1.2.840.114350.1.13.717.2.7.5.737384.263,2552969741,"(HIS) LDL CHOL, CALC",13457-7,LOINC,2.16.840.1.113883.6.1,Cholesterol in LDL [Mass/volume] in Serum or Plasma by calculation
+1.2.840.114350.1.13.717.2.7.5.737384.263,2552969729,(HIS) TRIGLYCERIDE,2571-8,LOINC,2.16.840.1.113883.6.1,Triglyceride [Mass/volume] in Serum or Plasma
+1.2.840.114350.1.13.717.2.7.5.737384.263,21705740,(HIS) TSH,3016-3,LOINC,2.16.840.1.113883.6.1,Thyrotropin [Units/volume] in Serum or Plasma
+1.2.840.114350.1.13.717.2.7.2.696580,135591,ECHOCARDIOGRAM 2D M-MODE DOPPLER,40701008,SNOMED,2.16.840.1.113883.6.96,Echocardiography (procedure); general echocardiography concept, not laterality/technique-specific
