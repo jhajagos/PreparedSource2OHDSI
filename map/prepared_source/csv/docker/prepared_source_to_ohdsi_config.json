@@ -7,10 +7,10 @@
   "staging_table_prefix": "",
   "ohdsi_output_location": "/data/ohdsi/output/",
   "check_pointing": "NONE",
-  "ohdsi_version": "5.4",
+  "ohdsi_version": "5.4.1",
    "prepared_source_csv_table_path": "/data/prepared_source/csv/",
   "prepared_source_tables_to_exclude": ["source_device","source_provider", "source_encounter_map",
-  "source_person_map", "source_location", "source_care_site", "source_payer", "source_encounter", "source_encounter_detail"
+  "source_person_map", "source_location", "source_care_site", "source_payer", "source_encounter", "source_encounter_detail", "source_relationship"
   ],
   "jdbc": {
     "connection_string": "",
