@@ -127,14 +127,6 @@ def extract_source_person_ccda(xml_doc, source_person_id, source_cda_file_name):
     return [source_person_dict]
 
 
-def extract_source_provider_ccda(xml_doc):
-    # source_provider
-    # ./ClinicalDocument/documentationOf/serviceEvent/performer
-    # ./ClinicalDocument/component/structuredBody/component/section/code --Get Section
-
-    source_provider_obj = ps.SourceProviderObject()
-
-
 def extract_problems_source_condition_ccda(xml_doc, source_person_id, source_cda_file_name, snomed_code="55607006"):
     # Active problem lists
     # /ClinicalDocument/component/structuredBody/component/section/entry/act/entryRelationship/observation/code[@code="404684003"][@codeSystem="2.16.840.1.113883.6.96"]/..
@@ -229,11 +221,313 @@ def extract_source_procedures_ccda(xml_doc, source_person_id, source_cda_file_na
     return result_list
 
 
-def extract_source_encounter_ccda(xml_doc):
-    # Encounters
-    # /ClinicalDocument/component/structuredBody/component/section/code[@code="46240-8"][@codeSystem="2.16.840.1.113883.6.1"]/../entry/encounter
+FIND_ENCOUNTERS_XPATH = './/{urn:hl7-org:v3}structuredBody/{urn:hl7-org:v3}component/{urn:hl7-org:v3}section/{urn:hl7-org:v3}code[@code="46240-8"][@codeSystem="2.16.840.1.113883.6.1"]/../{urn:hl7-org:v3}entry/{urn:hl7-org:v3}encounter'
 
+# HL7 ActEncounterCode (2.16.840.1.113883.5.4) -> (m_visit_type, m_visit_type_code), same "ohdsi.visit"
+# domain codes used by the FHIR converter's classify_visit_type() and by map/prepared_source/synthea's
+# visit_type.csv, so a C-CDA-derived and a FHIR-derived encounter classify the same way.
+ACT_ENCOUNTER_CODE_TO_VISIT = {
+    "AMB": ("Outpatient Visit", "OP"),
+    "SS": ("Outpatient Visit", "OP"),
+    "EMER": ("Emergency Room Visit", "ER"),
+    "IMP": ("Inpatient Visit", "IP"),
+    "ACUTE": ("Inpatient Visit", "IP"),
+    "NONAC": ("Non-hospital institution Visit", "LTCP"),
+    "VR": ("Telehealth", "OMOP5556618"),
+    "HH": ("Home Visit", "OMOP4822459"),
+    "FLD": ("Home Visit", "OMOP4822459"),
+}
+
+
+def classify_visit_type_ccda(act_encounter_code, text):
+    """Best-effort (m_visit_type, m_visit_type_code): a direct ActEncounterCode lookup when a real
+    coded value is present, else a keyword heuristic over whatever free text (originalText/displayName)
+    the encounter's code element carried -- mirrors the FHIR converter's classify_visit_type()."""
+    if act_encounter_code:
+        mapped = ACT_ENCOUNTER_CODE_TO_VISIT.get(act_encounter_code)
+        if mapped:
+            return mapped
+    combined = (text or "").lower()
+    if "emergency" in combined:
+        return "Emergency Room Visit", "ER"
+    if "inpatient" in combined and "outpatient" not in combined:
+        return "Inpatient Visit", "IP"
+    return "Outpatient Visit", "OP"
+
+
+def _encounter_id_tuple(element):
+    """(root, extension) for the first well-formed <id> child; None if there isn't one. An <encounter>
+    can carry more than one <id> (e.g. a nullFlavor="UNK" placeholder alongside a real MSK-EncounterId
+    one) -- every <id> child must be checked, not just the first, and the 2 placeholder-only files'
+    <encounter><id nullFlavor="NA"/></encounter> stubs (with no other <id>) correctly yield None."""
+    for child in element:
+        if child.tag == ext("id") and "nullFlavor" not in child.attrib and "root" in child.attrib:
+            return child.attrib["root"], child.attrib.get("extension")
+    return None
+
+
+def _first_participant_location_role(element):
+    for child in element:
+        if child.tag == ext("participant") and child.attrib.get("typeCode") == "LOC":
+            for role in child:
+                if role.tag == ext("participantRole"):
+                    return role
+    return None
+
+
+def _location_name_and_address(participant_role):
+    """Returns (facility_name, address_dict) from a participantRole -- a C-CDA participantRole bundles
+    facility name (playingEntity/name) and address (addr) in one element, unlike FHIR's separate
+    Location/Organization resources."""
+    name = None
+    address = {}
+    for child in participant_role:
+        if child.tag == ext("playingEntity"):
+            for grandchild in child:
+                if grandchild.tag == ext("name") and grandchild.text:
+                    name = grandchild.text.strip() or None
+        elif child.tag == ext("addr"):
+            for grandchild in child:
+                tag = grandchild.tag.replace(CDANS, "")
+                if tag == "streetAddressLine" and "s_address_1" not in address and grandchild.text:
+                    address["s_address_1"] = grandchild.text
+                elif tag == "city" and grandchild.text:
+                    address["s_city"] = grandchild.text
+                elif tag == "state" and grandchild.text:
+                    address["s_state"] = grandchild.text
+                elif tag == "postalCode" and grandchild.text:
+                    address["s_zip"] = grandchild.text
+                elif tag == "country" and grandchild.text:
+                    address["s_country"] = grandchild.text
+    return name, address
+
+
+def _first_performer_assigned_entity(element):
+    for child in element:
+        if child.tag == ext("performer"):
+            for assigned_entity in child:
+                if assigned_entity.tag == ext("assignedEntity"):
+                    return assigned_entity
+    return None
+
+
+def _provider_key_and_name(assigned_entity):
+    """(k_provider, provider_name, npi). Keys on NPI when assignedEntity/id carries one (root
+    2.16.840.1.113883.4.6, not nullFlavor); else on the assignedPerson's name; else None (no usable
+    identity -- seen for several assignedEntity/id nullFlavor="NI" performers in this corpus)."""
+    npi = None
+    for child in assigned_entity:
+        if child.tag == ext("id") and child.attrib.get("root") == "2.16.840.1.113883.4.6" \
+                and "nullFlavor" not in child.attrib:
+            npi = child.attrib.get("extension")
+
+    given = family = None
+    for child in assigned_entity:
+        if child.tag == ext("assignedPerson"):
+            for name_el in child:
+                if name_el.tag == ext("name"):
+                    for part in name_el:
+                        if part.tag == ext("given") and given is None and part.text:
+                            given = part.text.strip()
+                        elif part.tag == ext("family") and family is None and part.text:
+                            family = part.text.strip()
+
+    provider_name = " ".join(p for p in (given, family) if p) or None
+
+    if npi:
+        return f"c-cda:provider:npi:{npi}", provider_name, npi
+    if given or family:
+        return f"c-cda:provider:name:{given or ''}_{family or ''}", provider_name, None
+    return None, None, None
+
+
+def _encompassing_encounter_map(root):
+    """{(root, extension): <encompassingEncounter> element} for same-file enrichment. Every
+    encompassingEncounter observed in this corpus duplicates an id already in the Encounters section
+    -- it never introduces a new encounter -- but it does carry dischargeDispositionCode and typed
+    (ADM/ATND/REF) encounterParticipant that the Encounters-section entry itself often lacks."""
+    result = {}
+    find_xpath = f'.//{ext("componentOf")}/{ext("encompassingEncounter")}'
+    for encompassing in root.iterfind(find_xpath):
+        for child in encompassing:
+            if child.tag == ext("id") and "root" in child.attrib:
+                result[(child.attrib["root"], child.attrib.get("extension"))] = encompassing
+    return result
+
+
+def _enrich_encounter_from_encompassing(source_encounter_dict, encounter_id, encompassing_map):
+    encompassing = encompassing_map.get(encounter_id)
+    if encompassing is None:
+        return
+    attending_provider_key = None
+    for child in encompassing:
+        if child.tag == ext("dischargeDispositionCode"):
+            code_dict = code_to_dict(child)
+            text = code_dict["s_text"] or child.attrib.get("displayName")
+            if code_dict["s_code"] or text:
+                source_encounter_dict["s_discharge_to"] = text
+                source_encounter_dict["s_discharge_to_code"] = code_dict["s_code"]
+                source_encounter_dict["s_discharge_to_code_type"] = code_dict["s_code_type"]
+                source_encounter_dict["s_discharge_to_code_type_oid"] = code_dict["s_code_type_oid"]
+        elif child.tag == ext("encounterParticipant") and child.attrib.get("typeCode") == "ATND" \
+                and attending_provider_key is None:
+            # Only the first ATND participant -- a document can list several (e.g. attending
+            # physician and attending nurse both typed ATND); the first is the more authoritative one.
+            for assigned_entity in child:
+                if assigned_entity.tag == ext("assignedEntity"):
+                    key, _name, _npi = _provider_key_and_name(assigned_entity)
+                    if key:
+                        attending_provider_key = key
+    if attending_provider_key:
+        source_encounter_dict["k_provider"] = attending_provider_key
+
+
+def extract_source_encounter_ccda(xml_doc, source_person_id, source_cda_file_name):
+    root = xml_doc.getroot()
+    encompassing_map = _encompassing_encounter_map(root)
     source_encounter_obj = ps.SourceEncounterObject()
+
+    result_list = []
+    for element in root.iterfind(FIND_ENCOUNTERS_XPATH):
+        encounter_id = _encounter_id_tuple(element)
+        if encounter_id is None:
+            continue
+
+        d = source_encounter_obj.dict_template()
+        d["s_encounter_id"] = f"c-cda:encounter:{encounter_id[0]}:{encounter_id[1]}"
+        d["s_id"] = d["s_encounter_id"]
+        d["s_person_id"] = source_person_id
+        d["s_source_system"] = f"c-cda/{clean_file_name(source_cda_file_name)}"
+
+        act_encounter_code = None
+        visit_text = None
+        for child in element:
+            if child.tag == ext("effectiveTime"):
+                if "value" in child.attrib:
+                    dt = clean_datetime(child.attrib["value"])
+                    d["s_visit_start_datetime"] = dt
+                    d["s_visit_end_datetime"] = dt
+                else:
+                    for grandchild in child:
+                        if grandchild.tag == ext("low") and "value" in grandchild.attrib:
+                            d["s_visit_start_datetime"] = clean_datetime(grandchild.attrib["value"])
+                        elif grandchild.tag == ext("high") and "value" in grandchild.attrib:
+                            d["s_visit_end_datetime"] = clean_datetime(grandchild.attrib["value"])
+
+            elif child.tag == ext("code"):
+                code_dict = code_to_dict(child)
+                visit_text = code_dict["s_text"] or child.attrib.get("displayName")
+                if "nullFlavor" not in child.attrib:
+                    d["s_visit_type"] = visit_text
+                    d["s_visit_type_code"] = code_dict["s_code"]
+                    d["s_visit_type_code_type"] = code_dict["s_code_type"]
+                    d["s_visit_type_code_type_oid"] = code_dict["s_code_type_oid"]
+                    # Try the code value itself against the ActEncounterCode table regardless of the
+                    # reported codeSystem OID: at least one source system in this corpus labels a
+                    # real "AMB" ActEncounterCode with the CPT OID instead of 2.16.840.1.113883.5.4 --
+                    # these short mnemonic tokens (AMB/EMER/IMP/...) are distinctive enough that a
+                    # false-positive match against an unrelated vocabulary is effectively impossible.
+                    act_encounter_code = code_dict["s_code"]
+                else:
+                    d["s_visit_type"] = visit_text
+
+        d["m_visit_type"], d["m_visit_type_code"] = classify_visit_type_ccda(act_encounter_code, visit_text)
+        d["m_visit_type_code_type"] = "Visit"
+        d["m_visit_type_code_type_oid"] = "ohdsi.visit"
+        d["m_visit_source"] = "EHR Encounter Record"
+        d["m_visit_source_code"] = "OMOP4976900"
+        d["m_visit_source_code_type"] = "Type"
+        d["m_visit_source_code_type_oid"] = "ohdsi.type_concept"
+
+        participant_role = _first_participant_location_role(element)
+        if participant_role is not None:
+            facility_name, _address = _location_name_and_address(participant_role)
+            if facility_name:
+                d["k_care_site"] = f"c-cda:care_site:{facility_name}"
+
+        assigned_entity = _first_performer_assigned_entity(element)
+        if assigned_entity is not None:
+            provider_key, _name, _npi = _provider_key_and_name(assigned_entity)
+            if provider_key:
+                d["k_provider"] = provider_key
+
+        _enrich_encounter_from_encompassing(d, encounter_id, encompassing_map)
+
+        result_list.append(d)
+    return result_list
+
+
+def extract_source_care_site_ccda(xml_doc, source_cda_file_name):
+    root = xml_doc.getroot()
+    care_sites = {}
+    for element in root.iterfind(FIND_ENCOUNTERS_XPATH):
+        if _encounter_id_tuple(element) is None:
+            continue
+        participant_role = _first_participant_location_role(element)
+        if participant_role is None:
+            continue
+        facility_name, address = _location_name_and_address(participant_role)
+        if not facility_name:
+            continue
+        key = f"c-cda:care_site:{facility_name}"
+        if key in care_sites:
+            continue
+        d = ps.SourceCareSiteObject().dict_template()
+        d["k_care_site"] = key
+        d["s_care_site_name"] = facility_name
+        if address:
+            d["k_location"] = f"c-cda:location:{facility_name}"
+        d["s_source_system"] = f"c-cda/{clean_file_name(source_cda_file_name)}"
+        care_sites[key] = d
+    return list(care_sites.values())
+
+
+def extract_source_location_ccda(xml_doc, source_cda_file_name):
+    root = xml_doc.getroot()
+    locations = {}
+    for element in root.iterfind(FIND_ENCOUNTERS_XPATH):
+        if _encounter_id_tuple(element) is None:
+            continue
+        participant_role = _first_participant_location_role(element)
+        if participant_role is None:
+            continue
+        facility_name, address = _location_name_and_address(participant_role)
+        if not facility_name or not address:
+            continue
+        key = f"c-cda:location:{facility_name}"
+        if key in locations:
+            continue
+        d = ps.SourceLocationObject().dict_template()
+        d["k_location"] = key
+        d["s_location_name"] = facility_name
+        d.update(address)
+        d["s_source_system"] = f"c-cda/{clean_file_name(source_cda_file_name)}"
+        locations[key] = d
+    return list(locations.values())
+
+
+def extract_source_provider_ccda(xml_doc, source_cda_file_name):
+    """Provider info from each encounter's own performer/assignedEntity -- NOT from
+    documentationOf/serviceEvent/performer, which is document-scoped (spans the whole document's date
+    range, often a "StatedByPatient/NOPCP" placeholder) rather than tied to a specific visit."""
+    root = xml_doc.getroot()
+    providers = {}
+    for element in root.iterfind(FIND_ENCOUNTERS_XPATH):
+        if _encounter_id_tuple(element) is None:
+            continue
+        assigned_entity = _first_performer_assigned_entity(element)
+        if assigned_entity is None:
+            continue
+        key, name, npi = _provider_key_and_name(assigned_entity)
+        if not key or key in providers:
+            continue
+        d = ps.SourceProviderObject().dict_template()
+        d["k_provider"] = key
+        d["s_provider_name"] = name
+        d["s_npi"] = npi
+        d["s_source_system"] = f"c-cda/{clean_file_name(source_cda_file_name)}"
+        providers[key] = d
+    return list(providers.values())
 
 
 def extract_labs_source_result_ccda(xml_doc, source_person_id, source_cda_file_name):
@@ -732,8 +1026,20 @@ def main(directory, salting):
                          "prepared_source": {},
                          "fragments": {
                              "source_person": [], "source_result": [], "source_medication": [],
-                             "source_condition": [], "source_procedure": [], "source_note": []}
+                             "source_condition": [], "source_procedure": [], "source_note": [],
+                             "source_encounter": [], "source_care_site": [], "source_location": [],
+                             "source_provider": []}
                          }
+
+    # Deduped across ALL files, not per-file: many single-encounter documents in a corpus like this
+    # reference the exact same real-world facility/provider (e.g. 11 separate Stony Brook documents
+    # all naming "Stony Brook University Hospital"). If each file wrote its own duplicate
+    # source_care_site/source_provider row under the same k_care_site/k_provider key, the OHDSI
+    # mapper's literal-string-equality joins would fan out one encounter into N duplicate
+    # visit_occurrence rows (N = how many duplicate care_site/provider rows shared that key).
+    all_care_sites = {}
+    all_locations = {}
+    all_providers = {}
 
     for xml_file in xml_files_to_process:
         try:
@@ -847,6 +1153,45 @@ def main(directory, salting):
                 s_generation_dict["fragments"]["source_result"] += [str(source_result_vital_apple_path.absolute())]
             else:
                 print(f"Did not find cda vital results; skipping: '{source_result_vital_apple_path}'")
+
+        # Encounters, and the care_site/location/provider rows they reference
+        source_encounter_file_name = "source_encounter." + just_xml_file_name + ".csv"
+        source_encounter_path = ps_frag_directory / source_encounter_file_name
+        source_encounter_list = extract_source_encounter_ccda(xml_obj, s_person_id, xml_file)
+
+        if len(source_encounter_list):
+            print(f"Writing {len(source_encounter_list)} rows in '{source_encounter_path}'")
+            write_csv_list_dict(source_encounter_path, source_encounter_list)
+            s_generation_dict["fragments"]["source_encounter"] += [str(source_encounter_path.absolute())]
+        else:
+            print(f"Did not find c-cda encounters; skipping: '{source_encounter_path}'")
+
+        for row in extract_source_care_site_ccda(xml_obj, xml_file):
+            all_care_sites.setdefault(row["k_care_site"], row)
+
+        for row in extract_source_location_ccda(xml_obj, xml_file):
+            all_locations.setdefault(row["k_location"], row)
+
+        for row in extract_source_provider_ccda(xml_obj, xml_file):
+            all_providers.setdefault(row["k_provider"], row)
+
+    if all_care_sites:
+        source_care_site_path = ps_frag_directory / "source_care_site.csv"
+        print(f"Writing {len(all_care_sites)} rows in '{source_care_site_path}'")
+        write_csv_list_dict(source_care_site_path, list(all_care_sites.values()))
+        s_generation_dict["fragments"]["source_care_site"] += [str(source_care_site_path.absolute())]
+
+    if all_locations:
+        source_location_path = ps_frag_directory / "source_location.csv"
+        print(f"Writing {len(all_locations)} rows in '{source_location_path}'")
+        write_csv_list_dict(source_location_path, list(all_locations.values()))
+        s_generation_dict["fragments"]["source_location"] += [str(source_location_path.absolute())]
+
+    if all_providers:
+        source_provider_path = ps_frag_directory / "source_provider.csv"
+        print(f"Writing {len(all_providers)} rows in '{source_provider_path}'")
+        write_csv_list_dict(source_provider_path, list(all_providers.values()))
+        s_generation_dict["fragments"]["source_provider"] += [str(source_provider_path.absolute())]
 
     json_file_path = output_directory_root / "s_files_generated.json"
     with open(json_file_path, "w") as fw:
