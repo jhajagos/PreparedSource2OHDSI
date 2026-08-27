@@ -1407,7 +1407,7 @@ def main(config, export_json_file_name=None, ohdsi_version=None, write_cdm_sourc
         "cdm_source": ohdsi.CdmSourceObject(),
     }
 
-    if "fact_relationship" in config_dict:
+    if "fact_relationship" not in config_dict:
         empty_tables_dict["fact_relationship"] = ohdsi.FactRelationshipObject()
 
     exported_table_dict["ohdsi"] = {}
