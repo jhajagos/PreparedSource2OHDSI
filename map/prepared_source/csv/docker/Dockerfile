@@ -11,18 +11,17 @@ RUN chmod u+x Miniconda3-latest-Linux-x86_64.sh
 RUN ./Miniconda3-latest-Linux-x86_64.sh -b
 
 # Setup Python
-
-RUN /root/miniconda3/bin/conda create --name PySpark python=3.12 pandas
-RUN /root/miniconda3/bin/conda init && bash ~/.bashrc && . ~/.bashrc
-
 ENV conda /root/miniconda3/bin/conda
 ENV bashrc /root/.bashrc
 
 RUN $conda tos accept --override-channels --channel  https://repo.anaconda.com/pkgs/main
 RUN $conda tos accept --override-channels --channel  https://repo.anaconda.com/pkgs/r
 
-RUN $conda init && . $bashrc && conda activate PySpark && pip install pyspark==3.5.9
 
+RUN /root/miniconda3/bin/conda create --name PySpark python=3.12 pandas
+RUN /root/miniconda3/bin/conda init && bash ~/.bashrc && . ~/.bashrc
+
+RUN $conda init && . $bashrc && conda activate PySpark && pip install pyspark==3.5.9
 
 RUN mkdir /root/github/
 RUN apt install git -y
@@ -114,3 +113,8 @@ COPY .setup_environment /root/scripts
 RUN chmod u+x /root/scripts/.setup_environment
 
 RUN mkdir /data/prepared_source/parquet
+RUN mkdir /data/input/
+RUN mkdir /data/ohdsi/stats/
+
+RUN $conda init && . $bashrc && conda activate PySpark && pip install pypdf
+
