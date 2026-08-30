@@ -186,7 +186,15 @@ args=()
 # override (e.g. --exporter.csv.export=false) still wins -- Synthea uses last-value-wins.
 $csv_export && args+=("--exporter.csv.export=true")
 $uuid_filenames && args+=("--exporter.use_uuid_filenames=true")
-$fhir_export && args+=("--exporter.fhir.export=true")
+# Synthea's bundled synthea.properties defaults exporter.fhir.export to true, so this
+# must be set explicitly in both directions -- otherwise every run silently writes full
+# FHIR JSON bundles (large; this is what filled the disk previously) even though --fhir
+# is documented here as opt-in.
+if $fhir_export; then
+  args+=("--exporter.fhir.export=true")
+else
+  args+=("--exporter.fhir.export=false")
+fi
 [[ -n "$output_dir" ]] && args+=("--exporter.baseDirectory=${output_dir}")
 
 # Only pass -d if the directory actually exists, so a missing default modules dir
@@ -236,3 +244,27 @@ WD=$(pwd)
 cd "$SYNTHEA_HOME"
 java -jar "$JAR" "${args[@]}"
 cd "$WD"
+
+# Belt-and-suspenders cleanup: a local --config file or a --key=value passthrough could
+# still turn FHIR export back on behind our backs. Only the CSV output is consumed
+# downstream (map_synthea_to_prepared_source.py), so unless FHIR was actually requested
+# for this run, delete any FHIR JSON bundles that got written so they don't pile up.
+fhir_enabled=$fhir_export
+for a in "${passthrough[@]}"; do
+  case "$a" in
+    --exporter.fhir.export=true)  fhir_enabled=true ;;
+    --exporter.fhir.export=false) fhir_enabled=false ;;
+  esac
+done
+
+if ! $fhir_enabled; then
+  base_dir="${output_dir:-${SYNTHEA_HOME}/output}"
+  fhir_dir="${base_dir%/}/fhir"
+  if [[ -d "$fhir_dir" ]]; then
+    json_count=$(find "$fhir_dir" -name '*.json' | wc -l)
+    if [[ "$json_count" -gt 0 ]]; then
+      echo "generate_synthea_data.sh: removing ${json_count} leftover FHIR JSON file(s) from ${fhir_dir} (not requested via --fhir)" >&2
+      find "$fhir_dir" -name '*.json' -delete
+    fi
+  fi
+fi
