@@ -1,0 +1,20 @@
+{
+  "concept_base_path": "/data/ohdsi/vocabulary/",
+  "export_concept_mapping_table_path": "/data/ohdsi/vocabulary/export/",
+  "concept_csv_file_extension": ".csv.bz2",
+  "prepared_source_table_path": "/data/prepared_source/parquet_merged/",
+  "prepared_source_csv_extension": ".csv",
+  "staging_table_prefix": "",
+  "ohdsi_output_location": "/data/ohdsi/output_merged/",
+  "check_pointing": "NONE",
+  "ohdsi_version": "5.4.1",
+   "prepared_source_csv_table_path": "/data/prepared_source/csv_merged/",
+  "prepared_source_tables_to_exclude": ["source_device", "source_encounter_map",
+  "source_person_map", "source_payer", "source_encounter_detail", "source_relationship"
+  ],
+  "jdbc": {
+    "connection_string": "",
+    "properties": {"username":  "", "password":  ""}
+  }
+
+}
