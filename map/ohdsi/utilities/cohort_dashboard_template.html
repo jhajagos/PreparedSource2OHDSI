@@ -1,0 +1,1189 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"></head><body>
+<title>Synthea Cohort Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --page:      #EEF2F6;
+    --surface:   #FCFDFE;
+    --surface-2: #F1F5F9;
+    --border:    #DCE3EC;
+    --ink:       #10141A;
+    --ink-2:     #4A5568;
+    --ink-mute:  #7C8798;
+    --grid:      #E3E8EE;
+    --baseline:  #C7D0DB;
+    --accent:    #2a78d6;
+    --accent-wash: rgba(42,120,214,0.10);
+    --accent-ink: #ffffff;
+
+    --s1: #2a78d6; /* blue */
+    --s2: #eb6834; /* orange */
+    --s3: #1baf7a; /* aqua */
+    --s4: #eda100; /* yellow */
+    --s5: #e87ba4; /* magenta */
+    --s6: #008300; /* green */
+    --s7: #4a3aa7; /* violet */
+    --s8: #e34948; /* red */
+
+    --good: #0ca30c;
+    --good-wash: rgba(12,163,12,0.10);
+
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --page:      #0A0F15;
+      --surface:   #171D24;
+      --surface-2: #1F2730;
+      --border:    #2B3541;
+      --ink:       #F2F5F8;
+      --ink-2:     #B7C2CF;
+      --ink-mute:  #7C8798;
+      --grid:      #2A3138;
+      --baseline:  #37414C;
+      --accent:    #3987e5;
+      --accent-wash: rgba(57,135,229,0.14);
+      --accent-ink: #ffffff;
+
+      --s1: #3987e5;
+      --s2: #d95926;
+      --s3: #199e70;
+      --s4: #c98500;
+      --s5: #d55181;
+      --s6: #008300;
+      --s7: #9085e9;
+      --s8: #e66767;
+
+      --good: #0ca30c;
+      --good-wash: rgba(12,163,12,0.16);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+      --page:      #0A0F15;
+      --surface:   #171D24;
+      --surface-2: #1F2730;
+      --border:    #2B3541;
+      --ink:       #F2F5F8;
+      --ink-2:     #B7C2CF;
+      --ink-mute:  #7C8798;
+      --grid:      #2A3138;
+      --baseline:  #37414C;
+      --accent:    #3987e5;
+      --accent-wash: rgba(57,135,229,0.14);
+      --accent-ink: #ffffff;
+
+      --s1: #3987e5;
+      --s2: #d95926;
+      --s3: #199e70;
+      --s4: #c98500;
+      --s5: #d55181;
+      --s6: #008300;
+      --s7: #9085e9;
+      --s8: #e66767;
+
+      --good: #0ca30c;
+      --good-wash: rgba(12,163,12,0.16);
+      color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--page);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.45;
+  }
+  .mono { font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace; }
+  .tabular { font-variant-numeric: tabular-nums; }
+
+  .wrap {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 28px 24px 64px;
+  }
+
+  /* ---------- masthead ---------- */
+  .masthead {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px 24px;
+    padding-bottom: 18px;
+    border-bottom: 2px solid var(--ink);
+    margin-bottom: 22px;
+  }
+  .masthead-id { display: flex; flex-direction: column; gap: 4px; }
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+  }
+  h1 {
+    margin: 0;
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+  .masthead-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 22px;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px;
+    color: var(--ink-2);
+  }
+  .masthead-meta b { color: var(--ink); font-weight: 600; }
+
+  /* ---------- stat tiles ---------- */
+  .tiles {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 28px;
+  }
+  .tile {
+    background: var(--surface);
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .tile-label {
+    font-size: 11.5px;
+    color: var(--ink-mute);
+    letter-spacing: 0.03em;
+  }
+  .tile-value {
+    font-size: 26px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .tile-sub {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11px;
+    color: var(--ink-2);
+  }
+
+  /* ---------- section / card scaffolding ---------- */
+  section { margin-bottom: 30px; }
+  .section-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  h2 {
+    font-size: 15px;
+    font-weight: 600;
+    margin: 0;
+    letter-spacing: -0.005em;
+  }
+  .section-note { font-size: 12px; color: var(--ink-mute); }
+
+  .grid-2 { display: grid; grid-template-columns: 1.05fr 1.4fr; gap: 16px; align-items: start; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .grid-multiples { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .grid-concepts { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px 14px;
+  }
+  .card-title {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--ink-2);
+    margin: 0 0 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .card-title .n {
+    font-family: "IBM Plex Mono", monospace;
+    font-weight: 400;
+    color: var(--ink-mute);
+    font-size: 11px;
+  }
+
+  /* ---------- bar rows (demographics / visit types / concepts) ---------- */
+  .barlist { display: flex; flex-direction: column; gap: 9px; }
+  .barrow { display: grid; grid-template-columns: 128px 1fr 56px; align-items: center; gap: 8px; }
+  .barrow.wide { grid-template-columns: 190px 1fr 60px; }
+  .barrow-label {
+    font-size: 12px;
+    color: var(--ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .barrow-track {
+    position: relative;
+    height: 16px;
+    background: var(--surface-2);
+    border-radius: 4px;
+  }
+  .barrow-fill {
+    position: absolute;
+    top: 0; left: 0; height: 100%;
+    border-radius: 4px 4px 4px 4px;
+    transition: filter .12s ease;
+  }
+  .barrow-fill:hover { filter: brightness(1.08); }
+  .barrow-val {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11.5px;
+    color: var(--ink-2);
+    text-align: right;
+    white-space: nowrap;
+  }
+  .barrow-tag {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 9.5px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--good);
+    background: var(--good-wash);
+    border-radius: 3px;
+    padding: 1px 5px;
+    margin-left: 6px;
+  }
+
+  /* ---------- data quality ---------- */
+  .dq-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 0;
+    border-top: 1px solid var(--border);
+  }
+  .dq-row:first-child { border-top: none; padding-top: 0; }
+  .dq-icon {
+    flex: 0 0 auto;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--good-wash);
+    color: var(--good);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .dq-icon svg { width: 11px; height: 11px; }
+  .dq-text { font-size: 12.5px; color: var(--ink); }
+  .dq-text .detail { color: var(--ink-mute); font-size: 11.5px; display: block; margin-top: 1px; }
+
+  /* ---------- small multiples ---------- */
+  .mult-card { padding: 12px 14px 10px; }
+  .mult-title { font-size: 11.5px; font-weight: 600; color: var(--ink); margin-bottom: 1px; }
+  .mult-total { font-family: "IBM Plex Mono", monospace; font-size: 15px; font-weight: 600; color: var(--ink); }
+  .mult-sub { font-family: "IBM Plex Mono", monospace; font-size: 10px; color: var(--ink-mute); margin-bottom: 6px; }
+  .mult-svg-wrap { position: relative; }
+  .mult-tooltip {
+    position: absolute;
+    pointer-events: none;
+    background: var(--ink);
+    color: var(--surface);
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 10.5px;
+    padding: 4px 7px;
+    border-radius: 5px;
+    white-space: nowrap;
+    transform: translate(-50%, -100%);
+    opacity: 0;
+    transition: opacity .08s ease;
+    z-index: 5;
+  }
+  .mult-tooltip b { font-weight: 600; }
+
+  /* ---------- treemaps ---------- */
+  .grid-treemaps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .tm-card { padding: 13px 15px 12px; }
+  .tm-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 2px; }
+  .tm-title { font-size: 12.5px; font-weight: 600; color: var(--ink); }
+  .tm-sub { font-family: "IBM Plex Mono", monospace; font-size: 10px; color: var(--ink-mute); margin-bottom: 9px; min-height: 13px; }
+
+  .tm-toggle {
+    flex: 0 0 auto;
+    display: inline-flex;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 2px;
+    gap: 2px;
+  }
+  .tm-toggle button {
+    all: unset;
+    cursor: pointer;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 10.5px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 4px;
+    color: var(--ink-mute);
+    line-height: 1.3;
+  }
+  .tm-toggle button:hover { color: var(--ink-2); }
+  .tm-toggle button.active { background: var(--accent); color: var(--accent-ink); }
+  .tm-toggle button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  .tm-svg-wrap { position: relative; }
+  .tm-cell-label { pointer-events: none; }
+  .tm-cell-name { font-size: 9.5px; font-weight: 600; }
+  .tm-cell-value { font-family: "IBM Plex Mono", monospace; font-size: 9px; }
+
+  /* ---------- box plots ---------- */
+  .box-key {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 18px;
+    font-size: 11px;
+    color: var(--ink-2);
+    margin-bottom: 12px;
+  }
+  .box-key-swatch {
+    display: inline-block;
+    width: 14px; height: 8px;
+    margin-right: 5px;
+    vertical-align: middle;
+    border-radius: 2px;
+  }
+  .box-key-range { background: var(--baseline); height: 2px; }
+  .box-key-iqr { background: var(--accent); opacity: .22; border: 1px solid var(--accent); }
+  .box-key-whisker { background: var(--accent); height: 2px; }
+  .box-key-median { background: var(--ink); height: 2px; }
+  .box-key-mean { background: var(--surface); border: 2px solid var(--accent); border-radius: 50%; width: 8px; height: 8px; }
+
+  .search-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .search-box {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 7px 9px;
+    width: 100%;
+    max-width: 320px;
+    color: var(--ink-mute);
+    transition: border-color .12s ease;
+  }
+  .search-box:focus-within { border-color: var(--accent); color: var(--ink-2); }
+  .search-box input {
+    all: unset;
+    flex: 1 1 auto;
+    font-family: "IBM Plex Sans", sans-serif;
+    font-size: 12.5px;
+    color: var(--ink);
+    min-width: 0;
+  }
+  .search-box input::placeholder { color: var(--ink-mute); }
+  .search-box button {
+    all: unset;
+    cursor: pointer;
+    color: var(--ink-mute);
+    font-size: 15px;
+    line-height: 1;
+    padding: 0 1px;
+  }
+  .search-box button:hover { color: var(--ink-2); }
+  .search-count {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11px;
+    color: var(--ink-mute);
+    white-space: nowrap;
+  }
+  .box-card.is-hidden { display: none; }
+  .search-empty {
+    font-size: 12.5px;
+    color: var(--ink-mute);
+    text-align: center;
+    padding: 18px 0 4px;
+    margin: 0;
+  }
+
+  .grid-boxplots { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .box-card { padding: 13px 16px 12px; }
+  .box-card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 1px; }
+  .box-name { font-size: 12.5px; font-weight: 600; color: var(--ink); }
+  .box-unit { font-family: "IBM Plex Mono", monospace; font-size: 10.5px; color: var(--ink-mute); }
+  .box-mean-line { font-family: "IBM Plex Mono", monospace; font-size: 10.5px; color: var(--ink-2); margin-bottom: 4px; }
+  .box-mean-line b { color: var(--ink); font-weight: 600; }
+  .box-svg-wrap { position: relative; }
+
+  /* ---------- footer ---------- */
+  footer {
+    margin-top: 36px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11px;
+    color: var(--ink-mute);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 6px 18px;
+  }
+  footer a { color: var(--ink-2); }
+
+  @media (max-width: 980px) {
+    .tiles { grid-template-columns: repeat(2, 1fr); }
+    .grid-2 { grid-template-columns: 1fr; }
+    .grid-3 { grid-template-columns: 1fr; }
+    .grid-multiples { grid-template-columns: repeat(2, 1fr); }
+    .grid-concepts { grid-template-columns: 1fr; }
+    .grid-boxplots { grid-template-columns: repeat(2, 1fr); }
+    .grid-treemaps { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 560px) {
+    .grid-boxplots { grid-template-columns: 1fr; }
+  }
+</style>
+
+<div class="wrap">
+
+  <div class="masthead">
+    <div class="masthead-id">
+      <span class="eyebrow">Cohort data report &middot; OMOP CDM v5.4.1</span>
+      <h1>Synthea &rarr; OHDSI Mapped Cohort</h1>
+    </div>
+    <div class="masthead-meta" id="masthead-meta"></div>
+  </div>
+
+  <div class="tiles" id="tiles"></div>
+
+  <!-- ============ demographics + visit types + data quality ============ -->
+  <section>
+    <div class="section-head">
+      <h2>Cohort composition</h2>
+      <span class="section-note">counts of distinct patients unless noted</span>
+    </div>
+    <div class="grid-3">
+      <div class="card">
+        <p class="card-title">Gender <span class="n" id="n-gender"></span></p>
+        <div class="barlist" id="chart-gender"></div>
+      </div>
+      <div class="card">
+        <p class="card-title">Race <span class="n" id="n-race"></span></p>
+        <div class="barlist" id="chart-race"></div>
+      </div>
+      <div class="card">
+        <p class="card-title">Ethnicity <span class="n" id="n-ethnicity"></span></p>
+        <div class="barlist" id="chart-ethnicity"></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>Visit type resolution</h2>
+      <span class="section-note">distinct patients (n) with at least one visit of each resolved concept</span>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <p class="card-title">patients by visit concept <span class="n" id="n-visittype"></span></p>
+        <div class="barlist wide" id="chart-visittype"></div>
+      </div>
+      <div class="card">
+        <p class="card-title">Data quality &mdash; mapping coverage</p>
+        <div id="chart-dq"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ temporal coverage ============ -->
+  <section>
+    <div class="section-head">
+      <h2>Temporal coverage by domain</h2>
+      <span class="section-note" id="note-temporal"></span>
+    </div>
+    <div class="grid-multiples" id="chart-multiples"></div>
+  </section>
+
+  <!-- ============ top concepts ============ -->
+  <section>
+    <div class="section-head">
+      <h2>Top standard concepts by domain</h2>
+      <span class="section-note">ranked by distinct patient count (n), top 6 per domain</span>
+    </div>
+    <div class="grid-concepts">
+      <div class="card">
+        <p class="card-title">Condition <span class="n">condition_occurrence</span></p>
+        <div class="barlist wide" id="chart-condition"></div>
+      </div>
+      <div class="card">
+        <p class="card-title">Drug exposure <span class="n">drug_exposure</span></p>
+        <div class="barlist wide" id="chart-drug"></div>
+      </div>
+      <div class="card">
+        <p class="card-title">Procedure <span class="n">procedure_occurrence</span></p>
+        <div class="barlist wide" id="chart-procedure"></div>
+      </div>
+      <div class="card">
+        <p class="card-title">Measurement <span class="n">measurement</span></p>
+        <p class="section-note" id="note-measurement-top" style="margin:-6px 0 10px;"></p>
+        <div class="barlist wide" id="chart-measurement"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ treemaps ============ -->
+  <section>
+    <div class="section-head">
+      <h2>Concept share by table</h2>
+      <span class="section-note">top 10 standard concepts per table, sized by rows (n_r) or distinct patients (n) &mdash; toggle each panel independently</span>
+    </div>
+    <div class="grid-treemaps" id="chart-treemaps"></div>
+  </section>
+
+  <!-- ============ measurement value distributions ============ -->
+  <section>
+    <div class="section-head">
+      <h2>Value distributions &mdash; top 20 measurements</h2>
+      <span class="section-note">ranked by row count (n_r) across the whole measurement table; mean, stddev and quantiles all computed directly from measurement.value_as_number in one consistent pass (merged across unit_concept_id variants, non-numeric results excluded)</span>
+    </div>
+    <div class="box-key">
+      <span><i class="box-key-swatch box-key-range"></i>observed range (min&ndash;max)</span>
+      <span><i class="box-key-swatch box-key-iqr"></i>IQR box (p25&ndash;p75)</span>
+      <span><i class="box-key-swatch box-key-whisker"></i>whisker (p05&ndash;p95)</span>
+      <span><i class="box-key-swatch box-key-median"></i>median (p50)</span>
+      <span><i class="box-key-swatch box-key-mean"></i>mean</span>
+    </div>
+    <div class="search-row">
+      <div class="search-box">
+        <svg viewBox="0 0 16 16" width="14" height="14" fill="none" aria-hidden="true">
+          <circle cx="7" cy="7" r="5.1" stroke="currentColor" stroke-width="1.6"/>
+          <line x1="10.9" y1="10.9" x2="14.5" y2="14.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+        <input type="text" id="measurement-search" placeholder="Jump to a measurement — try “glucose”, “BP”, “A1c”…" autocomplete="off" spellcheck="false">
+        <button type="button" id="measurement-search-clear" aria-label="Clear search" hidden>&times;</button>
+      </div>
+      <span class="search-count" id="measurement-search-count"></span>
+    </div>
+    <div class="grid-boxplots" id="chart-boxplots"></div>
+    <p class="search-empty" id="measurement-search-empty" hidden>No measurements match &ldquo;<span></span>&rdquo;.</p>
+  </section>
+
+  <footer id="footer"></footer>
+
+</div>
+
+<script>
+/* Data is injected by generate_cohort_dashboard.py at build time — this file is a
+   static template, not meant to be opened without that substitution step run first. */
+var COHORT_DATA = /*__COHORT_DATA_JSON__*/ null;
+</script>
+<script>
+(function () {
+  "use strict";
+
+  var D = COHORT_DATA;
+
+  function fmt(n) {
+    return n.toLocaleString("en-US");
+  }
+  function fmtCompact(n) {
+    if (n >= 1000) return (n / 1000).toFixed(n >= 10000 ? 0 : 1).replace(/\.0$/, "") + "K";
+    return String(n);
+  }
+  function pct(n, d) {
+    return (100 * n / d).toFixed(1) + "%";
+  }
+  function el(tag, cls, parent) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+
+  // ---------------- masthead ----------------
+  (function () {
+    var host = document.getElementById("masthead-meta");
+    [
+      ["Source", D.meta.sourceLabel],
+      ["ETL", D.meta.etl],
+      ["Stats run", D.meta.statsRunLabel],
+      ["Vocabulary", D.meta.vocabulary]
+    ].forEach(function (pair) {
+      var span = el("span", null, host);
+      var b = el("b", null, span);
+      b.textContent = pair[0];
+      span.appendChild(document.createTextNode(" " + pair[1]));
+    });
+  })();
+
+  // ---------------- stat tiles ----------------
+  (function () {
+    var host = document.getElementById("tiles");
+    var avgVisits = (D.tiles.visits / D.tiles.patients).toFixed(1);
+    var tiles = [
+      { label: "Patients", value: fmt(D.tiles.patients), sub: D.tiles.yearSpan[0] + " – " + D.tiles.yearSpan[1] + " span" },
+      { label: "Visit occurrences", value: fmt(D.tiles.visits), sub: "avg " + avgVisits + " / patient" },
+      { label: "Recorded deaths", value: fmt(D.tiles.deaths), sub: pct(D.tiles.deaths, D.tiles.patients) + " of cohort" },
+      { label: "Observation periods", value: fmt(D.tiles.observationPeriods), sub: "1:1 patient coverage" },
+      { label: "Care sites · providers", value: fmt(D.tiles.careSites), sub: fmt(D.tiles.careSites) + " each · " + fmt(D.tiles.locations) + " locations" }
+    ];
+    tiles.forEach(function (t) {
+      var tile = el("div", "tile", host);
+      var lbl = el("span", "tile-label", tile);
+      lbl.textContent = t.label;
+      var val = el("span", "tile-value tabular", tile);
+      val.textContent = t.value;
+      var sub = el("span", "tile-sub", tile);
+      sub.textContent = t.sub;
+    });
+  })();
+
+  document.getElementById("n-gender").textContent = "n=" + fmt(D.tiles.patients);
+  document.getElementById("n-race").textContent = "n=" + fmt(D.tiles.patients);
+  document.getElementById("n-ethnicity").textContent = "n=" + fmt(D.tiles.patients);
+  document.getElementById("n-visittype").textContent = "n=" + fmt(D.tiles.patients);
+
+  // ---------------- horizontal bar list ----------------
+  // rows: [{label, value, color, tag?}]
+  function renderBarlist(containerId, rows, opts) {
+    opts = opts || {};
+    var host = document.getElementById(containerId);
+    var max = opts.max || Math.max.apply(null, rows.map(function (r) { return r.value; }));
+    rows.forEach(function (r) {
+      var row = el("div", "barrow" + (opts.wide ? " wide" : ""), host);
+
+      var label = el("div", "barrow-label", row);
+      label.textContent = r.label;
+      label.title = r.label;
+
+      var track = el("div", "barrow-track", row);
+      var fill = el("div", "barrow-fill", track);
+      var w = Math.max(2, 100 * r.value / max);
+      fill.style.width = w + "%";
+      fill.style.background = r.color;
+      fill.title = r.label + ": " + fmt(r.value) + (opts.suffix ? " " + opts.suffix : "");
+
+      var val = el("div", "barrow-val tabular", row);
+      val.textContent = fmt(r.value);
+      if (r.tag) {
+        var tag = el("span", "barrow-tag", val);
+        tag.textContent = r.tag;
+      }
+    });
+  }
+
+  // ---------------- gender / race / ethnicity ----------------
+  renderBarlist("chart-gender", D.demographics.gender);
+  renderBarlist("chart-race", D.demographics.race);
+  renderBarlist("chart-ethnicity", D.demographics.ethnicity);
+
+  // ---------------- visit type resolution (by distinct patients, n) ----------------
+  renderBarlist("chart-visittype", D.visitType, { wide: true, suffix: "patients" });
+
+  // ---------------- data quality panel ----------------
+  (function () {
+    var host = document.getElementById("chart-dq");
+    var checkSvg = '<svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.2 11.7L13 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    D.dataQuality.forEach(function (c) {
+      var row = el("div", "dq-row", host);
+      var icon = el("div", "dq-icon", row);
+      icon.innerHTML = checkSvg;
+      var text = el("div", "dq-text", row);
+      text.innerHTML = c.text + '<span class="detail">' + c.detail + "</span>";
+    });
+  })();
+
+  // ---------------- top concept lists (ranked by distinct patients, n) ----------------
+  renderBarlist("chart-condition", D.topConcepts.condition, { wide: true, suffix: "patients" });
+  renderBarlist("chart-drug", D.topConcepts.drug, { wide: true, suffix: "patients" });
+  renderBarlist("chart-procedure", D.topConcepts.procedure, { wide: true, suffix: "patients" });
+  renderBarlist("chart-measurement", D.topConcepts.measurement, { wide: true, suffix: "patients" });
+
+  document.getElementById("note-measurement-top").textContent =
+    "n saturates at " + fmt(D.tiles.patients) + " — ranking among tied concepts comes from row count (n_r)";
+
+  // ---------------- small-multiple area charts ----------------
+  var years = D.yearly.years;
+  var domains = D.yearly.domains;
+
+  document.getElementById("note-temporal").textContent =
+    "distinct patients (n) with at least one event per calendar year, " + years[0] + "–" + years[years.length - 1] +
+    " · " + years[years.length - 1] + " is a partial year (cut off at the stats-run date)";
+
+  var W = 220, H = 92, PAD_L = 4, PAD_R = 4, PAD_T = 6, PAD_B = 16;
+  var host = document.getElementById("chart-multiples");
+
+  domains.forEach(function (d) {
+    var card = el("div", "card mult-card", host);
+    var titleRow = el("div", null, card);
+    titleRow.style.display = "flex";
+    titleRow.style.justifyContent = "space-between";
+    titleRow.style.alignItems = "baseline";
+    var t = el("div", "mult-title", titleRow);
+    t.textContent = d.title;
+    var max = Math.max.apply(null, d.data);
+    var peakYear = years[d.data.indexOf(max)];
+    var totalEl = el("div", "mult-total tabular", titleRow);
+    totalEl.textContent = fmtCompact(max);
+
+    var sub = el("div", "mult-sub", card);
+    sub.textContent = "peak " + fmt(max) + " pts · " + peakYear;
+
+    var wrapDiv = el("div", "mult-svg-wrap", card);
+    var innerW = W - PAD_L - PAD_R;
+    var innerH = H - PAD_T - PAD_B;
+
+    var pts = d.data.map(function (v, i) {
+      var x = PAD_L + (innerW * i) / (d.data.length - 1);
+      var y = PAD_T + innerH - (innerH * v) / max;
+      return [x, y];
+    });
+
+    var lineD = pts.map(function (p, i) { return (i === 0 ? "M" : "L") + p[0].toFixed(1) + "," + p[1].toFixed(1); }).join(" ");
+    var areaD = lineD + " L" + pts[pts.length - 1][0].toFixed(1) + "," + (PAD_T + innerH) +
+                " L" + pts[0][0].toFixed(1) + "," + (PAD_T + innerH) + " Z";
+
+    var baselineY = PAD_T + innerH;
+    var color = "var(--" + d.color + ")";
+
+    var svgNS = "http://www.w3.org/2000/svg";
+    var svg = document.createElementNS(svgNS, "svg");
+    svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+    svg.setAttribute("width", "100%");
+    svg.style.display = "block";
+    svg.style.overflow = "visible";
+
+    function mk(tag, attrs) {
+      var e = document.createElementNS(svgNS, tag);
+      for (var k in attrs) e.setAttribute(k, attrs[k]);
+      return e;
+    }
+
+    // baseline
+    svg.appendChild(mk("line", { x1: PAD_L, x2: W - PAD_R, y1: baselineY, y2: baselineY, stroke: "var(--baseline)", "stroke-width": 1 }));
+    // area
+    svg.appendChild(mk("path", { d: areaD, fill: color, opacity: 0.12, stroke: "none" }));
+    // line
+    svg.appendChild(mk("path", { d: lineD, fill: "none", stroke: color, "stroke-width": 2, "stroke-linejoin": "round", "stroke-linecap": "round" }));
+    // partial-year marker (dashed segment overlay not needed; just mark endpoint)
+    var last = pts[pts.length - 1];
+    svg.appendChild(mk("circle", { cx: last[0], cy: last[1], r: 3.2, fill: color, stroke: "var(--surface)", "stroke-width": 2 }));
+
+    // year labels (first / last only, direct label)
+    var firstLbl = mk("text", { x: PAD_L, y: H - 3, fill: "var(--ink-mute)", "font-size": 8.5, "font-family": "IBM Plex Mono, monospace" });
+    firstLbl.textContent = years[0];
+    var lastLbl = mk("text", { x: W - PAD_R, y: H - 3, fill: "var(--ink-mute)", "font-size": 8.5, "font-family": "IBM Plex Mono, monospace", "text-anchor": "end" });
+    lastLbl.textContent = years[years.length - 1] + "*";
+    svg.appendChild(firstLbl);
+    svg.appendChild(lastLbl);
+
+    // hit areas per point for hover
+    var hitGroup = mk("g", {});
+    pts.forEach(function (p, i) {
+      var hit = mk("circle", { cx: p[0], cy: p[1], r: 9, fill: "transparent", "data-i": i });
+      hit.style.cursor = "crosshair";
+      hitGroup.appendChild(hit);
+    });
+    svg.appendChild(hitGroup);
+
+    wrapDiv.appendChild(svg);
+
+    var tip = el("div", "mult-tooltip", wrapDiv);
+
+    hitGroup.querySelectorAll("circle").forEach(function (hit) {
+      hit.addEventListener("pointerenter", show);
+      hit.addEventListener("pointermove", show);
+      hit.addEventListener("pointerleave", function () { tip.style.opacity = 0; });
+      function show(ev) {
+        var i = +hit.getAttribute("data-i");
+        var p = pts[i];
+        var rect = svg.getBoundingClientRect();
+        var wrapRect = wrapDiv.getBoundingClientRect();
+        var scale = rect.width / W;
+        tip.style.left = (rect.left - wrapRect.left + p[0] * scale) + "px";
+        tip.style.top = (rect.top - wrapRect.top + p[1] * scale - 6) + "px";
+        tip.innerHTML = "<b>" + fmt(d.data[i]) + "</b> patients &middot; " + years[i] + (i === years.length - 1 ? " (partial)" : "");
+        tip.style.opacity = 1;
+      }
+    });
+  });
+
+  // ---------------- treemaps: concept share by table ----------------
+  // Squarified treemap (Bruls/Huizing/van Wijk). items: [{value>0,...}] sorted desc by caller.
+  function squarify(items, x, y, w, h) {
+    var out = [];
+    var remaining = items.slice();
+    var rx = x, ry = y, rw = w, rh = h;
+    var remArea = w * h;
+    var remTotal = remaining.reduce(function (a, d) { return a + d.value; }, 0);
+
+    function worst(row, len, scale) {
+      var areas = row.map(function (d) { return d.value * scale; });
+      var sum = areas.reduce(function (a, b) { return a + b; }, 0);
+      var max = Math.max.apply(null, areas), min = Math.min.apply(null, areas);
+      var l2 = len * len, s2 = sum * sum;
+      return Math.max((l2 * max) / s2, s2 / (l2 * min));
+    }
+
+    while (remaining.length) {
+      var len = Math.min(rw, rh);
+      var scale = remArea / remTotal;
+      var row = [remaining[0]];
+      var i = 1;
+      while (i < remaining.length) {
+        var testRow = row.concat([remaining[i]]);
+        if (worst(testRow, len, scale) <= worst(row, len, scale)) { row = testRow; i++; }
+        else break;
+      }
+      var rowSum = row.reduce(function (a, d) { return a + d.value; }, 0);
+      var rowArea = rowSum * scale;
+      var vertical = rw >= rh; // wide remainder -> cut a full-height column; tall remainder -> cut a full-width band
+      if (vertical) {
+        var stripW = rowArea / rh;
+        var cy = ry;
+        row.forEach(function (d) {
+          var bh = (d.value / rowSum) * rh;
+          out.push({ item: d, x: rx, y: cy, w: stripW, h: bh });
+          cy += bh;
+        });
+        rx += stripW; rw -= stripW;
+      } else {
+        var stripH = rowArea / rw;
+        var cx = rx;
+        row.forEach(function (d) {
+          var bw = (d.value / rowSum) * rw;
+          out.push({ item: d, x: cx, y: ry, w: bw, h: stripH });
+          cx += bw;
+        });
+        ry += stripH; rh -= stripH;
+      }
+      remaining = remaining.slice(row.length);
+      remArea -= rowArea; remTotal -= rowSum;
+    }
+    return out;
+  }
+
+  var rankOpacity = [1, 0.90, 0.80, 0.71, 0.62, 0.54, 0.46, 0.39, 0.32, 0.26];
+  var otherFill = "var(--ink-mute)", otherOpacity = 0.30;
+
+  var treemapDomains = D.treemaps;
+
+  (function () {
+    var TW = 320, TH = 190;
+    var host = document.getElementById("chart-treemaps");
+    var svgNS = "http://www.w3.org/2000/svg";
+    function mk(tag, attrs) {
+      var e = document.createElementNS(svgNS, tag);
+      for (var k in attrs) e.setAttribute(k, attrs[k]);
+      return e;
+    }
+
+    treemapDomains.forEach(function (domain) {
+      // fixed rank -> color assignment, bound to the item (n_r order, as given)
+      domain.items.forEach(function (it, i) { it.rank = i; });
+
+      var card = el("div", "card tm-card", host);
+      var head = el("div", "tm-head", card);
+      var titleWrap = el("div", null, head);
+      var title = el("div", "tm-title", titleWrap);
+      title.textContent = domain.title;
+      var toggle = el("div", "tm-toggle", head);
+      var btnNr = el("button", "active", toggle);
+      btnNr.textContent = "n_r";
+      btnNr.type = "button";
+      var btnN = el("button", null, toggle);
+      btnN.textContent = "n";
+      btnN.type = "button";
+
+      var sub = el("div", "tm-sub", card);
+      var wrapDiv = el("div", "tm-svg-wrap", card);
+      var svg = document.createElementNS(svgNS, "svg");
+      svg.setAttribute("viewBox", "0 0 " + TW + " " + TH);
+      svg.setAttribute("width", "100%");
+      svg.style.display = "block";
+      svg.style.overflow = "visible";
+      wrapDiv.appendChild(svg);
+      var tip = el("div", "mult-tooltip", wrapDiv);
+
+      function render(metric) {
+        while (svg.firstChild) svg.removeChild(svg.firstChild);
+
+        var layoutItems;
+        if (metric === "n_r") {
+          layoutItems = domain.items.map(function (it) {
+            return { value: it.n_r, ref: it, isOther: false };
+          });
+          layoutItems.push({ value: domain.other_n_r, ref: { name: "Other concepts", n_r: domain.other_n_r }, isOther: true });
+          sub.textContent = fmt(domain.total_n_r) + " rows total · " + domain.concept_count + " unique concepts · top 10 + other";
+        } else {
+          layoutItems = domain.items.map(function (it) {
+            return { value: it.n, ref: it, isOther: false };
+          });
+          sub.textContent = domain.concept_count + " unique concepts · top 10 only — patients can appear in multiple concepts, no valid remainder";
+        }
+        layoutItems.sort(function (a, b) { return b.value - a.value; });
+
+        var placed = squarify(layoutItems, 0, 0, TW, TH);
+        var layoutTotal = layoutItems.reduce(function (a, d) { return a + d.value; }, 0);
+
+        placed.forEach(function (p) {
+          var d = p.item;
+          var fill = d.isOther ? otherFill : "var(--accent)";
+          var opacity = d.isOther ? otherOpacity : rankOpacity[d.ref.rank];
+
+          var g = mk("g", {});
+          var rect = mk("rect", {
+            x: p.x + 1, y: p.y + 1, width: Math.max(0, p.w - 2), height: Math.max(0, p.h - 2),
+            fill: fill, opacity: opacity, rx: 3
+          });
+          rect.style.cursor = "crosshair";
+          g.appendChild(rect);
+          svg.appendChild(g); // attach before measuring text — getComputedTextLength needs a live layout
+
+          var fitsLabel = p.w >= 44 && p.h >= 24;
+          if (fitsLabel) {
+            var useWhite = !d.isOther && opacity >= 0.55;
+            var availPx = p.w - 10;
+            var nameEl = mk("text", {
+              x: p.x + 6, y: p.y + 14, fill: useWhite ? "#ffffff" : "var(--ink)",
+              class: "tm-cell-name"
+            });
+            var fullName = d.ref.name;
+            nameEl.textContent = fullName;
+            g.appendChild(nameEl);
+            // measure, then trim to fit — never clip
+            if (nameEl.getComputedTextLength() > availPx) {
+              var lo = 0, hi = fullName.length, best = "";
+              while (lo <= hi) {
+                var mid = (lo + hi) >> 1;
+                var candidate = fullName.slice(0, mid) + "…";
+                nameEl.textContent = candidate;
+                if (nameEl.getComputedTextLength() <= availPx) { best = candidate; lo = mid + 1; }
+                else hi = mid - 1;
+              }
+              nameEl.textContent = best.length > 1 ? best : "";
+              if (!best) g.removeChild(nameEl);
+            }
+
+            if (p.h >= 34) {
+              var valEl = mk("text", {
+                x: p.x + 6, y: p.y + 25, fill: useWhite ? "rgba(255,255,255,0.85)" : "var(--ink-mute)",
+                class: "tm-cell-value"
+              });
+              valEl.textContent = fmt(d.value) + (metric === "n_r" ? " rows" : " pts");
+              g.appendChild(valEl);
+              if (valEl.getComputedTextLength() > availPx) g.removeChild(valEl);
+            }
+          }
+
+          g.addEventListener("pointerenter", show);
+          g.addEventListener("pointermove", show);
+          g.addEventListener("pointerleave", function () { tip.style.opacity = 0; });
+          function show(ev) {
+            var rectBB = svg.getBoundingClientRect();
+            var wrapRect = wrapDiv.getBoundingClientRect();
+            var scale = rectBB.width / TW;
+            var cx = p.x + p.w / 2, cy = p.y;
+            tip.style.left = (rectBB.left - wrapRect.left + cx * scale) + "px";
+            tip.style.top = (rectBB.top - wrapRect.top + cy * scale - 4) + "px";
+            var share = layoutTotal ? (100 * d.value / layoutTotal).toFixed(1) : "0.0";
+            var shareNote = metric === "n_r" ? " of table" : " of top-10 shown";
+            tip.innerHTML = "<b>" + d.ref.name + "</b><br>" + fmt(d.value) + (metric === "n_r" ? " rows" : " patients") +
+              " &middot; " + share + "%" + shareNote;
+            tip.style.opacity = 1;
+          }
+        });
+      }
+
+      btnNr.addEventListener("click", function () {
+        btnNr.classList.add("active"); btnN.classList.remove("active");
+        render("n_r");
+      });
+      btnN.addEventListener("click", function () {
+        btnN.classList.add("active"); btnNr.classList.remove("active");
+        render("n");
+      });
+
+      render("n_r");
+    });
+  })();
+
+  // ---------------- measurement value distributions (box plots) ----------------
+  // n / n_r / mean / stddev / min / p05 / p25 / p50 / p75 / p95 / max: all computed in a
+  // single direct pass over measurement.value_as_number (grouped by concept, merged across
+  // any unit_concept_id variants), so every number on a card comes from the same query.
+  var measurementStats = D.measurements;
+
+  (function () {
+    var BW = 260, BH = 60, BPAD_L = 6, BPAD_R = 6, BAXIS_Y = 34, BOX_H = 20;
+    var host = document.getElementById("chart-boxplots");
+    var svgNS = "http://www.w3.org/2000/svg";
+    function mk(tag, attrs) {
+      var e = document.createElementNS(svgNS, tag);
+      for (var k in attrs) e.setAttribute(k, attrs[k]);
+      return e;
+    }
+    function fmtVal(v) {
+      return (Math.round(v * 100) / 100).toLocaleString("en-US", { minimumFractionDigits: v % 1 === 0 ? 0 : 1, maximumFractionDigits: 2 });
+    }
+
+    measurementStats.forEach(function (d) {
+      var card = el("div", "card box-card", host);
+      card.dataset.search = (d.name + " " + d.full + " " + d.unit).toLowerCase();
+
+      var head = el("div", "box-card-head", card);
+      var name = el("div", "box-name", head);
+      name.textContent = d.name;
+      name.title = d.full;
+      var unit = el("div", "box-unit", head);
+      unit.textContent = d.unit;
+
+      var meanLine = el("div", "box-mean-line tabular", card);
+      meanLine.innerHTML = "median <b>" + fmtVal(d.p50) + "</b> &middot; mean <b>" + fmtVal(d.mean) + "</b> &middot; n=" + fmt(d.n);
+
+      var wrapDiv = el("div", "box-svg-wrap", card);
+      var innerW = BW - BPAD_L - BPAD_R;
+      var domainMin = d.min, domainMax = d.max;
+      var constant = domainMax === domainMin; // e.g. a dipstick reading with no observed variation
+      function xOf(v) { return constant ? BPAD_L + innerW / 2 : BPAD_L + innerW * (v - domainMin) / (domainMax - domainMin); }
+
+      var svg = document.createElementNS(svgNS, "svg");
+      svg.setAttribute("viewBox", "0 0 " + BW + " " + BH);
+      svg.setAttribute("width", "100%");
+      svg.style.display = "block";
+      svg.style.overflow = "visible";
+
+      var midY = 22;
+
+      // full observed range (min–max), hairline
+      svg.appendChild(mk("line", { x1: xOf(d.min), x2: xOf(d.max), y1: midY, y2: midY, stroke: "var(--baseline)", "stroke-width": 1 }));
+      // whisker p05–p95
+      svg.appendChild(mk("line", { x1: xOf(d.p05), x2: xOf(d.p95), y1: midY, y2: midY, stroke: "var(--accent)", "stroke-width": 2, "stroke-linecap": "round" }));
+      // whisker caps
+      [d.p05, d.p95].forEach(function (v) {
+        svg.appendChild(mk("line", { x1: xOf(v), x2: xOf(v), y1: midY - 5, y2: midY + 5, stroke: "var(--accent)", "stroke-width": 1.5 }));
+      });
+      // IQR box
+      svg.appendChild(mk("rect", {
+        x: xOf(d.p25), y: midY - BOX_H / 2, width: Math.max(2, xOf(d.p75) - xOf(d.p25)), height: BOX_H,
+        fill: "var(--accent)", opacity: 0.18, stroke: "var(--accent)", "stroke-width": 1, rx: 2
+      }));
+      // median tick
+      svg.appendChild(mk("line", { x1: xOf(d.p50), x2: xOf(d.p50), y1: midY - BOX_H / 2, y2: midY + BOX_H / 2, stroke: "var(--ink)", "stroke-width": 2 }));
+      // mean marker (ring)
+      svg.appendChild(mk("circle", { cx: xOf(d.mean), cy: midY, r: 4.5, fill: "var(--surface)", stroke: "var(--accent)", "stroke-width": 2 }));
+
+      // axis ticks: min, max (or a single centered note when the value never varies)
+      if (constant) {
+        var lbl0 = mk("text", {
+          x: BW / 2, y: BAXIS_Y, fill: "var(--ink-mute)", "font-size": 9, "font-family": "IBM Plex Mono, monospace", "text-anchor": "middle"
+        });
+        lbl0.textContent = "constant at " + fmtVal(d.min);
+        svg.appendChild(lbl0);
+      } else {
+        [{ v: d.min, anchor: "start" }, { v: d.max, anchor: "end" }].forEach(function (t) {
+          var lbl = mk("text", {
+            x: xOf(t.v), y: BAXIS_Y, fill: "var(--ink-mute)", "font-size": 9, "font-family": "IBM Plex Mono, monospace", "text-anchor": t.anchor
+          });
+          lbl.textContent = fmtVal(t.v);
+          svg.appendChild(lbl);
+        });
+      }
+
+      // single hit target over the whole plot band for a full-breakdown tooltip
+      var hit = mk("rect", { x: 0, y: midY - BOX_H / 2 - 6, width: BW, height: BOX_H + 12, fill: "transparent" });
+      hit.style.cursor = "crosshair";
+      svg.appendChild(hit);
+
+      wrapDiv.appendChild(svg);
+      var tip = el("div", "mult-tooltip", wrapDiv);
+
+      hit.addEventListener("pointerenter", show);
+      hit.addEventListener("pointermove", show);
+      hit.addEventListener("pointerleave", function () { tip.style.opacity = 0; });
+      function show(ev) {
+        var rect = svg.getBoundingClientRect();
+        var wrapRect = wrapDiv.getBoundingClientRect();
+        var scale = rect.width / BW;
+        var localX = (ev.clientX - rect.left) / scale;
+        tip.style.left = (rect.left - wrapRect.left + Math.min(Math.max(localX, 40), BW - 40) * scale) + "px";
+        tip.style.top = (rect.top - wrapRect.top + midY - BOX_H / 2 - 8) + "px";
+        tip.innerHTML =
+          "min <b>" + fmtVal(d.min) + "</b> &middot; p05 <b>" + fmtVal(d.p05) + "</b> &middot; p25 <b>" + fmtVal(d.p25) + "</b><br>" +
+          "median <b>" + fmtVal(d.p50) + "</b> &middot; mean <b>" + fmtVal(d.mean) + "</b><br>" +
+          "p75 <b>" + fmtVal(d.p75) + "</b> &middot; p95 <b>" + fmtVal(d.p95) + "</b> &middot; max <b>" + fmtVal(d.max) + "</b>";
+        tip.style.opacity = 1;
+      }
+    });
+
+    // ---- search / filter: jump to a specific measurement ----
+    var searchInput = document.getElementById("measurement-search");
+    var searchClear = document.getElementById("measurement-search-clear");
+    var searchCount = document.getElementById("measurement-search-count");
+    var searchEmpty = document.getElementById("measurement-search-empty");
+    var allCards = Array.prototype.slice.call(host.querySelectorAll(".box-card"));
+    var totalCards = allCards.length;
+
+    function applySearch() {
+      var q = searchInput.value.trim().toLowerCase();
+      searchClear.hidden = q.length === 0;
+
+      if (!q) {
+        allCards.forEach(function (c) { c.classList.remove("is-hidden"); });
+        searchCount.textContent = "";
+        searchEmpty.hidden = true;
+        return;
+      }
+
+      var visible = 0;
+      allCards.forEach(function (c) {
+        var isMatch = c.dataset.search.indexOf(q) !== -1;
+        c.classList.toggle("is-hidden", !isMatch);
+        if (isMatch) visible++;
+      });
+
+      searchCount.textContent = visible + " of " + totalCards;
+      searchEmpty.hidden = visible !== 0;
+      searchEmpty.querySelector("span").textContent = searchInput.value.trim();
+    }
+
+    searchInput.addEventListener("input", applySearch);
+    searchInput.addEventListener("keydown", function (ev) {
+      if (ev.key === "Escape") { searchInput.value = ""; applySearch(); searchInput.blur(); }
+    });
+    searchClear.addEventListener("click", function () {
+      searchInput.value = "";
+      applySearch();
+      searchInput.focus();
+    });
+  })();
+
+  // ---------------- footer ----------------
+  (function () {
+    var host = document.getElementById("footer");
+    var s1 = el("span", null, host);
+    s1.appendChild(document.createTextNode("Generated from "));
+    var mono = el("span", "mono", s1);
+    mono.textContent = "basic_mapped_data_stats.py --extended-queries";
+    s1.appendChild(document.createTextNode(" output, run " + D.meta.statsRunTag + " — " + D.meta.footerNote));
+    var s2 = el("span", null, host);
+    s2.textContent = "PreparedSource2OHDSI · hash_id@" + D.meta.hashId;
+  })();
+})();
+</script>
+
+</body></html>
