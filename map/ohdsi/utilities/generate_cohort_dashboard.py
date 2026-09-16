@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """
-Builds the "Synthea -> OHDSI Mapped Cohort" HTML dashboard from a
-basic_mapped_data_stats.py --extended-queries --output-csv-files run.
+Builds the "OHDSI Mapped Cohort" HTML dashboard from a
+basic_mapped_data_stats.py --extended-queries --output-csv-files run. Source-
+agnostic -- the masthead's "Source" label comes from cdm_source.csv, not from
+any assumption about where the data came from (Synthea or otherwise).
 
 Usage:
     python generate_cohort_dashboard.py \\
@@ -209,6 +211,24 @@ def color_s(i):
     return "var(--s%d)" % i
 
 
+def derive_source_label(cdm_source):
+    """The masthead 'Source' field describes whatever dataset this run was built
+    from -- it must never assume Synthea specifically, since the same script runs
+    against real (non-synthetic) data too. Pull it from cdm_source.csv, which the
+    ETL populates for every run regardless of source, rather than hardcoding
+    anything dataset-specific here."""
+    name = cdm_source.get("cdm_source_name", "").strip()
+    holder = cdm_source.get("cdm_holder", "").strip()
+    abbrev = cdm_source.get("cdm_source_abbreviation", "").strip()
+    if name and holder and holder.lower() not in ("", "not specified"):
+        return f"{name} ({holder})"
+    if name:
+        return name
+    if abbrev:
+        return abbrev
+    return "unspecified source"
+
+
 def build_data(stats_dir, hash_id, source_label, min_cell_size=0):
     d = pathlib.Path(stats_dir)
 
@@ -223,6 +243,9 @@ def build_data(stats_dir, hash_id, source_label, min_cell_size=0):
     providers = read_single(p("provider_count"))
     locations = read_single(p("locations_count"))
     cdm_source = read_single(p("cdm_source"))
+
+    if source_label is None:
+        source_label = derive_source_label(cdm_source)
 
     patients = as_int(count_people["n"])
     visits = as_int(count_visits["n_r"])
@@ -527,7 +550,12 @@ def main():
         "--hash-id", default=None,
         help="Short commit hash to display in the footer (default: current HEAD of this script's repo)",
     )
-    ap.add_argument("--source-label", default="synthea (synthetic)", help="Masthead 'Source' label")
+    ap.add_argument(
+        "--source-label", default=None,
+        help="Masthead 'Source' label. Default: derived from cdm_source.csv's cdm_source_name "
+             "(and cdm_holder, if set) in --stats-dir -- pass this to override with something more "
+             "descriptive, e.g. '--source-label \"Synthea (synthetic)\"' for a dev/test run.",
+    )
     ap.add_argument(
         "--min-cell-size", type=int, default=0, metavar="N",
         help="Small-cell suppression threshold: any demographic bucket, concept, or measurement "
