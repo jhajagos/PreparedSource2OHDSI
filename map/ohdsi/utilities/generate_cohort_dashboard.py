@@ -151,18 +151,50 @@ def suppress_and_merge(rows, n_col, label_fn, threshold):
 NEUTRAL_LABEL_PREFIXES = ("no matching concept", "suppressed")
 
 
-def colorize(pairs):
+DEFAULT_PALETTE = (1, 2, 3, 4, 5, 6, 7, 8)
+# Visit type historically used this non-sequential order (s7 in the 4th slot rather
+# than s4) so "Non-hospital institution Visit" / "Telehealth" / "Home Visit" -- the
+# three concepts that needed custom mapping fixes -- read as visually distinct from
+# the three high-volume built-in visit types rather than just continuing the ramp.
+VISIT_TYPE_PALETTE = (1, 2, 3, 7, 4, 5, 6, 8)
+
+
+def colorize(pairs, palette=DEFAULT_PALETTE):
     """pairs: [(label, value), ...] from suppress_and_merge. Sorts desc by value and
-    assigns palette colors in rank order, except residual/no-info buckets ('No
-    matching concept', a suppressed-cell bucket), which always render neutral
-    (ink-mute) rather than taking a palette slot."""
+    assigns palette colors in rank order (cycling through `palette`, an ordering of
+    s1..s8 slots), except residual/no-info buckets ('No matching concept', a
+    suppressed-cell bucket), which always render neutral (ink-mute) rather than
+    taking a palette slot."""
     pairs_sorted = sorted(pairs, key=lambda p: -p[1])
-    out, ci = [], 1
+    out, ci = [], 0
     for label, value in pairs_sorted:
         if label.lower().startswith(NEUTRAL_LABEL_PREFIXES):
             color = "var(--ink-mute)"
         else:
-            color = color_s(ci)
+            color = color_s(palette[ci % len(palette)])
+            ci += 1
+        out.append({"label": label, "value": value, "color": color})
+    return out
+
+
+def colorize_gender(pairs):
+    """Gender gets a fixed semantic mapping (Female always blue/s1, Male always
+    orange/s2) rather than rank-based colors, since which one is larger varies by
+    site and swapping the color each run would be a needless inconsistency. Any
+    other label (a third gender category, or a suppressed bucket) falls back to
+    rank-based colors from the remaining palette slots."""
+    pairs_sorted = sorted(pairs, key=lambda p: -p[1])
+    fixed = {"female": color_s(1), "male": color_s(2)}
+    out, ci = [], 0
+    fallback_palette = tuple(i for i in DEFAULT_PALETTE if i not in (1, 2))
+    for label, value in pairs_sorted:
+        low = label.lower()
+        if low.startswith(NEUTRAL_LABEL_PREFIXES):
+            color = "var(--ink-mute)"
+        elif low in fixed:
+            color = fixed[low]
+        else:
+            color = color_s(fallback_palette[ci % len(fallback_palette)])
             ci += 1
         out.append({"label": label, "value": value, "color": color})
     return out
@@ -225,7 +257,7 @@ def build_data(stats_dir, hash_id, source_label, min_cell_size=0):
     drugs_not_mapped_concept = read_csv(p("drug_not_mapped_to_concept_ids"))
 
     demographics = {
-        "gender": colorize(suppress_and_merge(
+        "gender": colorize_gender(suppress_and_merge(
             gender_rows, "n", lambda r: r["gender_concept_name"].title(), min_cell_size)),
         "race": colorize(suppress_and_merge(
             race_rows, "n", lambda r: short_name(r["race_concept_name"]), min_cell_size)),
@@ -234,7 +266,7 @@ def build_data(stats_dir, hash_id, source_label, min_cell_size=0):
     }
 
     visit_type = colorize(suppress_and_merge(
-        visit_type_rows, "n", lambda r: r["visit_concept_name"], min_cell_size))
+        visit_type_rows, "n", lambda r: r["visit_concept_name"], min_cell_size), palette=VISIT_TYPE_PALETTE)
     mapped_visit_labels = {"Non-hospital institution Visit", "Telehealth", "Home Visit"}
     for entry in visit_type:
         if entry["label"] in mapped_visit_labels:
