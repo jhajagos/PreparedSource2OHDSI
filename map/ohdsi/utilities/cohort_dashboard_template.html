@@ -617,12 +617,20 @@ var COHORT_DATA = /*__COHORT_DATA_JSON__*/ null;
   // ---------------- masthead ----------------
   (function () {
     var host = document.getElementById("masthead-meta");
-    [
+    var pairs = [
       ["Source", D.meta.sourceLabel],
-      ["ETL", D.meta.etl],
-      ["Stats run", D.meta.statsRunLabel],
-      ["Vocabulary", D.meta.vocabulary]
-    ].forEach(function (pair) {
+      ["ETL", D.meta.etl]
+    ];
+    if (D.meta.sourceReleaseDate) pairs.push(["Source release", D.meta.sourceReleaseDate]);
+    // cdm_release_date is often identical to source_release_date (both stamped at ETL
+    // time) -- only show it separately when it actually differs, so the masthead
+    // doesn't repeat the same date under two labels.
+    if (D.meta.cdmReleaseDate && D.meta.cdmReleaseDate !== D.meta.sourceReleaseDate) {
+      pairs.push(["CDM release", D.meta.cdmReleaseDate]);
+    }
+    pairs.push(["Stats run", D.meta.statsRunLabel]);
+    pairs.push(["Vocabulary", D.meta.vocabulary]);
+    pairs.forEach(function (pair) {
       var span = el("span", null, host);
       var b = el("b", null, span);
       b.textContent = pair[0];

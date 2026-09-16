@@ -487,6 +487,19 @@ def build_data(stats_dir, hash_id, source_label, min_cell_size=0):
     vocab = cdm_source.get("vocabulary_version", "").strip()
     vocab = vocab.replace("-", "‑") if vocab else "unknown"
 
+    def format_date_label(raw):
+        raw = (raw or "").strip()
+        if not raw:
+            return ""
+        try:
+            dt = datetime.strptime(raw[:10], "%Y-%m-%d")
+        except ValueError:
+            return raw.replace("-", "‑")
+        return dt.strftime("%Y") + "‑" + dt.strftime("%m") + "‑" + dt.strftime("%d")
+
+    source_release_date = format_date_label(cdm_source.get("source_release_date"))
+    cdm_release_date = format_date_label(cdm_source.get("cdm_release_date"))
+
     footer_note = ("mean/stddev computed directly in the SQL (measurement_concepts_count / "
                    "measurement_units_ranges), no separate duckdb pass needed")
     if min_cell_size > 0:
@@ -499,6 +512,8 @@ def build_data(stats_dir, hash_id, source_label, min_cell_size=0):
             "statsRunLabel": stats_run_label,
             "statsRunTag": stats_run_tag,
             "vocabulary": vocab,
+            "sourceReleaseDate": source_release_date,
+            "cdmReleaseDate": cdm_release_date,
             "hashId": hash_id,
             "footerNote": footer_note,
             "minCellSize": min_cell_size,
