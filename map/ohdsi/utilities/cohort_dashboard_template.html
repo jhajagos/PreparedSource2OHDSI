@@ -634,10 +634,13 @@ var COHORT_DATA = /*__COHORT_DATA_JSON__*/ null;
   (function () {
     var host = document.getElementById("tiles");
     var avgVisits = (D.tiles.visits / D.tiles.patients).toFixed(1);
+    var deathsTile = D.tiles.deathsSuppressed
+      ? { label: "Recorded deaths", value: "<" + fmt(D.meta.minCellSize), sub: "cell suppressed (n<" + fmt(D.meta.minCellSize) + ")" }
+      : { label: "Recorded deaths", value: fmt(D.tiles.deaths), sub: pct(D.tiles.deaths, D.tiles.patients) + " of cohort" };
     var tiles = [
       { label: "Patients", value: fmt(D.tiles.patients), sub: D.tiles.yearSpan[0] + " – " + D.tiles.yearSpan[1] + " span" },
       { label: "Visit occurrences", value: fmt(D.tiles.visits), sub: "avg " + avgVisits + " / patient" },
-      { label: "Recorded deaths", value: fmt(D.tiles.deaths), sub: pct(D.tiles.deaths, D.tiles.patients) + " of cohort" },
+      deathsTile,
       { label: "Observation periods", value: fmt(D.tiles.observationPeriods), sub: "1:1 patient coverage" },
       { label: "Care sites · providers", value: fmt(D.tiles.careSites), sub: fmt(D.tiles.careSites) + " each · " + fmt(D.tiles.locations) + " locations" }
     ];

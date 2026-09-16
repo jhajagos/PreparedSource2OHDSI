@@ -108,6 +108,66 @@ def top_n_by(rows, key, n):
     return sorted(rows, key=lambda r: -as_int(r[key]))[:n]
 
 
+def suppress_and_merge(rows, n_col, label_fn, threshold):
+    """Small-cell suppression for a categorical breakdown (gender/race/ethnicity/visit
+    type/...). Any row whose distinct-patient count is below `threshold` is pulled out
+    and folded into a single aggregate "Suppressed" bucket instead of ever displaying
+    its exact (small) count -- that bucket's total is itself only shown if it clears
+    the same threshold, so a lone small group can't be reverse-engineered from it.
+    threshold <= 0 disables suppression entirely (fine for fully synthetic data; never
+    do this against real patient data without an explicit, deliberate choice to do so).
+    This is basic single-release cell suppression, not full statistical disclosure
+    control -- it does not protect against differencing attacks across multiple
+    dashboard releases from overlapping cohorts. Have your IRB/DUA owner confirm the
+    threshold and this approach before relying on it for a real-data report.
+    """
+    if threshold <= 0:
+        return [(label_fn(r), as_int(r[n_col])) for r in rows]
+    kept, suppressed_n, suppressed_groups = [], 0, 0
+    for r in rows:
+        n = as_int(r[n_col])
+        if n < threshold:
+            suppressed_n += n
+            suppressed_groups += 1
+        else:
+            kept.append((label_fn(r), n))
+    if suppressed_groups and suppressed_n >= threshold:
+        label = f"Suppressed (n<{threshold}, {suppressed_groups} group{'s' if suppressed_groups != 1 else ''})"
+        kept.append((label, suppressed_n))
+    elif suppressed_groups:
+        # even the merged bucket doesn't clear the threshold -- fold it into the
+        # largest kept group rather than displaying a still-small aggregate count
+        label = "Suppressed (folded into largest group)"
+        if kept:
+            kept.sort(key=lambda p: -p[1])
+            biggest_label, biggest_n = kept[0]
+            kept[0] = (biggest_label + f" (incl. {suppressed_groups} suppressed cell{'s' if suppressed_groups != 1 else ''})",
+                       biggest_n + suppressed_n)
+        else:
+            kept.append((label, suppressed_n))
+    return kept
+
+
+NEUTRAL_LABEL_PREFIXES = ("no matching concept", "suppressed")
+
+
+def colorize(pairs):
+    """pairs: [(label, value), ...] from suppress_and_merge. Sorts desc by value and
+    assigns palette colors in rank order, except residual/no-info buckets ('No
+    matching concept', a suppressed-cell bucket), which always render neutral
+    (ink-mute) rather than taking a palette slot."""
+    pairs_sorted = sorted(pairs, key=lambda p: -p[1])
+    out, ci = [], 1
+    for label, value in pairs_sorted:
+        if label.lower().startswith(NEUTRAL_LABEL_PREFIXES):
+            color = "var(--ink-mute)"
+        else:
+            color = color_s(ci)
+            ci += 1
+        out.append({"label": label, "value": value, "color": color})
+    return out
+
+
 def year_series(rows, year_col, n_col, years):
     by_year = {as_int(r[year_col]): as_int(r[n_col]) for r in rows if r[year_col].strip() != ""}
     return [by_year.get(y, 0) for y in years]
@@ -117,7 +177,7 @@ def color_s(i):
     return "var(--s%d)" % i
 
 
-def build_data(stats_dir, hash_id, source_label):
+def build_data(stats_dir, hash_id, source_label, min_cell_size=0):
     d = pathlib.Path(stats_dir)
 
     def p(name):
@@ -140,6 +200,13 @@ def build_data(stats_dir, hash_id, source_label):
     n_providers = as_int(providers["n_r"])
     n_locations = as_int(locations["n_r"])
 
+    if min_cell_size > 0 and patients < min_cell_size:
+        raise ValueError(
+            f"Cohort size ({patients}) is below the minimum cell size ({min_cell_size}) -- "
+            f"refusing to generate a report for a cohort this small."
+        )
+    deaths_suppressed = min_cell_size > 0 and 0 < deaths < min_cell_size
+
     # year span: earliest/latest visit year present in the full (unfiltered) yearly counts
     yearly_visit_rows = read_csv(p("yearly_visit_counts"))
     all_visit_years = [as_int(r["visit_year"]) for r in yearly_visit_rows if r["visit_year"].strip() != ""]
@@ -157,52 +224,21 @@ def build_data(stats_dir, hash_id, source_label):
     drugs_not_mapped_std = read_csv(p("drugs_not_mapped_to_standard_concepts"))
     drugs_not_mapped_concept = read_csv(p("drug_not_mapped_to_concept_ids"))
 
-    gender_colors = {"FEMALE": color_s(1), "MALE": color_s(2)}
     demographics = {
-        "gender": [
-            {
-                "label": r["gender_concept_name"].title(),
-                "value": as_int(r["n"]),
-                "color": gender_colors.get(r["gender_concept_name"], color_s(3)),
-            }
-            for r in sorted(gender_rows, key=lambda r: -as_int(r["n"]))
-        ],
-        "race": [],
-        "ethnicity": [],
+        "gender": colorize(suppress_and_merge(
+            gender_rows, "n", lambda r: r["gender_concept_name"].title(), min_cell_size)),
+        "race": colorize(suppress_and_merge(
+            race_rows, "n", lambda r: short_name(r["race_concept_name"]), min_cell_size)),
+        "ethnicity": colorize(suppress_and_merge(
+            ethnicity_rows, "n", lambda r: r["ethnicity_concept_name"], min_cell_size)),
     }
 
-    race_sorted = sorted(race_rows, key=lambda r: -as_int(r["n"]))
-    race_palette = [color_s(i) for i in (1, 2, 3, 4, 5, 6, 7, 8)]
-    ci = 0
-    for r in race_sorted:
-        if r["race_concept_name"].strip().lower() == "no matching concept":
-            color = "var(--ink-mute)"
-        else:
-            color = race_palette[ci % len(race_palette)]
-            ci += 1
-        demographics["race"].append(
-            {"label": short_name(r["race_concept_name"]), "value": as_int(r["n"]), "color": color}
-        )
-
-    eth_sorted = sorted(ethnicity_rows, key=lambda r: -as_int(r["n"]))
-    for i, r in enumerate(eth_sorted):
-        demographics["ethnicity"].append(
-            {"label": r["ethnicity_concept_name"], "value": as_int(r["n"]), "color": color_s(i + 1)}
-        )
-
-    visit_type_sorted = sorted(visit_type_rows, key=lambda r: -as_int(r["n"]))
-    visit_type_palette = [1, 2, 3, 7, 4, 5, 6, 8]
-    visit_type = []
-    for i, r in enumerate(visit_type_sorted):
-        name = r["visit_concept_name"]
-        entry = {
-            "label": name,
-            "value": as_int(r["n"]),
-            "color": color_s(visit_type_palette[i % len(visit_type_palette)]),
-        }
-        if name in ("Non-hospital institution Visit", "Telehealth", "Home Visit"):
+    visit_type = colorize(suppress_and_merge(
+        visit_type_rows, "n", lambda r: r["visit_concept_name"], min_cell_size))
+    mapped_visit_labels = {"Non-hospital institution Visit", "Telehealth", "Home Visit"}
+    for entry in visit_type:
+        if entry["label"] in mapped_visit_labels:
             entry["tag"] = "MAPPED"
-        visit_type.append(entry)
 
     data_quality = []
     if not unmapped_visit_types:
@@ -247,8 +283,13 @@ def build_data(stats_dir, hash_id, source_label):
         })
 
     # ---------------- top concepts (top 6 by n, ties broken by n_r) ----------------
+    # Concepts with fewer than min_cell_size patients are excluded from the candidate
+    # pool entirely -- a rare concept never gets a labeled bar showing its small n,
+    # it just doesn't appear (no aggregate "other" needed here; this list is a top-6
+    # highlight, not an accounting of the whole domain the way the treemaps are).
     def top6_by_n(rows, name_col):
-        rows_sorted = sorted(rows, key=lambda r: (-as_int(r["n"]), -as_int(r["n_r"])))
+        eligible = [r for r in rows if as_int(r["n"]) >= min_cell_size] if min_cell_size > 0 else rows
+        rows_sorted = sorted(eligible, key=lambda r: (-as_int(r["n"]), -as_int(r["n_r"])))
         return [
             {"label": short_name(r[name_col]), "value": as_int(r["n"]), "color": color_s(1)}
             for r in rows_sorted[:6]
@@ -287,8 +328,12 @@ def build_data(stats_dir, hash_id, source_label):
         })
 
     # ---------------- treemaps: top 10 by n_r + "other" bucket per table ----------------
+    # Concepts with fewer than min_cell_size patients are excluded from top-10
+    # candidacy (their rows still count toward total_n_r, so they're absorbed into
+    # the "other" bucket automatically -- their individual small n/n_r is never shown).
     def build_treemap(key, title, table, concepts_rows, name_col, total_n_r):
-        top10 = top_n_by(concepts_rows, "n_r", 10)
+        eligible = [r for r in concepts_rows if as_int(r["n"]) >= min_cell_size] if min_cell_size > 0 else concepts_rows
+        top10 = top_n_by(eligible, "n_r", 10)
         items = [
             {"name": short_name(r[name_col]), "n": as_int(r["n"]), "n_r": as_int(r["n_r"])}
             for r in top10
@@ -339,6 +384,12 @@ def build_data(stats_dir, hash_id, source_label):
         r for r in measurement_concepts
         if r["min_value_as_number"].strip() != "" and r["p50"].strip() != ""
     ]
+    if min_cell_size > 0:
+        # a measurement's exact min/max are themselves potentially identifying (an
+        # extreme outlier value can correspond to a single patient), independent of
+        # the small-cell-count concern this threshold otherwise covers -- dropping
+        # sub-threshold-n measurements here does NOT address that separate risk.
+        numeric_measurements = [r for r in numeric_measurements if as_int(r["n"]) >= min_cell_size]
     top20 = top_n_by(numeric_measurements, "n_r", 20)
     measurements = []
     for r in top20:
@@ -381,6 +432,11 @@ def build_data(stats_dir, hash_id, source_label):
     vocab = cdm_source.get("vocabulary_version", "").strip()
     vocab = vocab.replace("-", "‑") if vocab else "unknown"
 
+    footer_note = ("mean/stddev computed directly in the SQL (measurement_concepts_count / "
+                   "measurement_units_ranges), no separate duckdb pass needed")
+    if min_cell_size > 0:
+        footer_note += f" · small-cell suppression applied: counts below n={min_cell_size} are merged/redacted"
+
     return {
         "meta": {
             "sourceLabel": source_label,
@@ -389,14 +445,15 @@ def build_data(stats_dir, hash_id, source_label):
             "statsRunTag": stats_run_tag,
             "vocabulary": vocab,
             "hashId": hash_id,
-            "footerNote": "mean/stddev computed directly in the SQL (measurement_concepts_count / "
-                          "measurement_units_ranges), no separate duckdb pass needed",
+            "footerNote": footer_note,
+            "minCellSize": min_cell_size,
         },
         "tiles": {
             "patients": patients,
             "yearSpan": year_span,
             "visits": visits,
             "deaths": deaths,
+            "deathsSuppressed": deaths_suppressed,
             "observationPeriods": obs_periods,
             "careSites": n_care_sites,
             "providers": n_providers,
@@ -439,11 +496,27 @@ def main():
         help="Short commit hash to display in the footer (default: current HEAD of this script's repo)",
     )
     ap.add_argument("--source-label", default="synthea (synthetic)", help="Masthead 'Source' label")
+    ap.add_argument(
+        "--min-cell-size", type=int, default=0, metavar="N",
+        help="Small-cell suppression threshold: any demographic bucket, concept, or measurement "
+             "with fewer than N distinct patients is merged/redacted rather than shown. Default 0 "
+             "(disabled) -- fine for fully synthetic data (e.g. Synthea); pick a value with your "
+             "IRB/DUA owner (11 and 5 are common conventions) before running against real patient "
+             "data. This is basic single-release cell suppression, not full statistical disclosure "
+             "control.",
+    )
     args = ap.parse_args()
+
+    if args.min_cell_size <= 0:
+        print(
+            "warning: --min-cell-size is 0 (no small-cell suppression) -- do not run this against "
+            "real/PHI data without setting it; see --help.",
+            file=sys.stderr,
+        )
 
     hash_id = args.hash_id or git_short_hash(HERE)
 
-    data = build_data(args.stats_dir, hash_id, args.source_label)
+    data = build_data(args.stats_dir, hash_id, args.source_label, min_cell_size=args.min_cell_size)
 
     template_path = pathlib.Path(args.template)
     template_html = template_path.read_text(encoding="utf-8")
