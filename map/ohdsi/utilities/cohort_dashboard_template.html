@@ -311,6 +311,7 @@
 
   /* ---------- treemaps ---------- */
   .grid-treemaps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .grid-domain-overview { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
   .tm-card { padding: 13px 15px 12px; }
   .tm-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 2px; }
   .tm-title { font-size: 12.5px; font-weight: 600; color: var(--ink); }
@@ -452,6 +453,7 @@
     .grid-concepts { grid-template-columns: 1fr; }
     .grid-boxplots { grid-template-columns: repeat(2, 1fr); }
     .grid-treemaps { grid-template-columns: 1fr; }
+    .grid-domain-overview { grid-template-columns: 1fr; }
   }
   @media (max-width: 560px) {
     .grid-boxplots { grid-template-columns: 1fr; }
@@ -516,6 +518,26 @@
       <span class="section-note" id="note-temporal"></span>
     </div>
     <div class="grid-multiples" id="chart-multiples"></div>
+  </section>
+
+  <!-- ============ domain overview: patients vs records footprint ============ -->
+  <section>
+    <div class="section-head">
+      <h2>Cohort footprint by domain</h2>
+      <span class="section-note">each domain sized two ways &mdash; domains overlap (a patient can appear in several), so neither total is a cohort headcount</span>
+    </div>
+    <div class="grid-domain-overview">
+      <div class="card tm-card">
+        <div class="tm-head"><div class="tm-title">By patients (n)</div></div>
+        <div class="tm-sub" id="domain-overview-sub-n"></div>
+        <div class="tm-svg-wrap" id="domain-overview-n"></div>
+      </div>
+      <div class="card tm-card">
+        <div class="tm-head"><div class="tm-title">By records (n_r)</div></div>
+        <div class="tm-sub" id="domain-overview-sub-nr"></div>
+        <div class="tm-svg-wrap" id="domain-overview-nr"></div>
+      </div>
+    </div>
   </section>
 
   <!-- ============ top concepts ============ -->
@@ -1031,6 +1053,112 @@ var COHORT_DATA = /*__COHORT_DATA_JSON__*/ null;
 
       render("n_r");
     });
+  })();
+
+  // ---------------- domain overview: patients vs records footprint ----------------
+  // One box per domain (visit/condition/procedure/drug/measurement/observation/device) --
+  // unlike the per-table treemaps above, this is the complete set, nothing truncated, so
+  // no "other" bucket. Shown as two static panels (by n, by n_r) side by side rather than
+  // a toggle, since comparing the two is the point.
+  (function () {
+    var domainOverview = D.domainOverview;
+    var svgNS = "http://www.w3.org/2000/svg";
+    function mk(tag, attrs) {
+      var e = document.createElementNS(svgNS, tag);
+      for (var k in attrs) e.setAttribute(k, attrs[k]);
+      return e;
+    }
+
+    function renderOverviewTreemap(hostId, subId, metric) {
+      var TW = 480, TH = 170;
+      var host = document.getElementById(hostId);
+      var svg = document.createElementNS(svgNS, "svg");
+      svg.setAttribute("viewBox", "0 0 " + TW + " " + TH);
+      svg.setAttribute("width", "100%");
+      svg.style.display = "block";
+      svg.style.overflow = "visible";
+      host.appendChild(svg);
+      var tip = el("div", "mult-tooltip", host);
+
+      var layoutItems = domainOverview.items.map(function (it, i) {
+        return { value: metric === "n_r" ? it.n_r : it.n, ref: it, rank: i };
+      });
+      layoutItems.sort(function (a, b) { return b.value - a.value; });
+      var layoutTotal = layoutItems.reduce(function (a, d) { return a + d.value; }, 0);
+
+      document.getElementById(subId).textContent = metric === "n_r"
+        ? fmt(domainOverview.total_n_r) + " rows total across 7 domains"
+        : "patients can appear in multiple domains — sizes aren't mutually exclusive";
+
+      var placed = squarify(layoutItems, 0, 0, TW, TH);
+      placed.forEach(function (p) {
+        var d = p.item;
+        var opacity = rankOpacity[d.rank] || 0.26;
+
+        var g = mk("g", {});
+        var rect = mk("rect", {
+          x: p.x + 1, y: p.y + 1, width: Math.max(0, p.w - 2), height: Math.max(0, p.h - 2),
+          fill: "var(--accent)", opacity: opacity, rx: 3
+        });
+        rect.style.cursor = "crosshair";
+        g.appendChild(rect);
+        svg.appendChild(g); // attach before measuring text — getComputedTextLength needs a live layout
+
+        var fitsLabel = p.w >= 50 && p.h >= 26;
+        if (fitsLabel) {
+          var useWhite = opacity >= 0.55;
+          var availPx = p.w - 10;
+          var nameEl = mk("text", {
+            x: p.x + 6, y: p.y + 16, fill: useWhite ? "#ffffff" : "var(--ink)",
+            class: "tm-cell-name"
+          });
+          var fullName = d.ref.name;
+          nameEl.textContent = fullName;
+          g.appendChild(nameEl);
+          if (nameEl.getComputedTextLength() > availPx) {
+            var lo = 0, hi = fullName.length, best = "";
+            while (lo <= hi) {
+              var mid = (lo + hi) >> 1;
+              var candidate = fullName.slice(0, mid) + "…";
+              nameEl.textContent = candidate;
+              if (nameEl.getComputedTextLength() <= availPx) { best = candidate; lo = mid + 1; }
+              else hi = mid - 1;
+            }
+            nameEl.textContent = best.length > 1 ? best : "";
+            if (!best) g.removeChild(nameEl);
+          }
+
+          if (p.h >= 40) {
+            var valEl = mk("text", {
+              x: p.x + 6, y: p.y + 30, fill: useWhite ? "rgba(255,255,255,0.85)" : "var(--ink-mute)",
+              class: "tm-cell-value"
+            });
+            valEl.textContent = fmt(d.value) + (metric === "n_r" ? " rows" : " pts");
+            g.appendChild(valEl);
+            if (valEl.getComputedTextLength() > availPx) g.removeChild(valEl);
+          }
+        }
+
+        g.addEventListener("pointerenter", show);
+        g.addEventListener("pointermove", show);
+        g.addEventListener("pointerleave", function () { tip.style.opacity = 0; });
+        function show(ev) {
+          var rectBB = svg.getBoundingClientRect();
+          var hostRect = host.getBoundingClientRect();
+          var scale = rectBB.width / TW;
+          var cx = p.x + p.w / 2, cy = p.y;
+          tip.style.left = (rectBB.left - hostRect.left + cx * scale) + "px";
+          tip.style.top = (rectBB.top - hostRect.top + cy * scale - 4) + "px";
+          var share = layoutTotal ? (100 * d.value / layoutTotal).toFixed(1) : "0.0";
+          tip.innerHTML = "<b>" + d.ref.name + "</b><br>" + fmt(d.value) + (metric === "n_r" ? " rows" : " patients") +
+            " &middot; " + share + "%";
+          tip.style.opacity = 1;
+        }
+      });
+    }
+
+    renderOverviewTreemap("domain-overview-n", "domain-overview-sub-n", "n");
+    renderOverviewTreemap("domain-overview-nr", "domain-overview-sub-nr", "n_r");
   })();
 
   // ---------------- measurement value distributions (box plots) ----------------

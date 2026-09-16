@@ -434,6 +434,23 @@ def build_data(stats_dir, hash_id, source_label, min_cell_size=0, top_measuremen
                 f"count_* total is smaller than the sum of its own top 10 concepts; check the source CSVs"
             )
 
+    # ---------------- domain overview: patients vs records footprint, one box per domain ----------------
+    # Unlike the per-table treemaps above (top 10 concepts + "other" within one domain), this
+    # is the complete set of domains with nothing truncated -- no "other" bucket needed.
+    domain_overview_items = [
+        {"name": "Visit", "n": as_int(count_visits["n"]), "n_r": as_int(count_visits["n_r"])},
+        {"name": "Condition", "n": as_int(count_conditions["n"]), "n_r": as_int(count_conditions["n_r"])},
+        {"name": "Procedure", "n": as_int(count_procedures["n"]), "n_r": as_int(count_procedures["n_r"])},
+        {"name": "Drug", "n": as_int(count_drugs["n"]), "n_r": as_int(count_drugs["n_r"])},
+        {"name": "Measurement", "n": as_int(count_measurements["n"]), "n_r": as_int(count_measurements["n_r"])},
+        {"name": "Observation", "n": as_int(count_observations["n"]), "n_r": as_int(count_observations["n_r"])},
+        {"name": "Device", "n": as_int(count_devices["n"]), "n_r": as_int(count_devices["n_r"])},
+    ]
+    domain_overview = {
+        "items": domain_overview_items,
+        "total_n_r": sum(it["n_r"] for it in domain_overview_items),
+    }
+
     # ---------------- measurement value distributions: top N numeric-only, by n_r ----------------
     numeric_measurements = [
         r for r in measurement_concepts
@@ -534,6 +551,7 @@ def build_data(stats_dir, hash_id, source_label, min_cell_size=0, top_measuremen
         "dataQuality": data_quality,
         "topConcepts": top_concepts,
         "yearly": {"years": years, "domains": yearly_domains},
+        "domainOverview": domain_overview,
         "treemaps": treemaps,
         "measurements": measurements,
     }
