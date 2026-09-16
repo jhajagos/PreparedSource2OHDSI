@@ -557,7 +557,7 @@
   <!-- ============ measurement value distributions ============ -->
   <section>
     <div class="section-head">
-      <h2>Value distributions &mdash; top 20 measurements</h2>
+      <h2 id="heading-measurements">Value distributions</h2>
       <span class="section-note">ranked by row count (n_r) across the whole measurement table; mean, stddev and quantiles all computed directly from measurement.value_as_number in one consistent pass (merged across unit_concept_id variants, non-numeric results excluded)</span>
     </div>
     <div class="box-key">
@@ -1038,6 +1038,8 @@ var COHORT_DATA = /*__COHORT_DATA_JSON__*/ null;
   // single direct pass over measurement.value_as_number (grouped by concept, merged across
   // any unit_concept_id variants), so every number on a card comes from the same query.
   var measurementStats = D.measurements;
+  document.getElementById("heading-measurements").textContent =
+    "Value distributions — top " + fmt(measurementStats.length) + " measurements";
 
   (function () {
     var BW = 260, BH = 60, BPAD_L = 6, BPAD_R = 6, BAXIS_Y = 34, BOX_H = 20;

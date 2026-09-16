@@ -229,7 +229,7 @@ def derive_source_label(cdm_source):
     return "unspecified source"
 
 
-def build_data(stats_dir, hash_id, source_label, min_cell_size=0):
+def build_data(stats_dir, hash_id, source_label, min_cell_size=0, top_measurements=50):
     d = pathlib.Path(stats_dir)
 
     def p(name):
@@ -434,7 +434,7 @@ def build_data(stats_dir, hash_id, source_label, min_cell_size=0):
                 f"count_* total is smaller than the sum of its own top 10 concepts; check the source CSVs"
             )
 
-    # ---------------- measurement value distributions: top 20 numeric-only, by n_r ----------------
+    # ---------------- measurement value distributions: top N numeric-only, by n_r ----------------
     numeric_measurements = [
         r for r in measurement_concepts
         if r["min_value_as_number"].strip() != "" and r["p50"].strip() != ""
@@ -445,9 +445,9 @@ def build_data(stats_dir, hash_id, source_label, min_cell_size=0):
         # the small-cell-count concern this threshold otherwise covers -- dropping
         # sub-threshold-n measurements here does NOT address that separate risk.
         numeric_measurements = [r for r in numeric_measurements if as_int(r["n"]) >= min_cell_size]
-    top20 = top_n_by(numeric_measurements, "n_r", 20)
+    top_n_measurements = top_n_by(numeric_measurements, "n_r", top_measurements)
     measurements = []
-    for r in top20:
+    for r in top_n_measurements:
         concept_name_lower = r["measurement_concept_name"].lower()
         unit = r["unit_concept_code"].strip()
         if unit in ("", "No matching concept"):
@@ -580,7 +580,16 @@ def main():
              "data. This is basic single-release cell suppression, not full statistical disclosure "
              "control.",
     )
+    ap.add_argument(
+        "--top-measurements", type=int, default=50, metavar="N",
+        help="How many measurements to show value-distribution box plots for, ranked by row "
+             "count (n_r) among numeric-valued concepts. Default 50.",
+    )
     args = ap.parse_args()
+
+    if args.top_measurements <= 0:
+        print("error: --top-measurements must be a positive integer", file=sys.stderr)
+        sys.exit(1)
 
     if args.min_cell_size <= 0:
         print(
@@ -591,7 +600,10 @@ def main():
 
     hash_id = args.hash_id or git_short_hash(HERE)
 
-    data = build_data(args.stats_dir, hash_id, args.source_label, min_cell_size=args.min_cell_size)
+    data = build_data(
+        args.stats_dir, hash_id, args.source_label,
+        min_cell_size=args.min_cell_size, top_measurements=args.top_measurements,
+    )
 
     template_path = pathlib.Path(args.template)
     template_html = template_path.read_text(encoding="utf-8")
