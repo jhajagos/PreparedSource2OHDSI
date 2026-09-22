@@ -356,6 +356,7 @@ def build_data(stats_dir, hash_id, source_label, min_cell_size=0, top_measuremen
     measurement_concepts = read_csv(p("measurement_concepts_count"))
     observation_concepts = read_csv(p("observation_concepts_count"))
     device_concepts = read_csv(p("device_concepts_count"))
+    note_concepts = read_csv(p("note_concepts_count"))
 
     top_concepts = {
         "condition": top6_by_n(condition_concepts, "condition_concept_name"),
@@ -373,6 +374,7 @@ def build_data(stats_dir, hash_id, source_label, min_cell_size=0, top_measuremen
         ("measurement", "Measurements", "s5", p("yearly_measurement_counts"), "measurement_year"),
         ("observation", "Observations", "s7", p("yearly_observation_counts"), "observation_year"),
         ("device", "Devices", "s8", p("yearly_device_counts"), "device_year"),
+        ("note", "Notes", "s6", p("yearly_note_counts"), "note_year"),
     ]
     yearly_domains = []
     for key, title, color, path, year_col in domain_specs:
@@ -407,6 +409,7 @@ def build_data(stats_dir, hash_id, source_label, min_cell_size=0, top_measuremen
     count_measurements = read_single(p("count_measurements"))
     count_observations = read_single(p("count_observations"))
     count_devices = read_single(p("count_devices"))
+    count_notes = read_single(p("count_notes"))
 
     treemaps = [
         build_treemap("condition", "Condition", "condition_occurrence", condition_concepts,
@@ -421,6 +424,8 @@ def build_data(stats_dir, hash_id, source_label, min_cell_size=0, top_measuremen
                        "concept_name", as_int(count_observations["n_r"])),
         build_treemap("device", "Device exposure", "device_exposure", device_concepts,
                        "concept_name", as_int(count_devices["n_r"])),
+        build_treemap("note", "Note", "note", note_concepts,
+                       "concept_name", as_int(count_notes["n_r"])),
     ]
 
     for tm in treemaps:
@@ -445,6 +450,7 @@ def build_data(stats_dir, hash_id, source_label, min_cell_size=0, top_measuremen
         {"name": "Measurement", "n": as_int(count_measurements["n"]), "n_r": as_int(count_measurements["n_r"])},
         {"name": "Observation", "n": as_int(count_observations["n"]), "n_r": as_int(count_observations["n_r"])},
         {"name": "Device", "n": as_int(count_devices["n"]), "n_r": as_int(count_devices["n_r"])},
+        {"name": "Note", "n": as_int(count_notes["n"]), "n_r": as_int(count_notes["n_r"])},
     ]
     domain_overview = {
         "items": domain_overview_items,
