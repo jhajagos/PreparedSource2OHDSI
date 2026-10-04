@@ -1,5 +1,9 @@
 import json
 
+"""
+This script creates a reverse mapping from the OID to the vocabulary id JSON file 'oid_to_vocabulary_id.json'
+and maps it to a new JSON file 'vocabulary_to_oid.json'
+"""
 
 def build_reverse_mappings(input_json_file_name, output_json_file_name):
 
