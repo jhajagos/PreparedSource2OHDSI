@@ -75,14 +75,14 @@ In the directory `./ps_frags` each XML files is converted to Prepared Source CSV
 combine these files into a single file.
 
 ```bash
-python ./cda_to_prepared_source_fragments.py -d /home/user/phr_data/jgh_documents/
+python ./clean_combine_prepared_source_fragments.py -d /home/user/phr_data/jgh_documents/
 ```
 
 ### Mapping to OHDSI using the Docker container
 
 ```bash
 cd ~/github/PreparedSource2OHDSI/map/prepared_source/csv/docker
-docker build -t csv2ohdi:latest ./
+docker build -t csv2ohdsi:latest ./
 ```
 
 ```bash
