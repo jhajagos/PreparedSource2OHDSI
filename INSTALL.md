@@ -81,3 +81,32 @@ To install the wheel file to run the scripts:
 cd ./dist/
 pip install preparedsource2ohdsi-0.1.0-py3-none-any.whl
 ```
+
+## Running the tests
+
+The tests use `unittest` and are addressed by module path from the repository root, with `src/`
+and the repository root on `PYTHONPATH`. The only third-party module needed for these three
+suites is `pypdf`, which `cda_to_prepared_source_fragments.py` imports at the top of the file.
+
+```bash
+cd PreparedSource2OHDSI
+export PYTHONPATH=src:.
+
+python -m unittest map.prepared_source.cda.test.test_cda_to_ps -v
+python -m unittest map.prepared_source.cda.test.test_clean_combine -v
+python -m unittest map.prepared_source.fhir.test.test_fhir_to_ps -v
+```
+
+`python -m unittest discover` does not find these tests. The directories between the repository
+root and the test modules are not packages, so discovery stops at the top level and reports that
+no tests ran.
+
+`tests/test_mapping_utilities.py` is a Spark test. It needs `pyspark` and a JDK that the installed
+Spark version supports, and it reads `gender_mappings.csv` relative to the working directory, so
+run it from `tests/`:
+
+```bash
+cd tests
+export PYTHONPATH=../src:..
+python -m unittest test_mapping_utilities
+```
